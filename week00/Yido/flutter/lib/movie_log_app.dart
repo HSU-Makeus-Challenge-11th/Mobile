@@ -10,7 +10,11 @@ class MovieLogApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFF6750A4),
+        scaffoldBackgroundColor: const Color(0xFFFAF9F5),
+      ),
       home: const StartScreen(), // 첫 실행 화면 지정
     );
   }
