@@ -25,10 +25,10 @@ class ProfileHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Text('듀이', style: AppTextStyles.titleLarge),
+        Text('무비러버', style: AppTextStyles.titleLarge),
         const SizedBox(height: 8),
         Text(
-          '매주 주말엔 넷플릭스로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
+          '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
           textAlign: TextAlign.center,
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grayDark),
         ),
