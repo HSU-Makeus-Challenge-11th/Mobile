@@ -11,4 +11,7 @@ abstract final class AppColors {
 
   static const violetDark = Color(0xFF4F378A);
   static const grayDark = Color(0xFF4A4358);
+
+  /// 장르 Chip 배경 등에 쓰는 연보라색 (Figma Primary 200)
+  static const violetLight = Color(0xFFE9DDFF);
 }

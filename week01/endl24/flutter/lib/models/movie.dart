@@ -21,6 +21,7 @@ void main() {
   String displayName(String? nickname) {
     return nickname ?? '이름 없음';
   }
-  print(displayName(null)); 
+
+  print(displayName(null));
   print(displayName('듀이'));
 }

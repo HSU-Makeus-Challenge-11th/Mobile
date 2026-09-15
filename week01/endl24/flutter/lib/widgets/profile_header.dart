@@ -10,7 +10,8 @@ class ProfileHeader extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(2),
+          margin: const EdgeInsets.only(bottom: 16), // 다음 요소와의 바깥 간격
+          padding: const EdgeInsets.all(2), // 테두리와 사진 사이 안쪽 여백
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.violet, width: 2),
@@ -24,7 +25,6 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
         Text('무비러버', style: AppTextStyles.titleLarge),
         const SizedBox(height: 8),
         Text(
