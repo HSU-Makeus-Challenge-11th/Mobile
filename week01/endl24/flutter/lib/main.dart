@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:movielog/theme/app_colors.dart';
 
 import 'theme/app_theme.dart';
 
@@ -27,7 +28,6 @@ class StartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFAF9F5),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -39,7 +39,7 @@ class StartScreen extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 1,
-                  color: Color(0xFF4A4358),
+                  color: AppColors.grayDark,
                 ),
               ),
               SizedBox(height: 64),
@@ -57,7 +57,7 @@ class StartScreen extends StatelessWidget {
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   height: 1.3,
-                  color: Color(0xFF1B1C1A),
+                  color: AppColors.black,
                 ),
               ),
               SizedBox(height: 16),
@@ -67,7 +67,7 @@ class StartScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.4,
-                  color: Color(0xFF4A4358),
+                  color: AppColors.grayDark,
                 ),
               ),
               Spacer(),
@@ -77,7 +77,7 @@ class StartScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4F378A),
+                    backgroundColor: AppColors.violetDark,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
