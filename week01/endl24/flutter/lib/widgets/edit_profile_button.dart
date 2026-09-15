@@ -8,8 +8,7 @@ class EditProfileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
+    return Center(
       child: ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(

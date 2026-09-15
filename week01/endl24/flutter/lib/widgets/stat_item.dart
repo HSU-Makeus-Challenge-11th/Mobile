@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/theme/app_text_styles.dart';
 
 import '../theme/app_colors.dart';
 
@@ -18,9 +19,13 @@ class StatItem extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Text(label, style: AppTextStyles.bodySmall),
           const SizedBox(height: 4),
-          Text(label),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(color: AppColors.violet),
+          ),
         ],
       ),
     );
