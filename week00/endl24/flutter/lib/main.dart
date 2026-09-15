@@ -31,7 +31,7 @@ class StartScreen extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'FLUTTER 1주차',
+                'FLUTTER 0주차',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
