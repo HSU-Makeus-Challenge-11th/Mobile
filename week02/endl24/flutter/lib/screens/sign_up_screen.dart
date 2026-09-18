@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
+import 'package:movielog/widgets/login_prompt.dart';
 import 'package:movielog/widgets/movie_log_text_form_field.dart';
 import 'package:movielog/widgets/sign_up_header.dart';
 import 'package:movielog/widgets/terms_agreement.dart';
@@ -123,6 +124,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   child: const Text('가입하기'),
                 ),
+                const SizedBox(height: 32),
+                const LoginPrompt(),
               ],
             ),
           ),
