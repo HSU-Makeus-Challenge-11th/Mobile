@@ -30,6 +30,9 @@ class MovieLogTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = controller.text;
+    final hasError = text.isNotEmpty && validator(text) != null;
+    final isValid = text.isNotEmpty && validator(text) == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -55,7 +58,12 @@ class MovieLogTextFormField extends StatelessWidget {
             hintText: hintText,
             hintStyle: AppTextStyles.bodySmall,
             filled: true,
-            fillColor: AppColors.grayLight,
+            fillColor: hasError ? AppColors.redLight : AppColors.grayLight,
+            suffixIcon: hasError
+                ? Icon(Icons.error_outline, color: AppColors.red)
+                : isValid
+                ? Icon(Icons.check_circle, color: AppColors.violet)
+                : null,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
