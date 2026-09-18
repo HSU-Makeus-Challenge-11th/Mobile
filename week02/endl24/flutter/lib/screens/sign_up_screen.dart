@@ -47,6 +47,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: AppColors.grayDark,
                   ),
                 ),
+                Text('닉네임'),
+                TextFormField(
+                  controller: _nicknameController,
+                  decoration: const InputDecoration(
+                    hintText: '닉네임을 입력해주세요',
+                    border: OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    final nickname = value?.trim() ?? '';
+                    if (nickname.isEmpty) return '닉네임을 입력해주세요.';
+                    if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                ),
               ],
             ),
           ),
