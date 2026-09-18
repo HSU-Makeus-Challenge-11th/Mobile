@@ -17,6 +17,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   final _formKey = GlobalKey<FormState>();
+  final _nicknameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  bool _agreedToTerms = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +57,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
+    _nicknameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 }
