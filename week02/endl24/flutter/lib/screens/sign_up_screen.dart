@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
-import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
+import 'package:movielog/widgets/sign_up_header.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -42,13 +42,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  "환영합니다!\n간단한 정보만 입력하고 시작해보세요.",
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.grayDark,
-                  ),
-                ),
+                const SignUpHeader(),
                 Text('닉네임'),
                 TextFormField(
                   controller: _nicknameController,
