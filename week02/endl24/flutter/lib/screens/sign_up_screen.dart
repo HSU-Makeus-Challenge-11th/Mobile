@@ -24,6 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordFocusNode = FocusNode();
   bool _agreedToTerms = false;
   final _emailRegExp = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  final _passwordRegExp = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{8,}$');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +76,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   textInputAction: TextInputAction.next,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) return '이메일을 입력해주세요.';
@@ -85,6 +87,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                   onChanged: (_) => setState(() {}),
                   focusNode: _emailFocusNode,
+                  onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                ),
+                Text('비밀번호'),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    hintText: '비밀번호를 입력해주세요',
+                    border: OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.done,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  obscureText: true,
+                  validator: (value) {
+                    final password = value ?? '';
+                    if (password.isEmpty) return '비밀번호를 입력해주세요.';
+                    if (!_passwordRegExp.hasMatch(password)) {
+                      return '영문과 숫자를 포함해 8자 이상 입력해주세요.';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                  focusNode: _passwordFocusNode,
+                  onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 ),
               ],
             ),
