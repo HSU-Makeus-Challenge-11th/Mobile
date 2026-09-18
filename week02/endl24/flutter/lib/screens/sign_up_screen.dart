@@ -23,6 +23,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _agreedToTerms = false;
+  final _emailRegExp = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,6 +64,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                   onChanged: (_) => setState(() {}),
+                  onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
+                ),
+                Text('이메일'),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    hintText: '이메일을 입력해주세요',
+                    border: OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) return '이메일을 입력해주세요.';
+                    if (!_emailRegExp.hasMatch(email)) {
+                      return '올바른 이메일 형식이 아닙니다.';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                  focusNode: _emailFocusNode,
                 ),
               ],
             ),
