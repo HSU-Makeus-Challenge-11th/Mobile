@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
+import 'package:movielog/widgets/movie_log_text_form_field.dart';
 import 'package:movielog/widgets/sign_up_header.dart';
 import 'package:movielog/widgets/terms_agreement.dart';
 
@@ -44,15 +45,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SignUpHeader(),
-                Text('닉네임'),
-                TextFormField(
+                MovieLogTextFormField(
+                  label: '닉네임',
+                  hintText: '닉네임을 입력해주세요',
                   controller: _nicknameController,
-                  decoration: const InputDecoration(
-                    hintText: '닉네임을 입력해주세요',
-                    border: OutlineInputBorder(),
-                  ),
                   textInputAction: TextInputAction.next,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     final nickname = value?.trim() ?? '';
                     if (nickname.isEmpty) return '닉네임을 입력해주세요.';
@@ -62,16 +59,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                 ),
-                Text('이메일'),
-                TextFormField(
+                MovieLogTextFormField(
+                  label: '이메일',
+                  hintText: '이메일을 입력해주세요',
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    hintText: '이메일을 입력해주세요',
-                    border: OutlineInputBorder(),
-                  ),
-                  textInputAction: TextInputAction.next,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  focusNode: _emailFocusNode,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) return '이메일을 입력해주세요.';
@@ -81,18 +75,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                   onChanged: (_) => setState(() {}),
-                  focusNode: _emailFocusNode,
                   onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                 ),
-                Text('비밀번호'),
-                TextFormField(
+                MovieLogTextFormField(
+                  label: '비밀번호',
+                  hintText: '비밀번호를 입력해주세요',
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    hintText: '비밀번호를 입력해주세요',
-                    border: OutlineInputBorder(),
-                  ),
+                  focusNode: _passwordFocusNode,
                   textInputAction: TextInputAction.done,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   obscureText: true,
                   validator: (value) {
                     final password = value ?? '';
@@ -103,7 +93,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                   onChanged: (_) => setState(() {}),
-                  focusNode: _passwordFocusNode,
                   onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 ),
                 TermsAgreement(
