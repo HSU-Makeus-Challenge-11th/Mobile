@@ -37,98 +37,120 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onBack: () => Navigator.maybePop(context),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SignUpHeader(),
-                const SizedBox(height: 40),
-                MovieLogTextFormField(
-                  label: '닉네임',
-                  hintText: '닉네임을 입력해주세요',
-                  controller: _nicknameController,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    final nickname = value?.trim() ?? '';
-                    if (nickname.isEmpty) return '닉네임을 입력해주세요.';
-                    if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
-                    return null;
-                  },
-                  onChanged: (_) => setState(() {}),
-                  onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 700;
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isWide ? 560 : double.infinity,
                 ),
-                const SizedBox(height: 20),
-                MovieLogTextFormField(
-                  label: '이메일',
-                  hintText: '이메일을 입력해주세요',
-                  controller: _emailController,
-                  focusNode: _emailFocusNode,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    final email = value?.trim() ?? '';
-                    if (email.isEmpty) return '이메일을 입력해주세요.';
-                    if (!_emailRegExp.hasMatch(email)) {
-                      return '올바른 이메일 형식이 아닙니다.';
-                    }
-                    return null;
-                  },
-                  onChanged: (_) => setState(() {}),
-                  onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
-                ),
-                const SizedBox(height: 20),
-                MovieLogTextFormField(
-                  label: '비밀번호',
-                  hintText: '비밀번호를 입력해주세요',
-                  controller: _passwordController,
-                  focusNode: _passwordFocusNode,
-                  textInputAction: TextInputAction.done,
-                  obscureText: true,
-                  validator: (value) {
-                    final password = value ?? '';
-                    if (password.isEmpty) return '비밀번호를 입력해주세요.';
-                    if (!_passwordRegExp.hasMatch(password)) {
-                      return '영문과 숫자를 포함해 8자 이상 입력해주세요.';
-                    }
-                    return null;
-                  },
-                  onChanged: (_) => setState(() {}),
-                  onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
-                ),
-                const SizedBox(height: 48),
-                TermsAgreement(
-                  value: _agreedToTerms,
-                  onChanged: (value) => setState(() => _agreedToTerms = value),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _canSubmit ? _submit : null,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    backgroundColor: AppColors.violet,
-                    foregroundColor: AppColors.white,
-                    disabledBackgroundColor: AppColors.violetMuted,
-                    disabledForegroundColor: AppColors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SignUpHeader(),
+                        const SizedBox(height: 40),
+                        MovieLogTextFormField(
+                          label: '닉네임',
+                          hintText: '닉네임을 입력해주세요',
+                          controller: _nicknameController,
+                          textInputAction: TextInputAction.next,
+                          validator: (value) {
+                            final nickname = value?.trim() ?? '';
+                            if (nickname.isEmpty) return '닉네임을 입력해주세요.';
+                            if (nickname.length < 2) {
+                              return '닉네임은 2자 이상이어야 합니다.';
+                            }
+                            return null;
+                          },
+                          onChanged: (_) => setState(() {}),
+                          onFieldSubmitted: (_) =>
+                              _emailFocusNode.requestFocus(),
+                        ),
+                        const SizedBox(height: 20),
+                        MovieLogTextFormField(
+                          label: '이메일',
+                          hintText: '이메일을 입력해주세요',
+                          controller: _emailController,
+                          focusNode: _emailFocusNode,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          validator: (value) {
+                            final email = value?.trim() ?? '';
+                            if (email.isEmpty) return '이메일을 입력해주세요.';
+                            if (!_emailRegExp.hasMatch(email)) {
+                              return '올바른 이메일 형식이 아닙니다.';
+                            }
+                            return null;
+                          },
+                          onChanged: (_) => setState(() {}),
+                          onFieldSubmitted: (_) =>
+                              _passwordFocusNode.requestFocus(),
+                        ),
+                        const SizedBox(height: 20),
+                        MovieLogTextFormField(
+                          label: '비밀번호',
+                          hintText: '비밀번호를 입력해주세요',
+                          controller: _passwordController,
+                          focusNode: _passwordFocusNode,
+                          textInputAction: TextInputAction.done,
+                          obscureText: true,
+                          validator: (value) {
+                            final password = value ?? '';
+                            if (password.isEmpty) return '비밀번호를 입력해주세요.';
+                            if (!_passwordRegExp.hasMatch(password)) {
+                              return '영문과 숫자를 포함해 8자 이상 입력해주세요.';
+                            }
+                            return null;
+                          },
+                          onChanged: (_) => setState(() {}),
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).unfocus(),
+                        ),
+                        const SizedBox(height: 48),
+                        TermsAgreement(
+                          value: _agreedToTerms,
+                          onChanged: (value) =>
+                              setState(() => _agreedToTerms = value),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _canSubmit ? _submit : null,
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            backgroundColor: AppColors.violet,
+                            foregroundColor: AppColors.white,
+                            disabledBackgroundColor: AppColors.violetMuted,
+                            disabledForegroundColor: AppColors.white,
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: const Text('가입하기'),
+                        ),
+                        const SizedBox(height: 32),
+                        const LoginPrompt(),
+                      ],
                     ),
                   ),
-                  child: const Text('가입하기'),
                 ),
-                const SizedBox(height: 32),
-                const LoginPrompt(),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
