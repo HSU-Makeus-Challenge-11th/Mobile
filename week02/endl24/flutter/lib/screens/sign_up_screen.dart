@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/sign_up_header.dart';
+import 'package:movielog/widgets/terms_agreement.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -105,18 +106,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   focusNode: _passwordFocusNode,
                   onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 ),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _agreedToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _agreedToTerms = value ?? false;
-                        });
-                      },
-                    ),
-                    const Text('필수 약관에 동의합니다'),
-                  ],
+                TermsAgreement(
+                  value: _agreedToTerms,
+                  onChanged: (value) => setState(() => _agreedToTerms = value),
                 ),
                 ElevatedButton(
                   onPressed: _canSubmit ? _submit : null,
