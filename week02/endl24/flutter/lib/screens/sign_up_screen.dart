@@ -111,12 +111,49 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   focusNode: _passwordFocusNode,
                   onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _agreedToTerms,
+                      onChanged: (value) {
+                        setState(() {
+                          _agreedToTerms = value ?? false;
+                        });
+                      },
+                    ),
+                    const Text('필수 약관에 동의합니다'),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: _canSubmit ? _submit : null,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    backgroundColor: AppColors.violet,
+                    foregroundColor: AppColors.white,
+                    disabledBackgroundColor: AppColors.violetLight,
+                    disabledForegroundColor: AppColors.white,
+                  ),
+                  child: const Text('가입하기'),
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  bool get _canSubmit =>
+      _nicknameController.text.trim().length >= 2 &&
+      _emailRegExp.hasMatch(_emailController.text.trim()) &&
+      _passwordRegExp.hasMatch(_passwordController.text) &&
+      _agreedToTerms;
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+    FocusScope.of(context).unfocus();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('회원가입이 완료되었습니다.')));
   }
 
   @override
