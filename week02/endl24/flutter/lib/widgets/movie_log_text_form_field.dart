@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 
-class MovieLogTextFormField extends StatelessWidget {
+class MovieLogTextFormField extends StatefulWidget {
   const MovieLogTextFormField({
     super.key,
     required this.label,
@@ -29,15 +29,26 @@ class MovieLogTextFormField extends StatelessWidget {
   final ValueChanged<String>? onFieldSubmitted;
 
   @override
+  State<MovieLogTextFormField> createState() => _MovieLogTextFormFieldState();
+}
+
+class _MovieLogTextFormFieldState extends State<MovieLogTextFormField> {
+  late bool _obscured = widget.obscureText;
+  @override
   Widget build(BuildContext context) {
-    final text = controller.text;
-    final hasError = text.isNotEmpty && validator(text) != null;
-    final isValid = text.isNotEmpty && validator(text) == null;
+    final text = widget.controller.text;
+    final hasError = text.isNotEmpty && widget.validator(text) != null;
+    final isValid = text.isNotEmpty && widget.validator(text) == null;
+    final stateIcon = hasError
+        ? const Icon(Icons.error_outline, color: AppColors.red)
+        : isValid
+        ? const Icon(Icons.check_circle, color: AppColors.violet)
+        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          label,
+          widget.label,
           style: AppTextStyles.bodyMedium.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -45,25 +56,35 @@ class MovieLogTextFormField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          obscureText: obscureText,
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          obscureText: _obscured,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: validator,
-          onChanged: onChanged,
-          onFieldSubmitted: onFieldSubmitted,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onFieldSubmitted,
           decoration: InputDecoration(
-            hintText: hintText,
+            hintText: widget.hintText,
             hintStyle: AppTextStyles.bodySmall,
             filled: true,
             fillColor: hasError ? AppColors.redLight : AppColors.grayLight,
-            suffixIcon: hasError
-                ? Icon(Icons.error_outline, color: AppColors.red)
-                : isValid
-                ? Icon(Icons.check_circle, color: AppColors.violet)
-                : null,
+            suffixIcon: widget.obscureText
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ?stateIcon,
+                      IconButton(
+                        icon: Icon(
+                          _obscured ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () => setState(() => _obscured = !_obscured),
+                        color: AppColors.gray,
+                      ),
+                    ],
+                  )
+                : stateIcon,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
