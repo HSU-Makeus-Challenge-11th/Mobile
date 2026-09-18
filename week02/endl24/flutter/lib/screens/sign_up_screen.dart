@@ -20,7 +20,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(title: '회원가입', centerTitle: true, onBack: ()=> Navigator.maybePop(context),),
+      appBar: CommonAppBar(
+        title: '회원가입',
+        centerTitle: true,
+        onBack: () => Navigator.maybePop(context),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
