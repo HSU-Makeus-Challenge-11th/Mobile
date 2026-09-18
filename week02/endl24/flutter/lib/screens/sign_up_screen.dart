@@ -45,6 +45,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SignUpHeader(),
+                const SizedBox(height: 40),
                 MovieLogTextFormField(
                   label: '닉네임',
                   hintText: '닉네임을 입력해주세요',
@@ -59,6 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                 ),
+                const SizedBox(height: 20),
                 MovieLogTextFormField(
                   label: '이메일',
                   hintText: '이메일을 입력해주세요',
@@ -77,6 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                 ),
+                const SizedBox(height: 20),
                 MovieLogTextFormField(
                   label: '비밀번호',
                   hintText: '비밀번호를 입력해주세요',
@@ -95,18 +98,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: (_) => setState(() {}),
                   onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 ),
+                const SizedBox(height: 48),
                 TermsAgreement(
                   value: _agreedToTerms,
                   onChanged: (value) => setState(() => _agreedToTerms = value),
                 ),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _canSubmit ? _submit : null,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     backgroundColor: AppColors.violet,
                     foregroundColor: AppColors.white,
-                    disabledBackgroundColor: AppColors.violetLight,
+                    disabledBackgroundColor: AppColors.violetMuted,
                     disabledForegroundColor: AppColors.white,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   child: const Text('가입하기'),
                 ),
