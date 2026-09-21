@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'start_screen.dart'; // StartScreen 클래스 불러오기
+import 'theme/app_theme.dart';
 
 class MovieLogApp extends StatelessWidget {
   const MovieLogApp({super.key});
@@ -9,9 +10,7 @@ class MovieLogApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: const StartScreen(), // 첫 실행 화면 지정
     );
   }
