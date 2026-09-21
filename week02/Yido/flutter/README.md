@@ -1,17 +1,12 @@
-# movielog
+# MovieLog
 
-A new Flutter project.
+UMC Flutter 2주차 필수 미션 연습 프로젝트입니다.
 
-## Getting Started
+## 화면
 
-This project is a starting point for a Flutter application.
+- 회원가입: 닉네임·이메일·비밀번호를 로컬 상태로 검증하고 필수 약관 동의 후 가입하기를 활성화합니다. 실제 계정은 만들지 않고 별점 연습 화면으로 이동합니다.
+- 별점: `flutter_rating_bar`로 별점을 선택하고 0점보다 클 때만 저장합니다. 저장 결과는 로컬 상태와 스낵바에 표시합니다.
 
-A few resources to get you started if this is your first Flutter project:
+## 검증
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+`flutter analyze`, `flutter test`, `flutter build apk --release`로 검증합니다.
