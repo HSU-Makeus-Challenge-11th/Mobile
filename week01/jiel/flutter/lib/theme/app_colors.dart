@@ -42,6 +42,10 @@ class AppColors {
   static const Color surfaceHigh = Color(0xFFE9E8E4);
   static const Color surfaceHighest = Color(0xFFE3E2DF);
 
+  // Text Colors
+  static const Color onSurface = Color(0xFF1D1B20);
+  static const Color onSurfaceVariant = Color(0xFF494551);
+
   // Neutral Scale
   static const Color neutral100 = Color(0xFFFFFFFF);
   static const Color neutral200 = Color(0xFFF5F3F0);

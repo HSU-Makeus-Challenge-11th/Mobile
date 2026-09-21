@@ -47,10 +47,13 @@ abstract final class AppTheme {
       headlineLarge: AppTextStyle.headlineLarge,
       headlineMedium: AppTextStyle.headlineMedium,
       headlineSmall: AppTextStyle.headlineSmall,
+      titleLarge: AppTextStyle.titleLarge,
+      titleMedium: AppTextStyle.titleMedium,
       titleSmall: AppTextStyle.titleSmall,
       bodyLarge: AppTextStyle.bodyLarge,
       bodyMedium: AppTextStyle.bodyMedium,
       labelLarge: AppTextStyle.labelLarge,
+      labelMedium: AppTextStyle.labelMedium,
       labelSmall: AppTextStyle.labelSmall,
     ),
     appBarTheme: AppBarTheme(

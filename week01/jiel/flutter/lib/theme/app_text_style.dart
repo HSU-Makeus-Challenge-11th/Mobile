@@ -30,6 +30,18 @@ abstract final class AppTextStyle {
     fontWeight: FontWeight.w400,
   );
 
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 22,
+    height: 28 / 22,
+    fontWeight: FontWeight.w500,
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontSize: 16,
+    height: 24 / 16,
+    fontWeight: FontWeight.w500,
+  );
+
   static const TextStyle titleSmall = TextStyle(
     fontSize: 14,
     height: 20 / 14,
@@ -56,6 +68,12 @@ abstract final class AppTextStyle {
     height: 20 / 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,
+  );
+
+  static const TextStyle labelMedium = TextStyle(
+    fontSize: 12,
+    height: 16 / 12,
+    fontWeight: FontWeight.w500,
   );
 
   static const TextStyle labelSmall = TextStyle(

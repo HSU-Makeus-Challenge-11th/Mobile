@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/profile_screen.dart';
 import 'start_screen.dart'; // StartScreen 클래스 불러오기
 import 'theme/app_theme.dart';
 
@@ -11,7 +12,7 @@ class MovieLogApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
       theme: AppTheme.light,
-      home: const StartScreen(), // 첫 실행 화면 지정
+      home: const ProfileScreen()//StartScreen(), // 첫 실행 화면 지정
     );
   }
 }
