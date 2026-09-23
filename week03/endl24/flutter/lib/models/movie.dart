@@ -1,27 +1,68 @@
-// ignore_for_file: avoid_print
-
+// lib/models/movie.dart
 class Movie {
-  const Movie({required this.id, required this.title});
+  const Movie({
+    required this.id,
+    required this.title,
+    required this.genre,
+    required this.year,
+    required this.posterAsset,
+  });
 
-  final int id;
+  final String id;
   final String title;
+  final String genre;
+  final int year;
+  final String posterAsset;
 }
 
-void main() {
-  final List<Movie> movies = [];
-  movies.add(Movie(id: 1, title: '라스트 마일'));
-  movies.add(Movie(id: 2, title: '남극의 쉐프'));
-  movies.add(Movie(id: 3, title: '프로젝트 헤일메리'));
+final List<Movie> mockMovies = [
+  const Movie(
+    id: '1',
+    title: '별빛 아래 우리',
+    genre: '로맨스',
+    year: 2024,
+    posterAsset: 'assets/images/posters/hero_under_the_starlight.jpg',
+  ),
+  const Movie(
+    id: '2',
+    title: '심연을 걷는 자',
+    genre: '스릴러',
+    year: 2023,
+    posterAsset: 'assets/images/posters/poster_abyss_walker.jpg',
+  ),
+  const Movie(
+    id: '3',
+    title: '공허의 메아리',
+    genre: 'SF',
+    year: 2022,
+    posterAsset: 'assets/images/posters/poster_echoes_of_the_void.jpg',
+  ),
+  const Movie(
+    id: '4',
+    title: '네 번째 오후',
+    genre: '드라마',
+    year: 2024,
+    posterAsset: 'assets/images/posters/poster_fourth_afternoon.jpg',
+  ),
+  const Movie(
+    id: '5',
+    title: '밤의 그림자',
+    genre: '스릴러',
+    year: 2021,
+    posterAsset: 'assets/images/posters/poster_night_shadows.jpg',
+  ),
+  const Movie(
+    id: '6',
+    title: '속삭이는 숲',
+    genre: '로맨스',
+    year: 2023,
+    posterAsset: 'assets/images/posters/poster_whispering_woods.jpg',
+  ),
+];
 
-  for (final movie in movies) {
-    print(movie.title);
+Movie? findMovieById(String id) {
+  for (final movie in mockMovies) {
+    if (movie.id == id) return movie;
   }
-  print(movies.map((movie) => movie.title).join('\n'));
-
-  String displayName(String? nickname) {
-    return nickname ?? '이름 없음';
-  }
-
-  print(displayName(null));
-  print(displayName('듀이'));
+  return null;
 }
