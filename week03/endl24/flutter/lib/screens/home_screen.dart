@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:movielog/models/movie.dart';
 import 'package:movielog/widgets/hero_movie_card.dart';
 import 'package:movielog/widgets/home_greeting.dart';
+import 'package:movielog/widgets/popular_movies_section.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,8 @@ class HomeScreen extends StatelessWidget {
                 movie: heroMovie,
                 onTap: () => context.push('/movies/${heroMovie.id}'),
               ),
+              const SizedBox(height: 32),
+              PopularMoviesSection(movies: mockMovies.skip(1).toList()),
             ],
           ),
         ),
