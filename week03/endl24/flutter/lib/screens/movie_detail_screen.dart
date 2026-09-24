@@ -3,14 +3,37 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:movielog/models/movie.dart';
 import 'package:movielog/theme/app_colors.dart';
 
-class MovieDetailScreen extends StatelessWidget {
+class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movieId});
 
   final String movieId;
 
   @override
+  State<MovieDetailScreen> createState() => _MovieDetailScreenState();
+}
+
+class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  bool _isFavorite = false;
+
+  void _toggleFavorite() {
+    setState(() => _isFavorite = !_isFavorite);
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            _isFavorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(movieId);
+    final movie = findMovieById(widget.movieId);
 
     if (movie == null) {
       return const Scaffold(
@@ -95,7 +118,11 @@ class MovieDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const _DetailActions(),
+            _DetailActions(
+              isFavorite: _isFavorite,
+              onFavoriteTap: _toggleFavorite,
+              onRatingTap: () {},
+            ),
           ],
         ),
       ),
@@ -141,7 +168,15 @@ class _AverageRating extends StatelessWidget {
 }
 
 class _DetailActions extends StatelessWidget {
-  const _DetailActions();
+  const _DetailActions({
+    required this.isFavorite,
+    required this.onFavoriteTap,
+    required this.onRatingTap,
+  });
+
+  final bool isFavorite;
+  final VoidCallback onFavoriteTap;
+  final VoidCallback onRatingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -151,9 +186,12 @@ class _DetailActions extends StatelessWidget {
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.bookmark_border, size: 20),
-              label: const Text('즐겨찾기'),
+              onPressed: onFavoriteTap,
+              icon: Icon(
+                isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                size: 20,
+              ),
+              label: Text(isFavorite ? '즐겨찾기 해제' : '즐겨찾기'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 foregroundColor: AppColors.violet,
@@ -167,7 +205,7 @@ class _DetailActions extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: onRatingTap,
               icon: const Icon(Icons.rate_review_outlined, size: 20),
               label: const Text('평점 남기기'),
               style: ElevatedButton.styleFrom(
