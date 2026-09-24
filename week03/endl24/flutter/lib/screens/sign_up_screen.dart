@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/login_prompt.dart';
@@ -167,6 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('회원가입이 완료되었습니다.')));
+    context.go('/home');
   }
 
   @override

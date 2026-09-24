@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class StartScreen extends StatelessWidget {
@@ -55,7 +56,7 @@ class StartScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/signup'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.violetDark,
                     foregroundColor: Colors.white,

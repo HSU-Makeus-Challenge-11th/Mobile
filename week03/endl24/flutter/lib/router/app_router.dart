@@ -4,6 +4,8 @@ import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
 import 'package:movielog/screens/movie_list_screen.dart';
 import 'package:movielog/screens/profile_screen.dart';
+import 'package:movielog/screens/sign_up_screen.dart';
+import 'package:movielog/screens/start_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -11,6 +13,11 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/home',
     routes: [
+      GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => const SignUpScreen(),
+      ),
       ShellRoute(
         builder: (context, state, child) => MainScreen(child: child),
         routes: [
