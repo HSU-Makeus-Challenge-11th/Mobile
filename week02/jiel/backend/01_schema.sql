@@ -1,4 +1,5 @@
-CREATE DATABASE IF NOT EXISTS mydb;
+DROP DATABASE IF EXISTS mydb;
+CREATE DATABASE mydb;
 USE mydb;
 
 CREATE TABLE users (
@@ -7,14 +8,15 @@ CREATE TABLE users (
 );
 
 CREATE TABLE category (
-    category_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    category_id BIGINT PRIMARY KEY AUTO_INCREMENT,  
     name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE book (
     book_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     category_id BIGINT NOT NULL, 
-    title VARCHAR(100) NOT NULL, description TEXT, 
+    title VARCHAR(100) NOT NULL, 
+    description TEXT, 
     is_available BOOLEAN NOT NULL DEFAULT TRUE, 
     FOREIGN KEY (category_id) REFERENCES category(category_id)
 );
@@ -30,7 +32,8 @@ CREATE TABLE rental (
 );
 
 CREATE TABLE tag (
-    tag_id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(30) NOT NULL
+    tag_id BIGINT PRIMARY KEY AUTO_INCREMENT, 
+    name VARCHAR(30) NOT NULL
 ); 
 CREATE TABLE book_tag (
     book_id BIGINT, tag_id BIGINT, PRIMARY KEY (book_id, tag_id), 
