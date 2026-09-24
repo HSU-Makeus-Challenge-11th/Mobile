@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:movielog/models/movie.dart';
+import 'package:movielog/theme/app_colors.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   const MovieDetailScreen({super.key, required this.movieId});
@@ -17,32 +19,169 @@ class MovieDetailScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(movie.title)),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  movie.posterAsset,
-                  width: double.infinity,
-                  height: 320,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                movie.title,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text('${movie.genre} · ${movie.year}'),
-            ],
+      appBar: AppBar(
+        title: const Text(
+          'Cinema Archive',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.violet,
           ),
         ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      movie.posterAsset,
+                      width: double.infinity,
+                      height: 360,
+                      fit: BoxFit.cover,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            movie.title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${movie.year} · ${movie.genre} · ${movie.runtimeMinutes}분',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.gray,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _AverageRating(
+                            rating: movie.rating,
+                            count: movie.ratingCount,
+                          ),
+                          const SizedBox(height: 24),
+                          const Text(
+                            '시놉시스',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            movie.synopsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.6,
+                              color: AppColors.grayDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const _DetailActions(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AverageRating extends StatelessWidget {
+  const _AverageRating({required this.rating, required this.count});
+
+  final double rating;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        RatingBarIndicator(
+          rating: rating,
+          itemCount: 5,
+          itemSize: 20,
+          unratedColor: AppColors.grayLine,
+          itemBuilder: (context, index) =>
+              const Icon(Icons.star, color: AppColors.violet),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '$rating',
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.black,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '($count)',
+          style: const TextStyle(fontSize: 14, color: AppColors.gray),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailActions extends StatelessWidget {
+  const _DetailActions();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.bookmark_border, size: 20),
+              label: const Text('즐겨찾기'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                foregroundColor: AppColors.violet,
+                side: const BorderSide(color: AppColors.violet),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.rate_review_outlined, size: 20),
+              label: const Text('평점 남기기'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                backgroundColor: AppColors.violet,
+                foregroundColor: AppColors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
