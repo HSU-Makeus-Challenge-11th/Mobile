@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:movielog/models/movie.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/rating_dialog.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movieId});
@@ -14,6 +15,7 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool _isFavorite = false;
+  double? _myRating;
 
   void _toggleFavorite() {
     setState(() => _isFavorite = !_isFavorite);
@@ -22,9 +24,29 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            _isFavorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.',
-          ),
+          content: Text(_isFavorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  Future<void> _openRatingDialog(String movieTitle) async {
+    final rating = await showDialog<double>(
+      context: context,
+      builder: (context) => RatingDialog(movieTitle: movieTitle),
+    );
+
+    if (rating == null) return;
+    if (!mounted) return;
+
+    setState(() => _myRating = rating);
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$rating점으로 평점을 등록했습니다.'),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
@@ -36,9 +58,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     final movie = findMovieById(widget.movieId);
 
     if (movie == null) {
-      return const Scaffold(
-        body: Center(child: Text('영화를 찾을 수 없습니다.')),
-      );
+      return const Scaffold(body: Center(child: Text('영화를 찾을 수 없습니다.')));
     }
 
     return Scaffold(
@@ -121,7 +141,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             _DetailActions(
               isFavorite: _isFavorite,
               onFavoriteTap: _toggleFavorite,
-              onRatingTap: () {},
+              onRatingTap: () => _openRatingDialog(movie.title),
             ),
           ],
         ),
