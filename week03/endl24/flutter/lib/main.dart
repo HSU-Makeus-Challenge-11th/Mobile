@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:movielog/router/app_router.dart';
-import 'package:movielog/theme/app_colors.dart';
 import 'theme/app_theme.dart';
 
 void main() {
