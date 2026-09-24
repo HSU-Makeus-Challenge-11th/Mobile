@@ -99,6 +99,7 @@ CREATE TABLE member_mission (
     complete_date     DATE        NULL,
     created_at        DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_member_mission (member_id, mission_id),
+    UNIQUE KEY uk_mm_owner (member_mission_id, member_id),
     FOREIGN KEY (member_id)  REFERENCES member(member_id),
     FOREIGN KEY (mission_id) REFERENCES mission(mission_id)
 );
@@ -269,7 +270,7 @@ JOIN store s         ON m.store_id = s.store_id
 JOIN food_category f ON s.kind_of_food_id = f.kind_of_food_id
 JOIN region r        ON s.region_id = r.region_id
 WHERE s.region_id = 1
-  AND m.deadline >= CURDATE()
+  AND (m.deadline >= CURDATE() OR m.deadline IS NULL)
   AND NOT EXISTS (
       SELECT 1 FROM member_mission mm
       WHERE mm.mission_id = m.mission_id
