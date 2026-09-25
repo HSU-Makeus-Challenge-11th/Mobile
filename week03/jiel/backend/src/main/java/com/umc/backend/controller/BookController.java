@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +25,11 @@ public class BookController {
     @GetMapping
     public List<Map<String, Object>> getBooks() {
         return bookService.getAllBooks();
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public List<Map<String, Object>> getBooksByCategoryId(@PathVariable("categoryId") Long categoryId) {
+        return bookService.getBooksByCategoryId(categoryId);
     }
 
     // POST http://localhost:8080/books
