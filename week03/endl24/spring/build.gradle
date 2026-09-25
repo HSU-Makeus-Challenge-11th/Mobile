@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.umc'
 version = '0.0.1-SNAPSHOT'
-description = 'spring'
+description = 'study'
 
 java {
     toolchain {
