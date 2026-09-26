@@ -18,4 +18,9 @@ public class RentalController {
         rentalService.createRental(body);
         return "대여가 완료되었습니다!";
     }
+    @PatchMapping("/{rentalId}/return")
+    public String returnRental(@PathVariable Long rentalId) {
+        rentalService.returnRental(rentalId);
+        return "반납이 완료되었습니다!";
+    }
 }
