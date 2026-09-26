@@ -2,11 +2,7 @@ package com.umc.study.controller;
 
 import com.umc.study.service.BookService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +20,10 @@ public class BookController {
     public List<Map<String, Object>> getBooks() {
         return bookService.getAllBooks();
     }
-
+    @GetMapping("/category/{categoryId}")
+    public List<Map<String, Object>> getBooksByCategory(@PathVariable Long categoryId) {
+        return bookService.getBooksByCategory(categoryId);
+    }
     @PostMapping
     public String createBook(@RequestBody Map<String, Object> body){
         bookService.createBook(body);
