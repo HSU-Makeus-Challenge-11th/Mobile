@@ -64,8 +64,8 @@ reviews:
         - TextEditingController, FocusNode 등의 dispose 누락을 확인하세요.
         - 하드코딩된 색상 · 크기 · 문자열이 theme나 상수로 분리됐는지 확인하세요.
 
-    # ---------- Backend 공통 (Spring · NestJS) ----------
-    - path: "**/backend/**/*.{java,ts}"
+    # ---------- Backend 공통 (Spring · NestJS) — 폴더: spring · nestjs (예전 backend 포함) ----------
+    - path: "**/{backend,spring,nestjs}/**/*.{java,ts}"
       instructions: |
         백엔드 입문자의 주차별 미션 코드입니다. 사람마다 Spring(Java) 또는 NestJS(TypeScript)를 씁니다.
         - Controller → Service → Repository 계층의 역할이 섞이지 않았는지, 의존성을 생성자 주입으로 받는지 확인하세요.
@@ -77,42 +77,42 @@ reviews:
           (Spring: @Transactional · 조회는 readOnly, NestJS: TypeORM DataSource.transaction · Prisma $transaction)
 
     # ---------- Backend: Spring Boot (Java · JPA) ----------
-    - path: "**/backend/**/{domain,entity}/**/*.java"
+    - path: "**/{backend,spring}/**/{domain,entity}/**/*.java"
       instructions: |
         - @Setter를 열어 두지 않고 의미 있는 메서드로 상태를 바꾸는지 확인하세요.
         - @ManyToOne · @OneToOne이 FetchType.LAZY인지, enum이 @Enumerated(EnumType.STRING)인지 확인하세요.
         - 연관관계의 주인, cascade · orphanRemoval 설정이 ERD와 맞는지 확인하세요.
         - 생성 · 수정 시각을 공통 BaseEntity(@MappedSuperclass)로 모았는지 확인하세요.
-    - path: "**/backend/**/*Repository*.java"
+    - path: "**/{backend,spring}/**/*Repository*.java"
       instructions: "메서드 이름 쿼리가 의도와 맞는지, 연관 엔티티를 함께 조회할 때 fetch join이나 @EntityGraph가 필요한지 확인하세요."
-    - path: "**/backend/**/src/main/resources/**"
+    - path: "**/{backend,spring}/**/src/main/resources/**"
       instructions: "DB 비밀번호, JWT 시크릿, 클라우드 키 같은 비밀 값이 하드코딩되지 않고 환경 변수로 분리됐는지 가장 먼저 확인하세요. ddl-auto 값이 실행 환경에 맞는지도 확인하세요."
 
     # ---------- Backend: NestJS (TypeScript) ----------
-    - path: "**/backend/**/*.ts"
+    - path: "**/{backend,nestjs}/**/*.ts"
       instructions: |
         - any 남용 없이 DTO · 반환 타입이 명시됐는지 확인하세요.
         - await 누락이나 처리되지 않은 Promise가 없는지 확인하세요.
         - Module의 providers · imports · exports가 필요한 만큼만 열려 있는지 확인하세요.
-    - path: "**/backend/**/*.{entity.ts,prisma}"
+    - path: "**/{backend,nestjs}/**/*.{entity.ts,prisma}"
       instructions: "관계(onDelete, nullable), 인덱스, 칼럼 타입이 ERD와 맞는지 확인하세요. TypeORM은 eager 관계 남용, Prisma는 @relation과 @@index를 확인하세요."
-    - path: "**/backend/**/{.env*,*.config.ts,app.module.ts,main.ts}"
+    - path: "**/{backend,nestjs}/**/{.env*,*.config.ts,app.module.ts,main.ts}"
       instructions: |
         - .env에 실제 비밀 값이 있다면 커밋하면 안 된다고 지적하세요. .env.example에는 자리표시자만 있어야 합니다.
         - 설정 값을 @nestjs/config로 환경 변수에서 읽는지 확인하세요.
         - TypeORM synchronize: true가 운영 설정에 남아 있지 않은지, 전역 ValidationPipe · CORS 설정이 적절한지 확인하세요.
 
     # ---------- Backend 공통 파일 ----------
-    - path: "**/backend/**/{build.gradle*,package.json}"
+    - path: "**/{backend,spring,nestjs}/**/{build.gradle*,package.json}"
       instructions: "쓰지 않는 의존성, 버전 충돌, 테스트 · 개발 전용 의존성의 위치(testImplementation, devDependencies)를 확인하세요."
-    - path: "**/backend/**/*.sql"
+    - path: "**/{backend,spring,nestjs}/**/*.sql"
       instructions: |
         ERD 도구에서 내보낸 MySQL DDL입니다. 포맷보다 설계를 봐 주세요.
         - PK · FK와 1:N, N:M(매핑 테이블) 관계가 요구사항과 맞는지
         - 칼럼 타입 · 길이 · NULL 허용이 적절한지, 조회 조건 칼럼에 인덱스가 필요한지
         - 이름 규칙(snake_case)이 일관적인지
         내보낸 DDL에는 AUTO_INCREMENT나 제약 조건이 빠질 수 있으니, 같은 폴더 README의 설계 규칙도 함께 참고하세요.
-    - path: "**/backend/**/{Dockerfile,docker-compose*.yml}"
+    - path: "**/{backend,spring,nestjs}/**/{Dockerfile,docker-compose*.yml}"
       instructions: "베이스 이미지 버전 고정, 비밀 값 노출, 불필요한 레이어를 확인하세요."
 
     # ---------- 테스트 (Flutter test/, Spring src/test/, NestJS *.spec.ts) ----------
