@@ -1,8 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:movielog/profile_screen.dart';
-import 'package:movielog/rating_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/sign_up_validators.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
 import 'package:movielog/widgets/signup/sign_up_fields.dart';
@@ -60,18 +59,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _submit() {
     if (!_canSubmit || !(_formKey.currentState?.validate() ?? false)) return;
     FocusScope.of(context).unfocus();
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const RatingScreen()));
+    context.go('/home');
   }
 
   void _back() {
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
-      );
-    }
+    context.go('/start');
   }
 
   @override
@@ -167,9 +159,6 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: Color(0xFF6750A4),
       ),
     ),
-    leading: IconButton(
-      onPressed: onBack,
-      icon: const Icon(Icons.arrow_back, size: 16),
-    ),
+    leading: const SizedBox(width: 48),
   );
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:movielog/rating_screen.dart';
 import 'package:movielog/sign_up_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
 
@@ -208,19 +207,5 @@ void main() {
           .height,
       94,
     );
-  });
-
-  testWidgets('valid signup opens the rating screen', (tester) async {
-    await pumpScreen(tester);
-    await enterValidDetails(tester);
-    await tester.ensureVisible(find.byKey(const Key('termsCheckbox')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('termsCheckbox')));
-    await tester.pump();
-
-    await tester.ensureVisible(find.byKey(const Key('signUpButton')));
-    await tester.tap(find.byKey(const Key('signUpButton')));
-    await tester.pumpAndSettle();
-    expect(find.byType(RatingScreen), findsOneWidget);
   });
 }

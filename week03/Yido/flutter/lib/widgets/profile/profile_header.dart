@@ -23,24 +23,48 @@ class ProfileHeader extends StatelessWidget {
       spacing: 16,
       children: [
         _ProfileAvatar(imagePath: imagePath),
-        Column(
-          spacing: 8,
-          children: [
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.titleLarge,
-            ),
-            Text(
-              bio,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
+        SizedBox(
+          width: 318,
+          height: 84,
+          child: Column(
+            spacing: 8,
+            children: [
+              SizedBox(
+                height: 28,
+                child: Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  strutStyle: const StrutStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    fontSize: 22,
+                    height: 28 / 22,
+                    forceStrutHeight: true,
+                  ),
+                  style: AppTextStyles.titleLarge,
+                ),
               ),
-            ),
-          ],
+              SizedBox(
+                height: 48,
+                child: Text(
+                  bio,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  strutStyle: const StrutStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    fontSize: 16,
+                    height: 24 / 16,
+                    forceStrutHeight: true,
+                  ),
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const EditProfileButton(),
       ],

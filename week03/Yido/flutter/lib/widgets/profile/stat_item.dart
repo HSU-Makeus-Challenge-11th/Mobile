@@ -12,6 +12,7 @@ class StatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 86,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLow,
@@ -22,19 +23,37 @@ class StatItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelMedium,
+          SizedBox(
+            height: 16,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              strutStyle: const StrutStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                fontSize: 12,
+                height: 16 / 12,
+                forceStrutHeight: true,
+              ),
+              style: AppTextStyles.labelMedium,
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            maxLines: 1,
-            style: AppTextStyles.titleLarge.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary600,
+          SizedBox(
+            height: 28,
+            child: Text(
+              value,
+              maxLines: 1,
+              strutStyle: const StrutStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                fontSize: 22,
+                height: 28 / 22,
+                forceStrutHeight: true,
+              ),
+              style: AppTextStyles.titleLarge.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary600,
+              ),
             ),
           ),
         ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/profile/favorite_genres.dart';
 import 'package:movielog/widgets/profile/profile_header.dart';
 import 'package:movielog/widgets/profile/profile_stats.dart';
@@ -11,9 +10,31 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: CommonAppBar(title: '내 프로필'),
-      body: SafeArea(child: ProfileBody()),
+    return const SafeArea(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 64,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 16),
+                child: Text(
+                  '내 프로필',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 22,
+                    height: 28 / 22,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF6750A4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(child: ProfileBody()),
+        ],
+      ),
     );
   }
 }
@@ -33,15 +54,14 @@ class ProfileBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 128),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 32,
         children: [
           ProfileHeader(
             name: '무비러버',
-            // 한글은 글자 단위로 줄바꿈되므로 의미 단위로 직접 끊는다.
-            bio: '매주 주말엔 영화관으로 출근하는 프로 관람객.\n좋은 영화를 보고 기록하는 것을 좋아합니다.',
+            bio: '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
             imagePath: 'assets/images/profile.jpg',
           ),
           ProfileStats(stats: _stats),

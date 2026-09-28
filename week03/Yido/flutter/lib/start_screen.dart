@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
+import 'package:go_router/go_router.dart';
 
 /// MovieLog 시작 화면 (W1-00).
 /// 버튼은 로그만 출력하고 화면 이동은 하지 않는다.
@@ -53,9 +54,7 @@ class StartScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 child: ElevatedButton(
-                  onPressed: () {
-                    debugPrint('시작하기 버튼을 눌렀습니다.');
-                  },
+                  onPressed: () => context.go('/register'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary600,
                     foregroundColor: AppColors.white,
