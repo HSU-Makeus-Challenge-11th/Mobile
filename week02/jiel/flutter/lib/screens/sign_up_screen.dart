@@ -11,8 +11,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _emailFocusNode = FocusNode();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _agreedToTerms = false;
+
 
   @override
   void initState() {
@@ -46,15 +49,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 TextFormField(
                   controller: _nicknameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: '닉네임',
+                    hintText: '두 글자 이상 입력',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _nicknameController.clear();
+                      },
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                      ),
+                    ),
+
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '닉네임을 입력해주세요';
+                    final nickname = value?.trim() ?? '';
+
+                    if(nickname.isEmpty){
+                      return '닉네임을 입력해주세요.';
                     }
-                    return null;
+                    if(nickname.length < 2){
+                      return '닉네임은 두 글자 이상 입력해주세요.';
+                    }
                   },
+                  onChanged: (_) => setState(() {}),
+                  onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -109,7 +131,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           FocusScope.of(context).unfocus();
                         }
                       : null,
-                  child: const Text('회원가입'),
+                  child: const Text('가입하기'),
                 ),
               ],
             ),
@@ -123,7 +145,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     _nicknameController.dispose();
     _emailController.dispose();
+    _emailFocusNode.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 }
