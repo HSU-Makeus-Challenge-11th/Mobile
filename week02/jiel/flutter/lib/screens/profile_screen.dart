@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'theme/app_colors.dart';
-import 'widgets/stat_item.dart';
-import 'widgets/top_app_bar.dart';
+import '../theme/app_colors.dart';
+import '../widgets/stat_item.dart';
+import '../widgets/top_app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
