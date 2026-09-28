@@ -30,4 +30,8 @@ public class BookService {
     public void createBook(Map<String, Object> body){
         bookRepository.save(body);
     }
+
+    public void rentBook(Map<String, Object> body){
+        bookRepository.insertRental(body);
+    }
 }

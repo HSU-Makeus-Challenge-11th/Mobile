@@ -38,4 +38,12 @@ public class BookController {
         bookService.createBook(body);
         return "도서 등록이 완료되었습니다!";
     }
+
+    // POST http://localhost:8080/books/rentals
+    @PostMapping("/rentals")
+    public String rentBook(@RequestBody Map<String, Object> body){
+        bookService.rentBook(body);
+        return "도서 대여가 완료되었습니다.";
+    }
+
 }

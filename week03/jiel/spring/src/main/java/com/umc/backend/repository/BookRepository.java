@@ -42,4 +42,15 @@ public class BookRepository {
         );
     }
 
+    //userId와 bookId를 전달받아 오늘대여, 일주일뒤 반납 rental행 추가
+    public void insertRental(Map<String, Object> body){
+        String sql = "INSERT INTO rental(user_id, book_id, rented_at, due_at) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY))";
+
+        jdbcTemplate.update(
+                sql,
+                body.get("userId"),
+                body.get("bookId")
+        );
+    }
+
 }
