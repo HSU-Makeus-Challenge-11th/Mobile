@@ -5,6 +5,7 @@ import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/movie_list_screen.dart';
+import 'package:movielog/screens/movie_detail_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -19,6 +20,13 @@ class AppRouter {
       GoRoute(
         path: '/register',
         builder: (context, state) => const SignUpScreen(),
+      ),
+      // 하단 탭 바 없이 전체 화면으로 띄우기 위해 ShellRoute 밖에 둔다.
+      GoRoute(
+        path: '/movie/:id',
+        builder: (context, state) => MovieDetailScreen(
+          movieId: int.tryParse(state.pathParameters['id'] ?? ''),
+        ),
       ),
       ShellRoute(
         builder: (context, state, child) {

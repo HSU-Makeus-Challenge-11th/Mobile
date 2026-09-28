@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../widgets/top_app_bar.dart';
 
@@ -137,7 +138,8 @@ class _FeaturedBanner extends StatelessWidget {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        // 추천 신작 '별빛 아래 우리'(id: 1) 상세 화면
+                        onPressed: () => context.push('/movie/1'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary600,
                           foregroundColor: Colors.white,
