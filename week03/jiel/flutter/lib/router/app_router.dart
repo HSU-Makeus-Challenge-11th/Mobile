@@ -4,6 +4,7 @@ import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
+import 'package:movielog/screens/movie_list_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -33,7 +34,7 @@ class AppRouter {
           ),
           GoRoute(
             path: '/movies',
-            builder: (context, state) => const Center(child:Text('영화목록')),//MovieListScreen(),
+            builder: (context, state) => const MovieListScreen(),
           ),
           GoRoute(
             path: '/my',
