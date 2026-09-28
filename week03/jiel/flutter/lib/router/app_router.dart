@@ -6,6 +6,7 @@ import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/movie_list_screen.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
+import 'package:movielog/screens/profile_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -46,7 +47,7 @@ class AppRouter {
           ),
           GoRoute(
             path: '/my',
-            builder: (context, state) => const Center(child:Text('마이페이지')),//MyPageScreen(),
+            builder: (context, state) => const ProfileScreen(),
           ),
         ],
       ),
