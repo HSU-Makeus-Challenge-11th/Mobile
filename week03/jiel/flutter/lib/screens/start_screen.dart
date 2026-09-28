@@ -22,8 +22,8 @@ class StartScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       color: const Color(0xff494551),
-                      height: 16/11,
-                    )
+                      height: 16 / 11,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 40, 0, 60),
@@ -32,34 +32,31 @@ class StartScreen extends StatelessWidget {
                       width: 60,
                       height: 48,
                       semanticsLabel: 'MovieLog 로고',
-                    )   
+                    ),
                   ),
                   Text(
                     '영화의 순간을\n기록하세요',
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14)
-
+                    style: TextStyle(fontSize: 14),
                   ),
                 ],
-              )
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: ElevatedButton(
-                onPressed: (){
+                onPressed: () {
                   debugPrint('시작하기 버튼을 눌렀습니다.');
-                  context.go('/home');
+                  // go: 스택을 교체하므로 회원가입 화면에서 시작 화면으로 돌아갈 수 없다.
+                  context.go('/register');
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 56),
@@ -67,17 +64,14 @@ class StartScreen extends StatelessWidget {
                   backgroundColor: Color(0xff4F378A),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                  )
+                  ),
                 ),
                 child: Text(
                   '시작하기',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
-              )
-            )
+              ),
+            ),
           ],
         ),
       ),

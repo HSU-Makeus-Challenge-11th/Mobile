@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 import 'app_text_style.dart';
 
@@ -20,7 +21,9 @@ abstract final class AppTheme {
       tertiary: AppColors.tertiary500,
       onTertiary: Colors.white,
       tertiaryContainer: AppColors.tertiary100,
-      onTertiaryContainer: Color(0xFF503D00), // text color on Tertiary 100~300 swatches
+      onTertiaryContainer: Color(
+        0xFF503D00,
+      ), // text color on Tertiary 100~300 swatches
       error: Color(0xFFB3261E),
       onError: Colors.white,
       errorContainer: Color(0xFFF9DEDC),

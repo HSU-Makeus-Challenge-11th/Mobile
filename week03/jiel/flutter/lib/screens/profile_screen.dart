@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../widgets/stat_item.dart';
 import '../widgets/top_app_bar.dart';
@@ -91,16 +92,11 @@ class EditProfileButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary500,
         side: const BorderSide(color: AppColors.primary500),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         minimumSize: const Size(0, 42),
       ),
-      child: Text(
-        '프로필 수정',
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      child: Text('프로필 수정', style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }
@@ -112,11 +108,17 @@ class ProfileStats extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        Expanded(child: StatItem(label: '본 영화', value: '342')),
+        Expanded(
+          child: StatItem(label: '본 영화', value: '342'),
+        ),
         SizedBox(width: 8),
-        Expanded(child: StatItem(label: '평점', value: '4.2')),
+        Expanded(
+          child: StatItem(label: '평점', value: '4.2'),
+        ),
         SizedBox(width: 8),
-        Expanded(child: StatItem(label: '즐겨찾기', value: '58')),
+        Expanded(
+          child: StatItem(label: '즐겨찾기', value: '58'),
+        ),
       ],
     );
   }
@@ -134,17 +136,14 @@ class FavoriteGenres extends StatelessWidget {
       children: [
         Text(
           '선호하는 장르',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppColors.onSurface,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(color: AppColors.onSurface),
         ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            for (final genre in _genres) GenreChip(label: genre),
-          ],
+          children: [for (final genre in _genres) GenreChip(label: genre)],
         ),
       ],
     );

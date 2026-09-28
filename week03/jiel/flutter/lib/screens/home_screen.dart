@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../data/mock/movie.dart';
 import '../theme/app_colors.dart';
 import '../widgets/top_app_bar.dart';
 
@@ -8,12 +10,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.surfaceBase,
-      appBar: TopAppBar(
-        title: 'MovieLog',
+    // 홈 화면에서는 시스템 뒤로 가기로 회원가입 등 이전 화면에 돌아가지 않게 막는다.
+    return const PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: AppColors.surfaceBase,
+        appBar: TopAppBar(title: 'MovieLog'),
+        body: HomeScreenBody(),
       ),
-      body: HomeScreenBody(),
     );
   }
 }
@@ -65,8 +69,15 @@ class _GreetingSection extends StatelessWidget {
 class _FeaturedBanner extends StatelessWidget {
   const _FeaturedBanner();
 
+  static const _featuredMovieId = 1; // 별빛 아래 우리
+
   @override
   Widget build(BuildContext context) {
+    final movie = findMovieById(_featuredMovieId);
+    if (movie == null) return const SizedBox.shrink();
+
+    final runtime = movie.runtime;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: ClipRRect(
@@ -76,10 +87,7 @@ class _FeaturedBanner extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/posters/hero_under_the_starlight.jpg',
-                fit: BoxFit.cover,
-              ),
+              Image.asset(movie.posterAsset, fit: BoxFit.cover),
               Container(color: Colors.black.withValues(alpha: 0.7)),
               Positioned(
                 left: 24,
@@ -112,9 +120,9 @@ class _FeaturedBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '별빛 아래 우리',
-                      style: TextStyle(
+                    Text(
+                      movie.title,
+                      style: const TextStyle(
                         fontSize: 28,
                         height: 36 / 28,
                         fontWeight: FontWeight.w500,
@@ -122,11 +130,16 @@ class _FeaturedBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Opacity(
+                    Opacity(
                       opacity: 0.9,
                       child: Text(
-                        '로맨스 · 드라마 · 120분',
-                        style: TextStyle(
+                        [
+                          movie.tags.isEmpty
+                              ? movie.genre
+                              : movie.tags.take(2).join(' · '),
+                          if (runtime != null) '$runtime분',
+                        ].join(' · '),
+                        style: const TextStyle(
                           fontSize: 16,
                           height: 24 / 16,
                           color: Color(0xFFF8F2FA),
@@ -138,8 +151,7 @@ class _FeaturedBanner extends StatelessWidget {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton.icon(
-                        // 추천 신작 '별빛 아래 우리'(id: 1) 상세 화면
-                        onPressed: () => context.push('/movie/1'),
+                        onPressed: () => context.push('/movie/${movie.id}'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary600,
                           foregroundColor: Colors.white,
@@ -168,45 +180,18 @@ class _FeaturedBanner extends StatelessWidget {
   }
 }
 
-// 3. 인기 영화 가로 리스트
-class _Movie {
-  const _Movie({
-    required this.title,
-    this.posterPath,
-    this.rating,
-    this.dDay,
-  });
-
-  final String title;
-  final String? posterPath;
-  final String? rating;
-  final String? dDay;
-}
-
-const _popularMovies = [
-  _Movie(
-    title: '마션 레스큐',
-    posterPath: 'assets/images/posters/poster_abyss_walker.jpg',
-    rating: '9.6',
-  ),
-  _Movie(
-    title: '스파이 코드',
-    posterPath: 'assets/images/posters/poster_spycode.jpg',
-    rating: '9.2',
-  ),
-  _Movie(
-    title: '비오는 날의 기억',
-    posterPath: 'assets/images/posters/poster_the_shadow_tide.jpg',
-    rating: '8.9',
-  ),
-  _Movie(title: '개봉 예정작', dDay: 'D-5'),
-];
-
+// 3. 인기 영화 가로 리스트 (Mock 목록에서 평점 높은 순)
 class _PopularMoviesSection extends StatelessWidget {
   const _PopularMoviesSection();
 
+  static const _popularCount = 4;
+
   @override
   Widget build(BuildContext context) {
+    final popularMovies = [...movies]
+      ..sort((a, b) => b.rating.compareTo(a.rating));
+    final topMovies = popularMovies.take(_popularCount).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -225,7 +210,7 @@ class _PopularMoviesSection extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () => context.go('/movies'),
                 child: const Row(
                   children: [
                     Text(
@@ -255,10 +240,16 @@ class _PopularMoviesSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _popularMovies.length,
+            itemCount: topMovies.length,
             separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) =>
-                _MovieCard(movie: _popularMovies[index], rank: index + 1),
+            itemBuilder: (context, index) {
+              final movie = topMovies[index];
+              return _MovieCard(
+                movie: movie,
+                rank: index + 1,
+                onTap: () => context.push('/movie/${movie.id}'),
+              );
+            },
           ),
         ),
       ],
@@ -267,77 +258,67 @@ class _PopularMoviesSection extends StatelessWidget {
 }
 
 class _MovieCard extends StatelessWidget {
-  const _MovieCard({required this.movie, required this.rank});
+  const _MovieCard({
+    required this.movie,
+    required this.rank,
+    required this.onTap,
+  });
 
-  final _Movie movie;
+  final Movie movie;
   final int rank;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final posterPath = movie.posterPath;
-
-    return SizedBox(
-      width: 140,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 200,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE6E0E9),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: posterPath == null
-                // 포스터가 없는 개봉 예정작
-                ? Container(
-                    color: const Color(0xFFECE6EE),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.movie_outlined,
-                      size: 30,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  )
-                : Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(posterPath, fit: BoxFit.cover),
-                      Positioned(
-                        left: 8,
-                        top: 8,
-                        child: _RankBadge(rank: rank),
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 140,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 200,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE6E0E9),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
                   ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            movie.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 24 / 16,
-              fontWeight: FontWeight.w500,
-              color: AppColors.onSurface,
+                ],
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(movie.posterAsset, fit: BoxFit.cover),
+                  Positioned(left: 8, top: 8, child: _RankBadge(rank: rank)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          if (movie.rating != null)
+            const SizedBox(height: 12),
+            Text(
+              movie.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 24 / 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.star, size: 12, color: AppColors.tertiary300),
                 const SizedBox(width: 4),
                 Text(
-                  movie.rating!,
+                  movie.rating.toStringAsFixed(1),
                   style: const TextStyle(
                     fontSize: 12,
                     height: 16 / 12,
@@ -345,18 +326,9 @@ class _MovieCard extends StatelessWidget {
                   ),
                 ),
               ],
-            )
-          else if (movie.dDay != null)
-            Text(
-              movie.dDay!,
-              style: const TextStyle(
-                fontSize: 12,
-                height: 16 / 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary600,
-              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

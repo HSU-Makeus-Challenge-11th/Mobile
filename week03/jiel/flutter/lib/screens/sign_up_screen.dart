@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../theme/app_colors.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -37,51 +39,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
-    // TODO: 실제 회원가입 처리
+    // 검증 완료 → 홈으로 이동. go로 스택을 교체해 홈에서 회원가입으로 돌아갈 수 없게 한다.
+    context.go('/home');
   }
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = _nicknameController.text.trim().length >= 2 &&
+    final canSubmit =
+        _nicknameController.text.trim().length >= 2 &&
         _emailController.text.contains('@') &&
         _passwordController.text.length >= 8 &&
         _agreedToTerms;
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceBase,
-      appBar: const _SignUpAppBar(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _SignUpFormSection(
-                  nicknameController: _nicknameController,
-                  emailController: _emailController,
-                  emailFocusNode: _emailFocusNode,
-                  passwordController: _passwordController,
-                  passwordFocusNode: _passwordFocusNode,
-                  autovalidate: _autoValidate,
-                  onPasswordSubmitted: (_) => canSubmit ? _submit() : null,
-                ),
-                // 폼과 약관 동의/버튼 영역 사이 여백을 넓혀서 아래쪽으로 내려 보이게 함
-                const SizedBox(height: 64),
-                _SignUpFooter(
-                  agreedToTerms: _agreedToTerms,
-                  onAgreedToTermsChanged: (value) {
-                    setState(() {
-                      _agreedToTerms = value ?? false;
-                    });
-                  },
-                  canSubmit: canSubmit,
-                  onSubmit: _submit,
-                  onLoginTap: () => Navigator.of(context).maybePop(),
-                ),
-              ],
+    // 회원가입 화면에서는 시스템 뒤로 가기를 막는다.
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: AppColors.surfaceBase,
+        appBar: const _SignUpAppBar(),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SignUpFormSection(
+                    nicknameController: _nicknameController,
+                    emailController: _emailController,
+                    emailFocusNode: _emailFocusNode,
+                    passwordController: _passwordController,
+                    passwordFocusNode: _passwordFocusNode,
+                    autovalidate: _autoValidate,
+                    onPasswordSubmitted: (_) => canSubmit ? _submit() : null,
+                  ),
+                  // 폼과 약관 동의/버튼 영역 사이 여백을 넓혀서 아래쪽으로 내려 보이게 함
+                  const SizedBox(height: 64),
+                  _SignUpFooter(
+                    agreedToTerms: _agreedToTerms,
+                    onAgreedToTermsChanged: (value) {
+                      setState(() {
+                        _agreedToTerms = value ?? false;
+                      });
+                    },
+                    canSubmit: canSubmit,
+                    onSubmit: _submit,
+                    onLoginTap: () {},
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -100,7 +108,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-/// 상단바: 뒤로가기 버튼 + 가운데 정렬된 "회원가입" 타이틀.
+/// 상단바: 가운데 정렬된 "회원가입" 타이틀.
+/// 뒤로 가기가 동작하면 안 되는 화면이라 뒤로가기 버튼은 두지 않는다.
 /// 다른 화면이 쓰는 공용 [TopAppBar]와 달리 이 화면 전용으로 분리했다
 /// (디자인상 이 화면은 공용 내비게이션이 아닌 단일 트랜잭션 화면이라서).
 class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -117,15 +126,7 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: AppColors.surfaceBase,
       elevation: 0,
       centerTitle: true,
-      leading: IconButton(
-        padding: EdgeInsets.zero,
-        icon: const Icon(
-          Icons.arrow_back,
-          size: 16,
-          color: AppColors.onSurfaceVariant,
-        ),
-        onPressed: () => Navigator.of(context).maybePop(),
-      ),
+      automaticallyImplyLeading: false,
       title: Text(
         '회원가입',
         style: textTheme.titleLarge?.copyWith(color: AppColors.primary500),
@@ -263,9 +264,7 @@ class _SignUpFooter extends StatelessWidget {
           value: agreedToTerms,
           activeColor: AppColors.primary500,
           checkColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           side: const BorderSide(color: AppColors.primary500),
           onChanged: onAgreedToTermsChanged,
           title: Text(
@@ -400,8 +399,12 @@ class _LabeledTextField extends StatelessWidget {
             suffixIcon: hasError
                 ? Icon(Icons.error_outline, color: errorColor, size: 20)
                 : isValid
-                    ? const Icon(Icons.check_circle, color: AppColors.primary500, size: 20)
-                    : null,
+                ? const Icon(
+                    Icons.check_circle,
+                    color: AppColors.primary500,
+                    size: 20,
+                  )
+                : null,
             contentPadding: const EdgeInsets.fromLTRB(16, 9, 16, 8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

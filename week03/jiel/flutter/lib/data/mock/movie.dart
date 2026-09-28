@@ -32,7 +32,7 @@ const movies = [
     title: '별빛 아래 우리',
     genre: '드라마',
     year: 2023,
-    rating: 4.8,
+    rating: 4.5,
     posterAsset: 'assets/images/posters/hero_under_the_starlight.jpg',
     runtime: 124,
     reviewCount: 1245,
@@ -82,9 +82,13 @@ const movies = [
     genre: '다큐멘터리',
     year: 2023,
     rating: 4.1,
-    posterAsset: 'assets/images/posters/poster_a_modern_architecture_flim_archive.jpg',
+    posterAsset:
+        'assets/images/posters/poster_a_modern_architecture_flim_archive.jpg',
   ),
 ];
+
+/// 장르 필터(Chip, BottomSheet)에서 공통으로 쓰는 장르 목록
+const genres = ['드라마', 'SF', '애니메이션', '스릴러', '로맨스', '코미디', '판타지', '다큐멘터리'];
 
 Movie? findMovieById(int? id) {
   for (final movie in movies) {

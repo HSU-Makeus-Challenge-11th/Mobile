@@ -1,19 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+
 import '../data/mock/movie.dart';
 import '../theme/app_colors.dart';
 import '../widgets/rating_dialog.dart';
 
 const _outline = Color(0xFFCBC4D2);
 
-class MovieDetailScreen extends StatelessWidget {
+class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movieId});
 
   final int? movieId;
 
   @override
+  State<MovieDetailScreen> createState() => _MovieDetailScreenState();
+}
+
+class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  // 즐겨찾기·내 평점은 API 없이 화면 내부 상태로만 관리한다.
+  bool _isFavorite = false;
+  double? _myRating;
+
+  void _toggleFavorite() {
+    setState(() => _isFavorite = !_isFavorite);
+    _showSnackBar(_isFavorite ? '즐겨찾기에 추가했어요.' : '즐겨찾기에서 삭제했어요.');
+  }
+
+  Future<void> _openRatingDialog() async {
+    final rating = await showDialog<double>(
+      context: context,
+      // 이미 남긴 평점이 있으면 그 값에서 시작한다.
+      builder: (context) => RatingDialog(initialRating: _myRating ?? 0),
+    );
+    if (!mounted || rating == null || rating == 0) return;
+
+    setState(() => _myRating = rating);
+    _showSnackBar('평점 ${rating.toStringAsFixed(1)}점을 남겼어요.');
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(movieId);
+    final movie = findMovieById(widget.movieId);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceBase,
@@ -25,12 +65,18 @@ class MovieDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _HeroPoster(movie: movie),
-                  _InformationSection(movie: movie),
+                  _InformationSection(movie: movie, myRating: _myRating),
                   _SynopsisSection(movie: movie),
                 ],
               ),
             ),
-      bottomNavigationBar: movie == null ? null : const _ActionButtons(),
+      bottomNavigationBar: movie == null
+          ? null
+          : _ActionButtons(
+              isFavorite: _isFavorite,
+              onFavoriteTap: _toggleFavorite,
+              onRateTap: _openRatingDialog,
+            ),
     );
   }
 }
@@ -55,9 +101,8 @@ class _DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Row(
               children: [
                 IconButton(
-                  onPressed: () => context.canPop()
-                      ? context.pop()
-                      : context.go('/home'),
+                  onPressed: () =>
+                      context.canPop() ? context.pop() : context.go('/home'),
                   icon: const Icon(Icons.arrow_back, size: 20),
                   color: AppColors.primary500,
                 ),
@@ -107,9 +152,10 @@ class _HeroPoster extends StatelessWidget {
 
 // 2. 제목 · 정보 · 별점 · 태그
 class _InformationSection extends StatelessWidget {
-  const _InformationSection({required this.movie});
+  const _InformationSection({required this.movie, required this.myRating});
 
   final Movie movie;
+  final double? myRating;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +193,15 @@ class _InformationSection extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              _StarRating(rating: movie.rating),
+              // 평균 평점: 읽기 전용
+              RatingBarIndicator(
+                rating: movie.rating,
+                itemCount: 5,
+                itemSize: 17,
+                unratedColor: AppColors.primary200,
+                itemBuilder: (context, index) =>
+                    const Icon(Icons.star, color: AppColors.primary500),
+              ),
               const SizedBox(width: 8),
               Text(
                 movie.rating.toStringAsFixed(1),
@@ -173,14 +227,24 @@ class _InformationSection extends StatelessWidget {
               ],
             ],
           ),
+          if (myRating != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '내 평점 ${myRating!.toStringAsFixed(1)}',
+              style: const TextStyle(
+                fontSize: 14,
+                height: 20 / 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.primary500,
+              ),
+            ),
+          ],
           if (movie.tags.isNotEmpty) ...[
             const SizedBox(height: 24),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: [
-                for (final tag in movie.tags) _TagChip(label: tag),
-              ],
+              children: [for (final tag in movie.tags) _TagChip(label: tag)],
             ),
           ],
         ],
@@ -190,34 +254,9 @@ class _InformationSection extends StatelessWidget {
 
   // 1245 → 1,245
   static String _formatCount(int count) => count.toString().replaceAllMapped(
-        RegExp(r'\B(?=(\d{3})+(?!\d))'),
-        (match) => ',',
-      );
-}
-
-class _StarRating extends StatelessWidget {
-  const _StarRating({required this.rating});
-
-  final double rating; // 0~5
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 1; i <= 5; i++)
-          Icon(
-            rating >= i
-                ? Icons.star
-                : rating >= i - 0.5
-                    ? Icons.star_half
-                    : Icons.star_border,
-            size: 17,
-            color: AppColors.primary500,
-          ),
-      ],
-    );
-  }
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (match) => ',',
+  );
 }
 
 class _TagChip extends StatelessWidget {
@@ -296,7 +335,15 @@ class _SynopsisSection extends StatelessWidget {
 
 // 하단 고정 버튼: 즐겨찾기 / 평점 남기기
 class _ActionButtons extends StatelessWidget {
-  const _ActionButtons();
+  const _ActionButtons({
+    required this.isFavorite,
+    required this.onFavoriteTap,
+    required this.onRateTap,
+  });
+
+  final bool isFavorite;
+  final VoidCallback onFavoriteTap;
+  final VoidCallback onRateTap;
 
   static const _labelStyle = TextStyle(
     fontSize: 14,
@@ -322,13 +369,16 @@ class _ActionButtons extends StatelessWidget {
                 child: SizedBox(
                   height: 48,
                   child: OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: onFavoriteTap,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary500,
                       side: const BorderSide(color: AppColors.primary500),
                       shape: const StadiumBorder(),
                     ),
-                    icon: const Icon(Icons.bookmark_border, size: 18),
+                    icon: Icon(
+                      isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                      size: 18,
+                    ),
                     label: const Text('즐겨찾기', style: _labelStyle),
                   ),
                 ),
@@ -338,10 +388,7 @@ class _ActionButtons extends StatelessWidget {
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (context) => const RatingDialog(),
-                    ),
+                    onPressed: onRateTap,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary500,
                       foregroundColor: Colors.white,

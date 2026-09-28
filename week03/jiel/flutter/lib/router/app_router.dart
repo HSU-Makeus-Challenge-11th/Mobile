@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
@@ -14,10 +13,7 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/start',
     routes: [
-      GoRoute(
-        path: '/start',
-        builder: (context, state) => const StartScreen(),
-      ),
+      GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const SignUpScreen(),

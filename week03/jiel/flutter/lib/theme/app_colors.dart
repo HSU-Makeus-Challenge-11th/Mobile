@@ -4,7 +4,7 @@ class AppColors {
   AppColors._();
 
   // Primary Colors
-  
+
   static const Color primary100 = Color(0xFFF3EFFF);
   static const Color primary200 = Color(0xFFE9DDFF);
   static const Color primary300 = Color(0xFFD0BCFF);
@@ -37,7 +37,9 @@ class AppColors {
   // Surface Colors
   static const Color surfaceLowest = Color(0xFFFFFFFF);
   static const Color surfaceLow = Color(0xFFF5F3F0);
-  static const Color surfaceBase = Color(0xFFFAF9F5); // ColorScheme.surface, scaffoldBackgroundColor
+  static const Color surfaceBase = Color(
+    0xFFFAF9F5,
+  ); // ColorScheme.surface, scaffoldBackgroundColor
   static const Color surfaceContainer = Color(0xFFEFEEEA);
   static const Color surfaceHigh = Color(0xFFE9E8E4);
   static const Color surfaceHighest = Color(0xFFE3E2DF);

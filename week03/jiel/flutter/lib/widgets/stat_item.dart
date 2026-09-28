@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class StatItem extends StatelessWidget {
-  const StatItem({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+  const StatItem({super.key, required this.label, required this.value});
 
   final String label;
   final String value;
