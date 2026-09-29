@@ -44,6 +44,14 @@ public class BookRepository {
 
     //userId와 bookId를 전달받아 오늘대여, 일주일뒤 반납 rental행 추가
     public void insertRental(Map<String, Object> body){
+        // 책을 빌릴 수 있는 상태인지 확인
+        String updateSql = "UPDATE book SET book.is_available = 0 WHERE book.book_id = ? AND book.is_available = 1";
+        int update = jdbcTemplate.update(updateSql, body.get("bookId"));
+        if (update == 0){
+            throw new IllegalStateException("이미 대여 중이거나 존재하지 않는 책입니다.");
+        }
+
+        //대여날짜와 반납날짜 기록
         String sql = "INSERT INTO rental(user_id, book_id, rented_at, due_at) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY))";
 
         jdbcTemplate.update(
@@ -51,6 +59,8 @@ public class BookRepository {
                 body.get("userId"),
                 body.get("bookId")
         );
+
+
     }
 
 }
