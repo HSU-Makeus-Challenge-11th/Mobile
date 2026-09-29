@@ -34,4 +34,8 @@ public class BookService {
     public void rentBook(Map<String, Object> body){
         bookRepository.insertRental(body);
     }
+
+    public void returnRental(Long rentalId){
+        bookRepository.returnRental(rentalId);
+    }
 }

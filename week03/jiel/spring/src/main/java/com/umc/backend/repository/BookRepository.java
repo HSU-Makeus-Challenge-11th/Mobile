@@ -2,6 +2,7 @@
 package com.umc.backend.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -61,6 +62,23 @@ public class BookRepository {
         );
 
 
+    }
+
+    //rentalId로 대여 기록을 찾아 반납 처리(returned_at 갱신) 및 도서를 대여 가능 상태로 변경
+    public void returnRental(Long rentalId) {
+        String findBookIdSql = "SELECT book_id FROM rental WHERE rental_id = ?";
+        Long bookId;
+        try {
+            bookId = jdbcTemplate.queryForObject(findBookIdSql, Long.class, rentalId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new IllegalStateException("존재하지 않는 대여 기록입니다.");
+        }
+
+        String updateRentalSql = "UPDATE rental SET returned_at = NOW() WHERE rental_id = ?";
+        jdbcTemplate.update(updateRentalSql, rentalId);
+
+        String updateBookSql = "UPDATE book SET is_available = 1 WHERE book_id = ?";
+        jdbcTemplate.update(updateBookSql, bookId);
     }
 
 }
