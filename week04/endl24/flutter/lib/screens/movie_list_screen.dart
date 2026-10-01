@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/movie_list_initial_data.dart';
 import 'package:movielog/service/fake_movie_service.dart';
+import 'package:movielog/service/genre_preference.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/genre_filter_chips.dart';
 import 'package:movielog/widgets/genre_filter_sheet.dart';
@@ -20,16 +22,41 @@ class MovieListScreen extends StatefulWidget {
 class _MovieListScreenState extends State<MovieListScreen> {
   static const _allGenre = '전체';
   final _movieService = const FakeMovieService();
-  late Future<List<Movie>> _moviesFuture;
+  final _genrePreference = GenrePreference();
+  late Future<MovieListInitialData> _initialFuture;
 
   @override
   void initState() {
     super.initState();
-    _moviesFuture = _movieService.fetchMovies();
+    _initialFuture = _loadInitialData();
+  }
+
+  Future<MovieListInitialData> _loadInitialData() async {
+    final results = await Future.wait([
+      _movieService.fetchMovies(),
+      _genrePreference.read(),
+    ]);
+
+    final data = MovieListInitialData(
+      movies: results[0] as List<Movie>,
+      selectedGenre: results[1] as String,
+    );
+
+    if (mounted) {
+      setState(() => _applyGenre(data.selectedGenre));
+    }
+
+    return data;
   }
 
   /// 비어 있으면 전체 표시
   final Set<String> _selectedGenres = {};
+
+  void _applyGenre(String genre) {
+    _selectedGenres
+      ..clear()
+      ..addAll(genre == _allGenre ? <String>[] : [genre]);
+  }
 
   List<Movie> _filter(List<Movie> movies) {
     if (_selectedGenres.isEmpty) return movies;
@@ -50,16 +77,13 @@ class _MovieListScreenState extends State<MovieListScreen> {
   }
 
   void _onChipSelected(String genre) {
-    setState(() {
-      _selectedGenres
-        ..clear()
-        ..addAll(genre == _allGenre ? <String>[] : [genre]);
-    });
+    setState(() => _applyGenre(genre));
+    _genrePreference.save(genre);
   }
 
   void _retry() {
     setState(() {
-      _moviesFuture = _movieService.fetchMovies();
+      _initialFuture = _loadInitialData();
     });
   }
 
@@ -121,8 +145,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: FutureBuilder<List<Movie>>(
-                future: _moviesFuture,
+              child: FutureBuilder<MovieListInitialData>(
+                future: _initialFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const MovieListLoading();
@@ -132,7 +156,9 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     return MovieListError(onRetry: _retry);
                   }
 
-                  final movies = _filter(snapshot.data ?? const <Movie>[]);
+                  final movies = _filter(
+                    snapshot.data?.movies ?? const <Movie>[],
+                  );
 
                   if (movies.isEmpty) {
                     return const MovieListEmpty();
