@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/models/movie.dart';
+import 'package:movielog/service/fake_movie_service.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/genre_filter_chips.dart';
 import 'package:movielog/widgets/genre_filter_sheet.dart';
@@ -15,13 +16,26 @@ class MovieListScreen extends StatefulWidget {
 
 class _MovieListScreenState extends State<MovieListScreen> {
   static const _allGenre = '전체';
+  final _movieService = const FakeMovieService();
+  late Future<List<Movie>> _moviesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _moviesFuture = _movieService.fetchMovies();
+  }
 
   /// 비어 있으면 전체 표시
   final Set<String> _selectedGenres = {};
 
+  List<Movie> _filter(List<Movie> movies) {
+    if (_selectedGenres.isEmpty) return movies;
+    return movies.where((m) => _selectedGenres.contains(m.genre)).toList();
+  }
+
   List<String> get _genres => [
-        ...{for (final movie in mockMovies) movie.genre},
-      ];
+    ...{for (final movie in mockMovies) movie.genre},
+  ];
 
   List<String> get _chipGenres => [_allGenre, ..._genres];
 
@@ -30,13 +44,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
     if (_selectedGenres.isEmpty) return _allGenre;
     if (_selectedGenres.length == 1) return _selectedGenres.first;
     return '';
-  }
-
-  List<Movie> get _filteredMovies {
-    if (_selectedGenres.isEmpty) return mockMovies;
-    return mockMovies
-        .where((movie) => _selectedGenres.contains(movie.genre))
-        .toList();
   }
 
   void _onChipSelected(String genre) {
@@ -56,10 +63,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => GenreFilterSheet(
-        genres: _genres,
-        selectedGenres: _selectedGenres,
-      ),
+      builder: (context) =>
+          GenreFilterSheet(genres: _genres, selectedGenres: _selectedGenres),
     );
 
     if (result == null) return;
@@ -73,8 +78,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movies = _filteredMovies;
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -109,21 +112,31 @@ class _MovieListScreenState extends State<MovieListScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.55,
-                ),
-                itemCount: movies.length,
-                itemBuilder: (context, index) {
-                  final movie = movies[index];
-                  return MovieGridCard(
-                    movie: movie,
-                    onTap: () => context.push('/movies/${movie.id}'),
+              child: FutureBuilder<List<Movie>>(
+                future: _moviesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final movies = _filter(snapshot.data ?? const <Movie>[]);
+                  return GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.55,
+                        ),
+                    itemCount: movies.length,
+                    itemBuilder: (context, index) {
+                      final movie = movies[index];
+                      return MovieGridCard(
+                        movie: movie,
+                        onTap: () => context.push('/movies/${movie.id}'),
+                      );
+                    },
                   );
                 },
               ),
