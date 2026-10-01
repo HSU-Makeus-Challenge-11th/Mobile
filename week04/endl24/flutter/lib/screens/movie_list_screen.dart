@@ -57,6 +57,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
     });
   }
 
+  void _retry() {
+    setState(() {
+      _moviesFuture = _movieService.fetchMovies();
+    });
+  }
+
   Future<void> _openGenreFilter() async {
     final result = await showModalBottomSheet<Set<String>>(
       context: context,
@@ -123,7 +129,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   }
 
                   if (snapshot.hasError) {
-                    return MovieListError(onRetry: () {});
+                    return MovieListError(onRetry: _retry);
                   }
 
                   final movies = _filter(snapshot.data ?? const <Movie>[]);
