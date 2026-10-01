@@ -6,6 +6,9 @@ import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/genre_filter_chips.dart';
 import 'package:movielog/widgets/genre_filter_sheet.dart';
 import 'package:movielog/widgets/movie_grid_card.dart';
+import 'package:movielog/widgets/movie_list_empty.dart';
+import 'package:movielog/widgets/movie_list_error.dart';
+import 'package:movielog/widgets/movie_list_loading.dart';
 
 class MovieListScreen extends StatefulWidget {
   const MovieListScreen({super.key});
@@ -116,10 +119,18 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 future: _moviesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const MovieListLoading();
+                  }
+
+                  if (snapshot.hasError) {
+                    return MovieListError(onRetry: () {});
                   }
 
                   final movies = _filter(snapshot.data ?? const <Movie>[]);
+
+                  if (movies.isEmpty) {
+                    return const MovieListEmpty();
+                  }
                   return GridView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     gridDelegate:
