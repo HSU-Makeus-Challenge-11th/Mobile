@@ -1,6 +1,6 @@
 import 'package:movielog/models/movie.dart';
 
-enum MovieLoadMode { success, empty, failure }
+enum MovieLoadMode { success, empty, failure, timeout }
 
 class MovieLoadException implements Exception {
   const MovieLoadException(this.message);
@@ -15,10 +15,13 @@ class FakeMovieService {
   Future<List<Movie>> fetchMovies({
     MovieLoadMode mode = MovieLoadMode.success,
   }) async {
-    await Future<void>.delayed(const Duration(seconds: 1));
+    final delay = mode == MovieLoadMode.timeout
+        ? const Duration(seconds: 10)
+        : const Duration(seconds: 1);
+    await Future<void>.delayed(delay);
 
     return switch (mode) {
-      MovieLoadMode.success => mockMovies,
+      MovieLoadMode.success || MovieLoadMode.timeout => mockMovies,
       MovieLoadMode.empty => const <Movie>[],
       MovieLoadMode.failure => throw const MovieLoadException(
         '영화를 불러오지 못했습니다.',

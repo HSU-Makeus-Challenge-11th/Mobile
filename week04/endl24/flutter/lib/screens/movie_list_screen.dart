@@ -33,7 +33,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   Future<MovieListInitialData> _loadInitialData() async {
     final results = await Future.wait([
-      _movieService.fetchMovies(),
+      _movieService.fetchMovies().timeout(const Duration(seconds: 3)),
       _genrePreference.read(),
     ]);
 
