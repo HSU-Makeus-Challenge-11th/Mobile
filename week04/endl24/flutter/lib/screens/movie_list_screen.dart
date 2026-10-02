@@ -5,6 +5,7 @@ import 'package:movielog/models/movie_list_initial_data.dart';
 import 'package:movielog/models/movie_sort.dart';
 import 'package:movielog/service/fake_movie_service.dart';
 import 'package:movielog/service/genre_preference.dart';
+import 'package:movielog/service/sort_preference.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/genre_filter_chips.dart';
 import 'package:movielog/widgets/genre_filter_sheet.dart';
@@ -24,6 +25,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   static const _allGenre = '전체';
   final _movieService = const FakeMovieService();
   final _genrePreference = GenrePreference();
+  final _sortPreference = SortPreference();
   late Future<MovieListInitialData> _initialFuture;
 
   @override
@@ -36,15 +38,20 @@ class _MovieListScreenState extends State<MovieListScreen> {
     final results = await Future.wait([
       _movieService.fetchMovies().timeout(const Duration(seconds: 3)),
       _genrePreference.read(),
+      _sortPreference.read(),
     ]);
 
     final data = MovieListInitialData(
       movies: results[0] as List<Movie>,
       selectedGenre: results[1] as String,
+      selectedSort: results[2] as MovieSort,
     );
 
     if (mounted) {
-      setState(() => _applyGenre(data.selectedGenre));
+      setState(() {
+        _applyGenre(data.selectedGenre);
+        _sort = data.selectedSort;
+      });
     }
 
     return data;
@@ -159,7 +166,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         icon: const Icon(Icons.sort, color: AppColors.violet),
                         tooltip: '정렬',
                         initialValue: _sort,
-                        onSelected: (sort) => setState(() => _sort = sort),
+                        onSelected: (sort) {
+                          setState(() => _sort = sort);
+                          _sortPreference.save(sort);
+                        },
                         itemBuilder: (context) => [
                           for (final sort in MovieSort.values)
                             PopupMenuItem(value: sort, child: Text(sort.label)),
