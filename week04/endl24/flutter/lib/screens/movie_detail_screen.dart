@@ -15,7 +15,6 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool _isFavorite = false;
-  double? _myRating;
 
   void _toggleFavorite() {
     setState(() => _isFavorite = !_isFavorite);
@@ -39,8 +38,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
     if (rating == null) return;
     if (!mounted) return;
-
-    setState(() => _myRating = rating);
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
