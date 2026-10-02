@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/models/movie.dart';
 import 'package:movielog/models/movie_list_initial_data.dart';
+import 'package:movielog/models/movie_sort.dart';
 import 'package:movielog/service/fake_movie_service.dart';
 import 'package:movielog/service/genre_preference.dart';
 import 'package:movielog/theme/app_colors.dart';
@@ -51,6 +52,19 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   /// 비어 있으면 전체 표시
   final Set<String> _selectedGenres = {};
+
+  MovieSort _sort = MovieSort.latest;
+
+  List<Movie> _sorted(List<Movie> movies) {
+    final list = [...movies];
+    switch (_sort) {
+      case MovieSort.latest:
+        list.sort((a, b) => b.year.compareTo(a.year));
+      case MovieSort.rating:
+        list.sort((a, b) => b.rating.compareTo(a.rating));
+    }
+    return list;
+  }
 
   void _applyGenre(String genre) {
     _selectedGenres
@@ -138,11 +152,26 @@ class _MovieListScreenState extends State<MovieListScreen> {
                       color: AppColors.violet,
                     ),
                   ),
-                  IconButton(
-                    onPressed: _openGenreFilter,
-                    icon: const Icon(Icons.filter_list),
-                    color: AppColors.violet,
-                    tooltip: '장르 필터',
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PopupMenuButton<MovieSort>(
+                        icon: const Icon(Icons.sort, color: AppColors.violet),
+                        tooltip: '정렬',
+                        initialValue: _sort,
+                        onSelected: (sort) => setState(() => _sort = sort),
+                        itemBuilder: (context) => [
+                          for (final sort in MovieSort.values)
+                            PopupMenuItem(value: sort, child: Text(sort.label)),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: _openGenreFilter,
+                        icon: const Icon(Icons.filter_list),
+                        color: AppColors.violet,
+                        tooltip: '장르 필터',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -164,9 +193,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   if (snapshot.hasError) {
                     return MovieListError(onRetry: _retry);
                   }
-
-                  final movies = _filter(
-                    snapshot.data?.movies ?? const <Movie>[],
+                  final movies = _sorted(
+                    _filter(snapshot.data?.movies ?? const <Movie>[]),
                   );
 
                   if (movies.isEmpty) {
