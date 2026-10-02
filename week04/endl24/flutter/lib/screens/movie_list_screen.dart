@@ -87,6 +87,15 @@ class _MovieListScreenState extends State<MovieListScreen> {
     });
   }
 
+  Future<void> _refresh() async {
+    final data = await _loadInitialData();
+    if (!mounted) return;
+
+    setState(() {
+      _initialFuture = Future.value(data);
+    });
+  }
+
   Future<void> _openGenreFilter() async {
     final result = await showModalBottomSheet<Set<String>>(
       context: context,
@@ -163,23 +172,27 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   if (movies.isEmpty) {
                     return const MovieListEmpty();
                   }
-                  return GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.55,
-                        ),
-                    itemCount: movies.length,
-                    itemBuilder: (context, index) {
-                      final movie = movies[index];
-                      return MovieGridCard(
-                        movie: movie,
-                        onTap: () => context.push('/movies/${movie.id}'),
-                      );
-                    },
+                  return RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.55,
+                          ),
+                      itemCount: movies.length,
+                      itemBuilder: (context, index) {
+                        final movie = movies[index];
+                        return MovieGridCard(
+                          movie: movie,
+                          onTap: () => context.push('/movies/${movie.id}'),
+                        );
+                      },
+                    ),
                   );
                 },
               ),
