@@ -16,7 +16,7 @@ class GenreFilterSheet extends StatefulWidget {
 }
 
 class _GenreFilterSheetState extends State<GenreFilterSheet> {
-  late Set<String> _selected = {...widget.selectedGenres};
+  late final Set<String> _selected = {...widget.selectedGenres};
 
   void _toggle(String genre, bool? checked) {
     setState(() {
