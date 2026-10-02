@@ -11,6 +11,7 @@ class MovieLoadException implements Exception {
 class FakeMovieService {
   const FakeMovieService();
 
+  // TODO(5주차 유저별 평점 조회 API): 실제 API Service로 교체
   Future<List<Movie>> fetchMovies({
     MovieLoadMode mode = MovieLoadMode.success,
   }) async {
@@ -19,8 +20,9 @@ class FakeMovieService {
     return switch (mode) {
       MovieLoadMode.success => mockMovies,
       MovieLoadMode.empty => const <Movie>[],
-      MovieLoadMode.failure =>
-        throw const MovieLoadException('영화를 불러오지 못했습니다.'),
+      MovieLoadMode.failure => throw const MovieLoadException(
+        '영화를 불러오지 못했습니다.',
+      ),
     };
   }
 }
