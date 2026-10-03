@@ -1,7 +1,6 @@
 // src/main/java/.../controller/BookController.java
 package com.umc.backend.controller;
 
-import com.umc.backend.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -14,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+import com.umc.backend.service.BookService;
+import com.umc.backend.dto.BookResponse;
+
 @RestController // 1. "나는 데이터를 JSON으로 서빙하는 API 카운터야!"
 @RequestMapping("/books") // 2. 이 컨트롤러로 들어오는 요청의 기본 주소는 /books
 @RequiredArgsConstructor
@@ -22,36 +24,44 @@ public class BookController {
     // 주방장(Service)을 주입받아 카운터 옆에 대기시킵니다.
     private final BookService bookService;
 
-    // 3. HTTP GET 방식으로 /books 요청이 들어왔을 때 이 메서드가 실행됩니다.
+    // 기존 Raw SQL 코드
+//    // 3. HTTP GET 방식으로 /books 요청이 들어왔을 때 이 메서드가 실행됩니다.
+//    @GetMapping
+//    public List<Map<String, Object>> getBooks() {
+//        return bookService.getAllBooks();
+//    }
+
+    // ORM기반 구조로 리팩토링
     @GetMapping
-    public List<Map<String, Object>> getBooks() {
-        return bookService.getAllBooks();
+    public List<BookResponse> getsBooks(){
+        return bookService.getBooks();
     }
 
-    @GetMapping("/category/{categoryId}")
-    public List<Map<String, Object>> getBooksByCategoryId(@PathVariable("categoryId") Long categoryId) {
-        return bookService.getBooksByCategoryId(categoryId);
-    }
 
-    // POST http://localhost:8080/books
-    @PostMapping
-    public String createBook(@RequestBody Map<String, Object> body){
-        bookService.createBook(body);
-        return "도서 등록이 완료되었습니다!";
-    }
-
-    // POST http://localhost:8080/books/rentals
-    @PostMapping("/rentals")
-    public String rentBook(@RequestBody Map<String, Object> body){
-        bookService.rentBook(body);
-        return "도서 대여가 완료되었습니다.";
-    }
-
-    // PATCH http://localhost:8080/books/rentals/{rentalId}/return
-    @PatchMapping("/rentals/{rentalId}/return")
-    public String returnRental(@PathVariable("rentalId") Long rentalId){
-        bookService.returnRental(rentalId);
-        return "도서 반납이 완료되었습니다.";
-    }
+//    @GetMapping("/category/{categoryId}")
+//    public List<Map<String, Object>> getBooksByCategoryId(@PathVariable("categoryId") Long categoryId) {
+//        return bookService.getBooksByCategoryId(categoryId);
+//    }
+//
+//    // POST http://localhost:8080/books
+//    @PostMapping
+//    public String createBook(@RequestBody Map<String, Object> body){
+//        bookService.createBook(body);
+//        return "도서 등록이 완료되었습니다!";
+//    }
+//
+//    // POST http://localhost:8080/books/rentals
+//    @PostMapping("/rentals")
+//    public String rentBook(@RequestBody Map<String, Object> body){
+//        bookService.rentBook(body);
+//        return "도서 대여가 완료되었습니다.";
+//    }
+//
+//    // PATCH http://localhost:8080/books/rentals/{rentalId}/return
+//    @PatchMapping("/rentals/{rentalId}/return")
+//    public String returnRental(@PathVariable("rentalId") Long rentalId){
+//        bookService.returnRental(rentalId);
+//        return "도서 반납이 완료되었습니다.";
+//    }
 
 }
