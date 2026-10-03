@@ -45,6 +45,10 @@ public class BookService {
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."));
 
+        if (bookRepository.existsByTitle(request.title())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 등록된 도서 제목입니다.");
+        }
+
         Book book = new Book(category, request.title(), request.description());
         return BookResponse.from(bookRepository.save(book));
     }
