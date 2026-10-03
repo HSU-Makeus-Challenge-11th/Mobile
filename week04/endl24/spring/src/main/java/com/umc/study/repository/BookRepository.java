@@ -8,4 +8,5 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findAllByOrderByBookIdDesc();
     List<Book> findByCategory_CategoryIdOrderByBookIdDesc(Long categoryId);
+    List<Book> findByTitleContainingOrderByBookIdDesc(String keyword);
 }

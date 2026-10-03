@@ -20,8 +20,8 @@ public class BookController {
 
     // 3. HTTP GET 방식으로 /books 요청이 들어왔을 때 이 메서드가 실행됩니다.
     @GetMapping
-    public List<BookResponse> getBooks() {
-        return bookService.getBooks();
+    public List<BookResponse> getBooks(@RequestParam(required = false) String keyword) {
+        return bookService.getBooks(keyword);
     }
     @GetMapping("/category/{categoryId}")
     public List<BookResponse> getBooksByCategory(@PathVariable Long categoryId) {

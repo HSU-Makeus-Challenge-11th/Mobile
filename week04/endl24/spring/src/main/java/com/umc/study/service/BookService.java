@@ -23,10 +23,13 @@ public class BookService {
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public List<BookResponse> getBooks() {
-        return bookRepository.findAllByOrderByBookIdDesc()
-                .stream()
-                .map(BookResponse::from)   // Book 하나하나를 BookResponse로 변환
+    public List<BookResponse> getBooks(String keyword) {
+        List<Book> books = (keyword == null || keyword.isBlank())
+                ? bookRepository.findAllByOrderByBookIdDesc()
+                : bookRepository.findByTitleContainingOrderByBookIdDesc(keyword);
+
+        return books.stream()
+                .map(BookResponse::from)
                 .toList();
     }
 
