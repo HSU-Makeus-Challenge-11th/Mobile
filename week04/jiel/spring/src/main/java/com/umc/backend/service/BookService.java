@@ -2,13 +2,17 @@
 package com.umc.backend.service;
 
 import com.umc.backend.repository.BookRepository;
-import jakarta.transaction.Transactional;
+import com.umc.backend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import com.umc.backend.dto.BookResponse;
+import com.umc.backend.dto.CreateBookRequest;
+import com.umc.backend.entity.Book;
+import com.umc.backend.entity.Category;
 
 @Service // 비즈니스 로직을 수행하는 메인 셰프 계층
 @RequiredArgsConstructor
@@ -16,6 +20,7 @@ public class BookService {
 
     // 창고지기(Repository)를 생성자 주입으로 데려옵니다.
     private final BookRepository bookRepository;
+    private final CategoryRepository categoryRepository;
 
     // 기존 Raw SQL 코드
 //    // 모든 도서 조회
@@ -29,6 +34,16 @@ public class BookService {
     public List<BookResponse> getBooks(){
         return bookRepository.findAllByOrderByBookIdDesc()
                 .stream().map(BookResponse::from).toList();
+    }
+
+    // Post /books
+    @Transactional
+    public BookResponse createBook(CreateBookRequest request) {
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+
+        Book book = new Book(category, request.title(), request.description());
+        return BookResponse.from(bookRepository.save(book));
     }
 
     // 경로 변수로 categoryId를 받아 해당 카테고리 도서 목록 조회
