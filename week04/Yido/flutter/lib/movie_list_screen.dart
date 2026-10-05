@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/data/mock_movies.dart';
-import 'package:movielog/widgets/movies/movie_card.dart';
+import 'package:movielog/widgets/movies/movie_grid.dart';
 
 class MovieListScreen extends StatefulWidget {
   const MovieListScreen({super.key});
@@ -95,24 +95,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
               ),
             ),
           ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final itemWidth = (constraints.maxWidth - 48) / 2;
-                return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 24,
-                    childAspectRatio: itemWidth / (itemWidth * 1.5 + 60),
-                  ),
-                  itemCount: visible.length,
-                  itemBuilder: (context, i) => MovieCard(movie: visible[i]),
-                );
-              },
-            ),
-          ),
+          Expanded(child: MovieGrid(movies: visible)),
         ],
       ),
     );
