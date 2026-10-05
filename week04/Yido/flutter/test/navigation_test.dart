@@ -114,6 +114,8 @@ void main() {
         await tester.pump();
         expect(find.text('내 프로필'), findsOneWidget);
         expect(find.text('전체'), findsNothing);
+        // 영화 목록의 1초 Mock 요청이 끝날 때까지 기다린다
+        await tester.pump(const Duration(seconds: 1));
       } finally {
         debugDefaultTargetPlatformOverride = null;
       }
