@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:movielog/data/genre_preference.dart';
 import 'package:movielog/models/movie.dart';
 import 'package:movielog/services/fake_movie_service.dart';
 import 'package:movielog/widgets/movies/movie_grid.dart';
@@ -13,6 +14,7 @@ class MovieListScreen extends StatefulWidget {
 
 class _MovieListScreenState extends State<MovieListScreen> {
   final _movieService = const FakeMovieService();
+  final _genrePreference = GenrePreference();
   late Future<List<Movie>> _moviesFuture;
   MovieLoadMode _loadMode = MovieLoadMode.success;
   String genre = '전체';
@@ -23,6 +25,19 @@ class _MovieListScreenState extends State<MovieListScreen> {
     super.initState();
     // build는 여러 번 실행되므로 Future는 여기서 한 번만 만든다
     _moviesFuture = _movieService.fetchMovies(mode: _loadMode);
+    _restoreGenre();
+  }
+
+  Future<void> _restoreGenre() async {
+    final saved = await _genrePreference.read();
+    // await 사이에 화면이 사라졌으면 setState를 호출하지 않는다
+    if (!mounted || !genres.contains(saved)) return;
+    setState(() => genre = saved);
+  }
+
+  Future<void> _selectGenre(String selected) async {
+    setState(() => genre = selected);
+    await _genrePreference.save(selected);
   }
 
   /// 새로운 Future를 만들어 Loading부터 다시 시작한다
@@ -117,7 +132,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                             width: [55.0, 66.0, 47.0, 88.0, 66.0, 66.0][i],
                             height: 32,
                             child: FilledButton(
-                              onPressed: () => setState(() => genre = genres[i]),
+                              onPressed: () => _selectGenre(genres[i]),
                               style: FilledButton.styleFrom(
                                 backgroundColor: genre == genres[i]
                                     ? const Color(0xFF6750A4)
