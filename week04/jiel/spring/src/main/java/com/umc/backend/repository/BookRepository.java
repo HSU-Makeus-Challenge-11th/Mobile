@@ -1,22 +1,22 @@
 // src/main/java/.../repository/BookRepository.java
 package com.umc.backend.repository;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
-import java.util.Map;
 import com.umc.backend.entity.Book;
-
 
 public interface BookRepository extends JpaRepository<Book, Long>{
     List<Book> findAllByOrderByBookIdDesc();
 }
 
 //기존 RAW SQL 코드
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.dao.EmptyResultDataAccessException;
+//import org.springframework.jdbc.core.JdbcTemplate;
+//import org.springframework.stereotype.Repository;
+//
+//import java.util.Map;
+
 //@Repository // 스프링 컨테이너에 "나 창고지기 부품이야!"라고 등록
 //@RequiredArgsConstructor
 //public class BookRepository {
