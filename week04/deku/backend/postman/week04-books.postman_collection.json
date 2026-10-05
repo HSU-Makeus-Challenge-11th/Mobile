@@ -1,0 +1,74 @@
+{
+  "info": {
+    "name": "UMC Week04 Books ORM API",
+    "description": "4주차 ORM 미션의 성공 및 예외 응답 확인용 요청 모음",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "GET /books - 전체 도서 최신순 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books"
+      }
+    },
+    {
+      "name": "POST /books - 도서 등록 성공",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"categoryId\": 1,\n  \"title\": \"스프링 입문\",\n  \"description\": \"ORM 실습 도서\"\n}"
+        },
+        "url": "{{baseUrl}}/books"
+      }
+    },
+    {
+      "name": "POST /books - 빈 제목 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"categoryId\": 1,\n  \"title\": \"   \",\n  \"description\": \"실패해야 하는 요청\"\n}"
+        },
+        "url": "{{baseUrl}}/books"
+      }
+    },
+    {
+      "name": "POST /books - 없는 카테고리 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"categoryId\": 999999,\n  \"title\": \"존재하지 않는 카테고리 테스트\"\n}"
+        },
+        "url": "{{baseUrl}}/books"
+      }
+    }
+  ]
+}
