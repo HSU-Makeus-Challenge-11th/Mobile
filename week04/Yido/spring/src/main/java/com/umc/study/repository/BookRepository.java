@@ -1,29 +1,15 @@
 package com.umc.study.repository;
 
+import com.umc.study.domain.Book;
 import java.util.List;
-import java.util.Map;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class BookRepository {
-    private final JdbcTemplate jdbcTemplate;
+public interface BookRepository extends JpaRepository<Book, Long> {
+    // 카테고리 이름을 함께 쓰므로 category를 한 번에 가져와 N+1을 피한다
+    @EntityGraph(attributePaths = "category")
+    List<Book> findAllByOrderByBookIdDesc();
 
-    public BookRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    public List<Map<String, Object>> findAll() {
-        return jdbcTemplate.queryForList("SELECT * FROM book");
-    }
-
-    public List<Map<String, Object>> findByCategoryId(Long categoryId) {
-        return jdbcTemplate.queryForList("SELECT * FROM book WHERE category_id = ?", categoryId);
-    }
-
-    public int save(Long categoryId, String title, String description) {
-        return jdbcTemplate.update(
-                "INSERT INTO book(category_id, title, description, is_available) VALUES (?, ?, ?, true)",
-                categoryId, title, description);
-    }
+    @EntityGraph(attributePaths = "category")
+    List<Book> findByCategory_CategoryIdOrderByBookIdDesc(Long categoryId);
 }
