@@ -69,6 +69,7 @@ flutter:
     - assets/images/posters/
     - assets/logos/
     - assets/icons/
+    - .env
 
   fonts:
     - family: Manrope
