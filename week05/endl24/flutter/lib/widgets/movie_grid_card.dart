@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class MovieGridCard extends StatelessWidget {
-  const MovieGridCard({super.key, required this.movie, required this.onTap});
+  const MovieGridCard({
+    super.key,
+    required this.movie,
+    required this.genreName,
+    required this.onTap,
+  });
 
-  final Movie movie;
+  final TmdbMovieDto movie;
+  final String? genreName;
   final VoidCallback onTap;
+
+  String get _subtitle =>
+      [?movie.releaseDate?.split('-').first, ?genreName].join(' · ');
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +31,13 @@ class MovieGridCard extends StatelessWidget {
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(movie.posterAsset, fit: BoxFit.cover),
+                    child: TmdbPosterImage(posterPath: movie.posterPath),
                   ),
                 ),
                 Positioned(
                   right: 8,
                   top: 8,
-                  child: _RatingBadge(rating: movie.rating),
+                  child: _RatingBadge(rating: movie.voteAverage),
                 ),
               ],
             ),
@@ -45,7 +55,7 @@ class MovieGridCard extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            '${movie.year} · ${movie.genre}',
+            _subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 13, color: AppColors.gray),
@@ -75,7 +85,7 @@ class _RatingBadge extends StatelessWidget {
           const Icon(Icons.star, size: 12, color: Color(0xFFFFB400)),
           const SizedBox(width: 4),
           Text(
-            rating.toString(),
+            rating.toStringAsFixed(1),
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
