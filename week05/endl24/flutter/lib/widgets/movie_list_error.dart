@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class MovieListError extends StatelessWidget {
-  const MovieListError({super.key, required this.onRetry});
+  const MovieListError({super.key, this.message, required this.onRetry});
 
+  final String? message;
   final VoidCallback onRetry;
 
   @override
@@ -13,7 +14,7 @@ class MovieListError extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline),
           const SizedBox(height: 12),
-          const Text('영화를 불러오지 못했습니다.'),
+          Text(message ?? '영화를 불러오지 못했습니다.'),
           const SizedBox(height: 16),
           FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
         ],
