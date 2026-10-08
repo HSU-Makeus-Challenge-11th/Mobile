@@ -1,4 +1,4 @@
-package com.umc.movie.sevice;
+package com.umc.movie.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

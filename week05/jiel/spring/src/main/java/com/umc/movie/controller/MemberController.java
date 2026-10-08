@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.*;
 
 import com.umc.movie.dto.EmailCheckResponse;
 import com.umc.movie.dto.NicknameCheckResponse;
-import com.umc.movie.sevice.MemberService;
+import com.umc.movie.service.MemberService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/members/")
+@RequestMapping("/members")
 public class MemberController {
     private final MemberService memberService;
 
