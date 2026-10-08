@@ -23,6 +23,13 @@ class MovieListViewModel extends ChangeNotifier {
 
   bool get isLoading => status == MovieListLoadStatus.loading;
 
+  String? genreNameOf(TmdbMovieDto movie) {
+    for (final genre in genres) {
+      if (movie.genreIds.contains(genre.id)) return genre.name;
+    }
+    return null;
+  }
+
   Future<void> loadInitial() async {
     final version = ++_requestVersion;
     status = MovieListLoadStatus.loading;
