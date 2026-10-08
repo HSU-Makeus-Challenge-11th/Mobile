@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class PopularMovieCard extends StatelessWidget {
   const PopularMovieCard({
@@ -10,9 +11,9 @@ class PopularMovieCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final Movie movie;
   final int rank;
   final VoidCallback onTap;
+  final TmdbMovieDto movie;
 
   @override
   Widget build(BuildContext context) {
@@ -27,18 +28,13 @@ class PopularMovieCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    movie.posterAsset,
+                  child: TmdbPosterImage(
+                    posterPath: movie.posterPath,
                     width: 140,
                     height: 190,
-                    fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  left: 8,
-                  top: 8,
-                  child: _RankBadge(rank: rank),
-                ),
+                Positioned(left: 8, top: 8, child: _RankBadge(rank: rank)),
               ],
             ),
             const SizedBox(height: 8),
@@ -58,11 +54,8 @@ class PopularMovieCard extends StatelessWidget {
                 const Icon(Icons.star, size: 14, color: Color(0xFFFFB400)),
                 const SizedBox(width: 4),
                 Text(
-                  movie.rating.toString(),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.gray,
-                  ),
+                  movie.voteAverage.toStringAsFixed(1),
+                  style: const TextStyle(fontSize: 13, color: AppColors.gray),
                 ),
               ],
             ),
