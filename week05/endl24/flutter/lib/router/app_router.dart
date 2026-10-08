@@ -6,6 +6,9 @@ import 'package:movielog/screens/movie_list_screen.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
+import 'package:movielog/service/tmdb_movie_service.dart';
+import 'package:movielog/view_models/movie_home_view_model.dart';
+import 'package:provider/provider.dart';
 
 class AppRouter {
   AppRouter._();
@@ -23,7 +26,12 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => const HomeScreen(),
+            builder: (context, state) => ChangeNotifierProvider(
+              create: (context) =>
+                  MovieHomeViewModel(context.read<TmdbMovieService>())
+                    ..loadPopular(),
+              child: const HomeScreen(),
+            ),
           ),
           GoRoute(
             path: '/movies',
