@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/service/member_api_service.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/login_prompt.dart';
 import 'package:movielog/widgets/movie_log_text_form_field.dart';
 import 'package:movielog/widgets/sign_up_header.dart';
 import 'package:movielog/widgets/terms_agreement.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -162,10 +164,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _emailRegExp.hasMatch(_emailController.text.trim()) &&
       _passwordRegExp.hasMatch(_passwordController.text) &&
       _agreedToTerms;
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
     FocusScope.of(context).unfocus();
+
+    final service = context.read<MemberApiService>();
+    final nicknameOk = await service.isNicknameAvailable(
+      _nicknameController.text.trim(),
+    );
+    final emailOk = await service.isEmailAvailable(
+      _emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+    if (!nicknameOk) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('이미 사용 중인 닉네임입니다.')));
+      return;
+    }
+    if (!emailOk) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('이미 사용 중인 이메일입니다.')));
+      return;
+    }
+
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('회원가입이 완료되었습니다.')));
     context.go('/home');
