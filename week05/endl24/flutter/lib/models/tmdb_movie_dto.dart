@@ -9,6 +9,7 @@ class TmdbMovieDto {
     required this.genreIds,
     required this.voteAverage,
     required this.popularity,
+    required this.voteCount,
   });
 
   final int id;
@@ -20,6 +21,7 @@ class TmdbMovieDto {
   final List<int> genreIds;
   final double voteAverage;
   final double popularity;
+  final int voteCount;
 
   factory TmdbMovieDto.fromJson(Map<String, dynamic> json) {
     return TmdbMovieDto(
@@ -34,6 +36,7 @@ class TmdbMovieDto {
           .toList(),
       voteAverage: (json['vote_average'] as num? ?? 0).toDouble(),
       popularity: (json['popularity'] as num? ?? 0).toDouble(),
+      voteCount: (json['vote_count'] as num? ?? 0).toInt(),
     );
   }
 }
