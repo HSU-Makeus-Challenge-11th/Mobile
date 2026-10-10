@@ -1,16 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:movielog/models/tmdb_genre_dto.dart';
 import 'package:movielog/models/tmdb_movie_dto.dart';
+import 'package:movielog/service/genre_preference.dart';
 import 'package:movielog/service/tmdb_movie_service.dart';
 
 enum MovieListLoadStatus { idle, loading, success, empty, error }
 
 class MovieListViewModel extends ChangeNotifier {
-  MovieListViewModel(this._service);
+  MovieListViewModel(this._service, {GenrePreference? genrePreference})
+    : _genrePreference = genrePreference ?? GenrePreference();
 
   static const _maxMovies = 30;
 
   final TmdbMovieService _service;
+  final GenrePreference _genrePreference;
 
   List<TmdbMovieDto> movies = const [];
   List<TmdbGenreDto> genres = const [];
@@ -37,6 +40,7 @@ class MovieListViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      selectedGenreId ??= await _genrePreference.read();
       genres = await _service.fetchGenres();
       final result = await _fetchUpToThirtyMovies(genreId: selectedGenreId);
 
@@ -59,6 +63,7 @@ class MovieListViewModel extends ChangeNotifier {
     if (isLoading || genreId == selectedGenreId) return;
 
     selectedGenreId = genreId;
+    _genrePreference.save(genreId);
     final version = ++_requestVersion;
     status = MovieListLoadStatus.loading;
     message = null;
