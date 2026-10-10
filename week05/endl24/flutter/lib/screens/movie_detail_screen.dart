@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId});
+  const MovieDetailScreen({super.key, required this.movie});
 
-  final String movieId;
+  final TmdbMovieDto? movie;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -30,14 +31,17 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       );
   }
 
-  Future<void> _openRatingDialog(String movieTitle) async {
+  Future<void> _openRatingDialog(TmdbMovieDto movie) async {
     final rating = await showDialog<double>(
       context: context,
-      builder: (context) => RatingDialog(movieTitle: movieTitle),
+      builder: (context) => RatingDialog(movieTitle: movie.title),
     );
 
     if (rating == null) return;
     if (!mounted) return;
+
+    // TODO(평점 API): CreateRatingRequest(movieId: movie.id, score: rating)로 전송
+    debugPrint('[평점] movieId=${movie.id} score=$rating');
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -52,11 +56,13 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(widget.movieId);
+    final movie = widget.movie;
 
     if (movie == null) {
       return const Scaffold(body: Center(child: Text('영화를 찾을 수 없습니다.')));
     }
+
+    final year = movie.releaseDate?.split('-').first;
 
     return Scaffold(
       appBar: AppBar(
@@ -78,11 +84,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Image.asset(
-                      movie.posterAsset,
+                    TmdbPosterImage(
+                      posterPath: movie.posterPath,
                       width: double.infinity,
                       height: 360,
-                      fit: BoxFit.cover,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),
@@ -97,18 +102,20 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                               color: AppColors.black,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${movie.year} · ${movie.genre} · ${movie.runtimeMinutes}분',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppColors.gray,
+                          if (year != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              year,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.gray,
+                              ),
                             ),
-                          ),
+                          ],
                           const SizedBox(height: 12),
                           _AverageRating(
-                            rating: movie.rating,
-                            count: movie.ratingCount,
+                            rating: movie.voteAverage,
+                            count: movie.voteCount,
                           ),
                           const SizedBox(height: 24),
                           const Text(
@@ -120,14 +127,16 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            movie.synopsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              height: 1.6,
-                              color: AppColors.grayDark,
-                            ),
-                          ),
+                          movie.overview.isEmpty
+                              ? const Center(child: Text('줄거리 정보가 없어요.'))
+                              : Text(
+                                  movie.overview,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    height: 1.6,
+                                    color: AppColors.grayDark,
+                                  ),
+                                ),
                         ],
                       ),
                     ),
@@ -138,7 +147,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             _DetailActions(
               isFavorite: _isFavorite,
               onFavoriteTap: _toggleFavorite,
-              onRatingTap: () => _openRatingDialog(movie.title),
+              onRatingTap: () => _openRatingDialog(movie),
             ),
           ],
         ),
@@ -158,7 +167,7 @@ class _AverageRating extends StatelessWidget {
     return Row(
       children: [
         RatingBarIndicator(
-          rating: rating,
+          rating: rating / 2,
           itemCount: 5,
           itemSize: 20,
           unratedColor: AppColors.grayLine,
@@ -167,7 +176,7 @@ class _AverageRating extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          '$rating',
+          rating.toStringAsFixed(1),
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,

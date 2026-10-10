@@ -80,7 +80,7 @@ class MovieListScreen extends StatelessWidget {
             return MovieGridCard(
               movie: movie,
               genreName: viewModel.genreNameOf(movie),
-              onTap: () => context.push('/movies/${movie.id}'),
+              onTap: () => context.push('/movies/${movie.id}', extra: movie),
             );
           },
         ),

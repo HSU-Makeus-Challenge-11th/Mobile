@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
@@ -52,8 +53,8 @@ class AppRouter {
       GoRoute(
         path: '/movies/:movieId',
         builder: (context, state) {
-          final movieId = state.pathParameters['movieId']!;
-          return MovieDetailScreen(movieId: movieId);
+          final movie = state.extra;
+          return MovieDetailScreen(movie: movie is TmdbMovieDto ? movie : null);
         },
       ),
     ],

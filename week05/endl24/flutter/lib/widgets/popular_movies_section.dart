@@ -51,7 +51,7 @@ class PopularMoviesSection extends StatelessWidget {
               return PopularMovieCard(
                 movie: movie,
                 rank: index + 1,
-                onTap: () => context.push('/movies/${movie.id}'),
+                onTap: () => context.push('/movies/${movie.id}', extra: movie),
               );
             },
           ),
