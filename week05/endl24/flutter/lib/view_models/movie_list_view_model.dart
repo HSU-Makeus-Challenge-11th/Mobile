@@ -27,8 +27,13 @@ class MovieListViewModel extends ChangeNotifier {
   bool get isLoading => status == MovieListLoadStatus.loading;
 
   String? genreNameOf(TmdbMovieDto movie) {
+    final selectedId = selectedGenreId;
+    final genreId = selectedId != null && movie.genreIds.contains(selectedId)
+        ? selectedId
+        : movie.genreIds.firstOrNull;
+
     for (final genre in genres) {
-      if (movie.genreIds.contains(genre.id)) return genre.name;
+      if (genre.id == genreId) return genre.name;
     }
     return null;
   }
