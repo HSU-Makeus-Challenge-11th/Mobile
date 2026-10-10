@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/widgets/my_ratings_section.dart';
 
 import '../widgets/common_app_bar.dart';
 import '../widgets/edit_profile_button.dart';
@@ -25,6 +26,8 @@ class ProfileScreen extends StatelessWidget {
             ProfileStats(),
             SizedBox(height: 24),
             FavoriteGenres(genres: ['드라마', 'SF', '애니메이션']),
+            SizedBox(height: 24),
+            Expanded(child: MyRatingsSection(memberId: 1)),
           ],
         ),
       ),
