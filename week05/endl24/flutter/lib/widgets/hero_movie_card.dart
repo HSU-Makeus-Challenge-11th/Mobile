@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class HeroMovieCard extends StatelessWidget {
   const HeroMovieCard({super.key, required this.movie, required this.onTap});
 
-  final Movie movie;
   final VoidCallback onTap;
+  final TmdbMovieDto movie;
 
   @override
   Widget build(BuildContext context) {
+    final year = movie.releaseDate?.split('-').first;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Stack(
         children: [
-          Image.asset(
-            movie.posterAsset,
+          TmdbPosterImage(
+            posterPath: movie.posterPath,
             width: double.infinity,
             height: 420,
-            fit: BoxFit.cover,
           ),
           Positioned.fill(
             child: DecoratedBox(
@@ -51,14 +53,16 @@ class HeroMovieCard extends StatelessWidget {
                     color: AppColors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${movie.genre} · ${movie.year} · ${movie.runtimeMinutes}분',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.white,
+                if (year != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    year,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.white,
+                    ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,

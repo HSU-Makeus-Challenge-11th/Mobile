@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/models/tmdb_movie_dto.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/widgets/hero_movie_card.dart';
 import 'package:movielog/widgets/home_greeting.dart';
@@ -12,8 +12,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heroMovie = mockMovies.first;
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -23,22 +21,17 @@ class HomeScreen extends StatelessWidget {
             children: [
               const HomeGreeting(),
               const SizedBox(height: 16),
-              HeroMovieCard(
-                movie: heroMovie,
-                onTap: () => context.push('/movies/${heroMovie.id}'),
-              ),
-              const SizedBox(height: 32),
               Consumer<MovieHomeViewModel>(
                 builder: (context, viewModel, child) {
                   return switch (viewModel.status) {
                     MovieHomeLoadStatus.idle ||
-                    MovieHomeLoadStatus.loading => const _PopularStatusBox(
+                    MovieHomeLoadStatus.loading => const _HomeStatusBox(
                       child: CircularProgressIndicator(),
                     ),
-                    MovieHomeLoadStatus.empty => const _PopularStatusBox(
+                    MovieHomeLoadStatus.empty => const _HomeStatusBox(
                       child: Text('인기 영화가 없어요.'),
                     ),
-                    MovieHomeLoadStatus.error => _PopularStatusBox(
+                    MovieHomeLoadStatus.error => _HomeStatusBox(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -53,8 +46,9 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    MovieHomeLoadStatus.success => PopularMoviesSection(
-                      movies: viewModel.popularMovies,
+                    MovieHomeLoadStatus.success => _buildMovies(
+                      context,
+                      viewModel.popularMovies,
                     ),
                   };
                 },
@@ -65,10 +59,27 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildMovies(BuildContext context, List<TmdbMovieDto> movies) {
+    final heroMovie = movies.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HeroMovieCard(
+          movie: heroMovie,
+          onTap: () =>
+              context.push('/movies/${heroMovie.id}', extra: heroMovie),
+        ),
+        const SizedBox(height: 32),
+        PopularMoviesSection(movies: movies),
+      ],
+    );
+  }
 }
 
-class _PopularStatusBox extends StatelessWidget {
-  const _PopularStatusBox({required this.child});
+class _HomeStatusBox extends StatelessWidget {
+  const _HomeStatusBox({required this.child});
 
   final Widget child;
 
