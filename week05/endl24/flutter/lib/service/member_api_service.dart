@@ -12,9 +12,9 @@ class MemberApiService {
     return (response.data as Map<String, dynamic>)['available'] as bool;
   }
 
-  Future<bool> isEmailAvailable(String nickname) async {
+  Future<bool> isEmailAvailable(String email) async {
     final response = await _dio.get(
-      '/members/email/${Uri.encodeComponent(nickname)}',
+      '/members/email/${Uri.encodeComponent(email)}',
     );
     return (response.data as Map<String, dynamic>)['available'] as bool;
   }
