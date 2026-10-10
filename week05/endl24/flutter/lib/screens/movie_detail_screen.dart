@@ -59,7 +59,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     final movie = widget.movie;
 
     if (movie == null) {
-      return const Scaffold(body: Center(child: Text('영화를 찾을 수 없습니다.')));
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('영화를 찾을 수 없습니다.')),
+      );
     }
 
     final year = movie.releaseDate?.split('-').first;
