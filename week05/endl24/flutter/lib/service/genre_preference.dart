@@ -4,19 +4,19 @@ class GenrePreference {
   GenrePreference({SharedPreferencesAsync? preferences})
     : _preferences = preferences ?? SharedPreferencesAsync();
 
-  static const _selectedGenreKey = 'selected_genre';
+  static const _selectedGenreIdKey = 'selected_genre_id';
 
   final SharedPreferencesAsync _preferences;
 
-  Future<String> read() async {
-    return await _preferences.getString(_selectedGenreKey) ?? '전체';
+  Future<int?> read() {
+    return _preferences.getInt(_selectedGenreIdKey);
   }
 
-  Future<void> save(String genre) async {
-    await _preferences.setString(_selectedGenreKey, genre);
-  }
-
-  Future<void> clear() async {
-    await _preferences.remove(_selectedGenreKey);
+  Future<void> save(int? genreId) async {
+    if (genreId == null) {
+      await _preferences.remove(_selectedGenreIdKey);
+      return;
+    }
+    await _preferences.setInt(_selectedGenreIdKey, genreId);
   }
 }
