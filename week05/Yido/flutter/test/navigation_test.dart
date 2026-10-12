@@ -6,19 +6,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/app/movie_log_app.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/router/app_router.dart';
-import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
-import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+import 'support/fake_tmdb_movie_service.dart';
+
+Widget app() => MovieLogApp(
+  movieService: FakeTmdbMovieService(
+    popular: [for (var i = 1; i <= 5; i++) fakeMovie(i, title: '인기 $i')],
+    discoverPages: {
+      null: [
+        [
+          fakeMovie(10, title: '별빛 아래 우리', genreIds: [18]),
+          fakeMovie(11, title: '우주의 끝에서'),
+        ],
+      ],
+      878: [
+        [fakeMovie(11, title: '우주의 끝에서')],
+      ],
+    },
+  ),
+);
 
 void main() {
-  setUp(() {
-    SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.empty();
-  });
-
   testWidgets('registration reaches home and tab route changes', (
     tester,
   ) async {
-    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpWidget(app());
     await tester.tap(find.text('시작하기'));
     await tester.pumpAndSettle();
     expect(find.text('회원가입'), findsOneWidget);
@@ -43,7 +55,7 @@ void main() {
   testWidgets('movie filter, detail favorite and rating confirmation work', (
     tester,
   ) async {
-    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpWidget(app());
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
     expect(find.text('별빛 아래 우리'), findsOneWidget);
@@ -91,8 +103,8 @@ void main() {
   ) async {
     for (final size in const [Size(390, 844), Size(360, 800)]) {
       await tester.binding.setSurfaceSize(size);
-      await tester.pumpWidget(const MovieLogApp());
-      for (final path in ['/home', '/movies', '/my', '/movies/starlight']) {
+      await tester.pumpWidget(app());
+      for (final path in ['/home', '/movies', '/my', '/movies/1']) {
         AppRouter.router.go(path);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$path at $size');
@@ -106,7 +118,7 @@ void main() {
     (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       try {
-        await tester.pumpWidget(const MovieLogApp());
+        await tester.pumpWidget(app());
         AppRouter.router.go('/home');
         await tester.pumpAndSettle();
 
@@ -121,8 +133,6 @@ void main() {
         await tester.pump();
         expect(find.text('내 프로필'), findsOneWidget);
         expect(find.text('전체'), findsNothing);
-        // 영화 목록의 1초 Mock 요청이 끝날 때까지 기다린다
-        await tester.pump(const Duration(seconds: 1));
       } finally {
         debugDefaultTargetPlatformOverride = null;
       }
