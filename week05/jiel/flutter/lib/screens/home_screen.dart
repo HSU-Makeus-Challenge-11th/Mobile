@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../data/mock/movie.dart';
 import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
 import '../view_models/movie_home_view_model.dart';
@@ -72,18 +71,22 @@ class _GreetingSection extends StatelessWidget {
   }
 }
 
-// 2. 추천 신작 배너
+// 2. 추천 신작 배너 (TMDB Popular 1위 영화)
 class _FeaturedBanner extends StatelessWidget {
   const _FeaturedBanner();
 
-  static const _featuredMovieId = 1; // 별빛 아래 우리
-
   @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(_featuredMovieId);
-    if (movie == null) return const SizedBox.shrink();
+    final viewModel = context.watch<MovieHomeViewModel>();
+    // 로딩 중이거나 결과가 없으면 배너를 숨긴다.
+    if (viewModel.status != MovieHomeLoadStatus.success) {
+      return const SizedBox.shrink();
+    }
+    final movie = viewModel.popularMovies.first;
 
-    final runtime = movie.runtime;
+    // release_date는 'YYYY-MM-DD' 형식이라 앞 4자리만 연도로 쓴다.
+    final releaseDate = movie.releaseDate ?? '';
+    final year = releaseDate.length >= 4 ? releaseDate.substring(0, 4) : null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -94,7 +97,11 @@ class _FeaturedBanner extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(movie.posterAsset, fit: BoxFit.cover),
+              TmdbPosterImage(
+                posterPath: movie.posterPath,
+                width: double.infinity,
+                height: double.infinity,
+              ),
               Container(color: Colors.black.withValues(alpha: 0.7)),
               Positioned(
                 left: 24,
@@ -137,28 +144,25 @@ class _FeaturedBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Opacity(
-                      opacity: 0.9,
-                      child: Text(
-                        [
-                          movie.tags.isEmpty
-                              ? movie.genre
-                              : movie.tags.take(2).join(' · '),
-                          if (runtime != null) '$runtime분',
-                        ].join(' · '),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 24 / 16,
-                          color: Color(0xFFF8F2FA),
+                    if (year != null)
+                      Opacity(
+                        opacity: 0.9,
+                        child: Text(
+                          year,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            height: 24 / 16,
+                            color: Color(0xFFF8F2FA),
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton.icon(
-                        onPressed: () => context.push('/movie/${movie.id}'),
+                        onPressed: () =>
+                            context.push('/movie/${movie.id}', extra: movie),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary600,
                           foregroundColor: Colors.white,
