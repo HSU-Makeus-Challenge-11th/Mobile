@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:movielog/rating_screen.dart';
+import 'package:movielog/screens/rating_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
 
 void main() {

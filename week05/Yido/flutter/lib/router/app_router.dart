@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
-import 'package:movielog/home_screen.dart';
-import 'package:movielog/main_screen.dart';
-import 'package:movielog/movie_detail_screen.dart';
-import 'package:movielog/movie_list_screen.dart';
-import 'package:movielog/profile_screen.dart';
-import 'package:movielog/sign_up_screen.dart';
-import 'package:movielog/start_screen.dart';
+import 'package:movielog/screens/home_screen.dart';
+import 'package:movielog/screens/main_screen.dart';
+import 'package:movielog/screens/movie_detail_screen.dart';
+import 'package:movielog/screens/movie_list_screen.dart';
+import 'package:movielog/screens/profile_screen.dart';
+import 'package:movielog/screens/sign_up_screen.dart';
+import 'package:movielog/screens/start_screen.dart';
 
 abstract final class AppRouter {
   static final router = GoRouter(
