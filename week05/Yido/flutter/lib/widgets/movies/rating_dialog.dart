@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:movielog/widgets/movies/movie_rating_input.dart';
 
 class RatingDialog extends StatefulWidget {
-  const RatingDialog({super.key, required this.onSaved});
+  const RatingDialog({super.key, required this.movieId, required this.onSaved});
+
+  /// TMDB 영화 id. 이후 자체 API 평점 저장 시 CreateRatingRequest.movieId로 보낸다
+  final int movieId;
   final ValueChanged<double> onSaved;
   @override
   State<RatingDialog> createState() => _RatingDialogState();

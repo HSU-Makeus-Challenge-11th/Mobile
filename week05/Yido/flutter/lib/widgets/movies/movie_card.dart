@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/screens/movie_detail_screen.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class MovieCard extends StatelessWidget {
   const MovieCard({
     super.key,
     required this.movie,
+    this.genreNames = const [],
     this.width,
     this.posterHeight,
   });
-  final Movie movie;
+  final TmdbMovieDto movie;
+  final List<String> genreNames;
   final double? width;
   final double? posterHeight;
   @override
@@ -21,7 +25,11 @@ class MovieCard extends StatelessWidget {
         button: true,
         label: '${movie.title} 상세 보기',
         child: GestureDetector(
-          onTap: () => context.push('/movies/${movie.id}'),
+          // 상세 화면과 평점에서 쓸 수 있도록 TMDB id를 경로로 넘긴다
+          onTap: () => context.push(
+            '/movies/${movie.id}',
+            extra: MovieDetailArgs(movie: movie, genreNames: genreNames),
+          ),
           child: SizedBox(
             width: resolvedWidth,
             child: Column(
@@ -31,11 +39,10 @@ class MovieCard extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        movie.posterAsset,
+                      child: TmdbPosterImage(
+                        posterPath: movie.posterPath,
                         width: resolvedWidth,
                         height: resolvedHeight,
-                        fit: BoxFit.cover,
                       ),
                     ),
                     Positioned(
@@ -52,7 +59,7 @@ class MovieCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          '★ ${movie.rating}',
+                          '★ ${movie.voteAverage.toStringAsFixed(1)}',
                           style: const TextStyle(
                             fontSize: 12,
                             height: 16 / 12,
@@ -92,7 +99,10 @@ class MovieCard extends StatelessWidget {
                 SizedBox(
                   height: 24,
                   child: Text(
-                    '${movie.year} · ${movie.genre}',
+                    [
+                      ?movie.releaseYear,
+                      if (genreNames.isNotEmpty) genreNames.first,
+                    ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textHeightBehavior: const TextHeightBehavior(
