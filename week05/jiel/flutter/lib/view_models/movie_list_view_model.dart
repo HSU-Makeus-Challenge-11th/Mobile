@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:movielog/data/models/tmdb_genre_dto.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
@@ -59,7 +58,9 @@ class MovieListViewModel extends ChangeNotifier {
       status = movies.isEmpty
           ? MovieListLoadStatus.empty
           : MovieListLoadStatus.success;
-    } on DioException {
+    } catch (error) {
+      // 네트워크 오류뿐 아니라 응답 파싱 오류도 Error 상태로 보내 로딩이 멈추지 않게 한다.
+      debugPrint('영화 목록 로딩 실패: $error');
       if (_disposed || version != _requestVersion) return;
       status = MovieListLoadStatus.error;
       message = '영화를 불러오지 못했어요. 다시 시도해 주세요.';
@@ -83,13 +84,20 @@ class MovieListViewModel extends ChangeNotifier {
       status = result.isEmpty
           ? MovieListLoadStatus.empty
           : MovieListLoadStatus.success;
-    } on DioException {
+    } catch (error) {
+      debugPrint('장르 영화 로딩 실패: $error');
       if (_disposed || version != _requestVersion) return;
       status = MovieListLoadStatus.error;
       message = '해당 장르 영화를 불러오지 못했어요.';
     }
 
     if (!_disposed && version == _requestVersion) notifyListeners();
+  }
+
+  /// Error 화면의 재시도. 장르 목록을 받은 뒤 장르를 고른 상태였다면 그 장르로 다시 요청한다.
+  Future<void> retry() {
+    if (genres.isEmpty) return loadInitial();
+    return selectGenre(selectedGenreId);
   }
 
   @override

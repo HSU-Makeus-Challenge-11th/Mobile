@@ -31,8 +31,7 @@ class MovieListScreen extends StatelessWidget {
                   MovieListLoadStatus.loading => const LoadingView(),
                   MovieListLoadStatus.error => ErrorView(
                     message: viewModel.message ?? '영화를 불러오지 못했어요.',
-                    onRetry: () =>
-                        context.read<MovieListViewModel>().loadInitial(),
+                    onRetry: () => context.read<MovieListViewModel>().retry(),
                   ),
                   MovieListLoadStatus.empty => const EmptyView(
                     message: '해당 장르의 영화가 없어요.',
