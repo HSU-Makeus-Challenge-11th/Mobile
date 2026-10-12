@@ -283,7 +283,7 @@ class _PopularMovieList extends StatelessWidget {
         return _MovieCard(
           movie: movie,
           rank: index + 1,
-          onTap: () => context.push('/movie/${movie.id}'),
+          onTap: () => context.push('/movie/${movie.id}', extra: movie),
         );
       },
     );

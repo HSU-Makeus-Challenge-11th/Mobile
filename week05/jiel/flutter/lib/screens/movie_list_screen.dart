@@ -43,7 +43,8 @@ class MovieListScreen extends StatelessWidget {
                       for (final genre in viewModel.genres)
                         genre.id: genre.name,
                     },
-                    onTap: (movie) => context.push('/movie/${movie.id}'),
+                    onTap: (movie) =>
+                        context.push('/movie/${movie.id}', extra: movie),
                   ),
                 };
               },

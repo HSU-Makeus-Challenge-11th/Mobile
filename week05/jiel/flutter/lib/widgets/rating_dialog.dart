@@ -5,8 +5,14 @@ import 'movie_rating_input.dart';
 
 /// 평점 입력 Dialog. 확인을 누르면 선택한 평점을 `Navigator.pop`으로 돌려준다.
 class RatingDialog extends StatefulWidget {
-  const RatingDialog({super.key, this.initialRating = 0});
+  const RatingDialog({
+    super.key,
+    required this.movieId,
+    this.initialRating = 0,
+  });
 
+  /// 평점을 남길 영화의 TMDB id. 평점 저장 API를 붙일 때 사용한다.
+  final int movieId;
   final double initialRating;
 
   @override

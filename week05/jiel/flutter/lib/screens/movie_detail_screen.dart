@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/mock/movie.dart';
+import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
 import '../widgets/rating_dialog.dart';
+import '../widgets/tmdb_poster_image.dart';
 
 const _outline = Color(0xFFCBC4D2);
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId});
+  const MovieDetailScreen({super.key, required this.movieId, this.movie});
 
   final int? movieId;
+
+  /// 목록에서 넘겨받은 영화. 새로고침·딥링크로 들어오면 null일 수 있다.
+  final TmdbMovieDto? movie;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -27,11 +31,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     _showSnackBar(_isFavorite ? '즐겨찾기에 추가했어요.' : '즐겨찾기에서 삭제했어요.');
   }
 
-  Future<void> _openRatingDialog() async {
+  Future<void> _openRatingDialog(TmdbMovieDto movie) async {
     final rating = await showDialog<double>(
       context: context,
       // 이미 남긴 평점이 있으면 그 값에서 시작한다.
-      builder: (context) => RatingDialog(initialRating: _myRating ?? 0),
+      builder: (context) =>
+          RatingDialog(movieId: movie.id, initialRating: _myRating ?? 0),
     );
     if (!mounted || rating == null || rating == 0) return;
 
@@ -53,7 +58,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(widget.movieId);
+    // URL의 id와 넘겨받은 영화의 id가 다르면 잘못된 진입으로 본다.
+    final movie = widget.movie?.id == widget.movieId ? widget.movie : null;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceBase,
@@ -75,7 +81,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           : _ActionButtons(
               isFavorite: _isFavorite,
               onFavoriteTap: _toggleFavorite,
-              onRateTap: _openRatingDialog,
+              onRateTap: () => _openRatingDialog(movie),
             ),
     );
   }
@@ -136,7 +142,7 @@ class _DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _HeroPoster extends StatelessWidget {
   const _HeroPoster({required this.movie});
 
-  final Movie movie;
+  final TmdbMovieDto movie;
 
   @override
   Widget build(BuildContext context) {
@@ -144,23 +150,28 @@ class _HeroPoster extends StatelessWidget {
       aspectRatio: 390 / 585,
       child: Container(
         color: AppColors.surfaceHighest,
-        child: Image.asset(movie.posterAsset, fit: BoxFit.cover),
+        child: TmdbPosterImage(
+          posterPath: movie.posterPath,
+          width: double.infinity,
+          height: double.infinity,
+        ),
       ),
     );
   }
 }
 
-// 2. 제목 · 정보 · 별점 · 태그
+// 2. 제목 · 연도 · 별점
 class _InformationSection extends StatelessWidget {
   const _InformationSection({required this.movie, required this.myRating});
 
-  final Movie movie;
+  final TmdbMovieDto movie;
   final double? myRating;
 
   @override
   Widget build(BuildContext context) {
-    final runtime = movie.runtime;
-    final reviewCount = movie.reviewCount;
+    // release_date는 'YYYY-MM-DD' 형식이라 앞 4자리만 연도로 쓴다.
+    final releaseDate = movie.releaseDate ?? '';
+    final year = releaseDate.length >= 4 ? releaseDate.substring(0, 4) : null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
@@ -176,26 +187,24 @@ class _InformationSection extends StatelessWidget {
               color: AppColors.neutral900,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            [
-              '${movie.year}',
-              movie.genre,
-              if (runtime != null) '$runtime분',
-            ].join(' • '),
-            style: const TextStyle(
-              fontSize: 14,
-              height: 20 / 14,
-              letterSpacing: 0.25,
-              color: AppColors.onSurfaceVariant,
+          if (year != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              year,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 20 / 14,
+                letterSpacing: 0.25,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
-              // 평균 평점: 읽기 전용
+              // 평균 평점: 읽기 전용. TMDB는 10점 만점이라 별 5개에 맞춰 절반으로 표시한다.
               RatingBarIndicator(
-                rating: movie.rating,
+                rating: movie.voteAverage / 2,
                 itemCount: 5,
                 itemSize: 17,
                 unratedColor: AppColors.primary200,
@@ -204,7 +213,7 @@ class _InformationSection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                movie.rating.toStringAsFixed(1),
+                movie.voteAverage.toStringAsFixed(1),
                 style: const TextStyle(
                   fontSize: 16,
                   height: 24 / 16,
@@ -213,18 +222,6 @@ class _InformationSection extends StatelessWidget {
                   color: AppColors.neutral900,
                 ),
               ),
-              if (reviewCount != null) ...[
-                const SizedBox(width: 4),
-                Text(
-                  '(${_formatCount(reviewCount)})',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 20 / 14,
-                    letterSpacing: 0.25,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
             ],
           ),
           if (myRating != null) ...[
@@ -239,48 +236,7 @@ class _InformationSection extends StatelessWidget {
               ),
             ),
           ],
-          if (movie.tags.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [for (final tag in movie.tags) _TagChip(label: tag)],
-            ),
-          ],
         ],
-      ),
-    );
-  }
-
-  // 1245 → 1,245
-  static String _formatCount(int count) => count.toString().replaceAllMapped(
-    RegExp(r'\B(?=(\d{3})+(?!\d))'),
-    (match) => ',',
-  );
-}
-
-class _TagChip extends StatelessWidget {
-  const _TagChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHighest,
-        borderRadius: BorderRadius.circular(9999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 14,
-          height: 20 / 14,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-          color: AppColors.onSurfaceVariant,
-        ),
       ),
     );
   }
@@ -290,11 +246,11 @@ class _TagChip extends StatelessWidget {
 class _SynopsisSection extends StatelessWidget {
   const _SynopsisSection({required this.movie});
 
-  final Movie movie;
+  final TmdbMovieDto movie;
 
   @override
   Widget build(BuildContext context) {
-    if (movie.synopsis.isEmpty) return const SizedBox.shrink();
+    if (movie.overview.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -314,19 +270,16 @@ class _SynopsisSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          for (var i = 0; i < movie.synopsis.length; i++) ...[
-            if (i > 0) const SizedBox(height: 26),
-            Text(
-              movie.synopsis[i],
-              style: const TextStyle(
-                fontSize: 16,
-                height: 26 / 16,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-                color: AppColors.onSurfaceVariant,
-              ),
+          Text(
+            movie.overview,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 26 / 16,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+              color: AppColors.onSurfaceVariant,
             ),
-          ],
+          ),
         ],
       ),
     );

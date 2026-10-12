@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
@@ -27,6 +28,8 @@ class AppRouter {
         path: '/movie/:id',
         builder: (context, state) => MovieDetailScreen(
           movieId: int.tryParse(state.pathParameters['id'] ?? ''),
+          // 목록에서 이미 받은 DTO를 넘겨받아 추가 API 호출 없이 보여준다.
+          movie: state.extra as TmdbMovieDto?,
         ),
       ),
       ShellRoute(
