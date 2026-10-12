@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/data/mock_movies.dart';
-import 'package:movielog/models/movie.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/screens/movie_detail_screen.dart';
+import 'package:movielog/view_models/movie_home_view_model.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -71,7 +74,12 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    child: _Featured(movie: movies.first),
+                    child: Consumer<MovieHomeViewModel>(
+                      builder: (context, viewModel, child) =>
+                          viewModel.status == MovieHomeLoadStatus.success
+                          ? _Featured(movie: viewModel.popularMovies.first)
+                          : const _FeaturedPlaceholder(),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -120,15 +128,45 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   SizedBox(
                     height: 272,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.zero,
-                      itemCount: 4,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 16),
-                      itemBuilder: (context, i) => i == 3
-                          ? const _ComingSoon()
-                          : _PopularCard(movie: popularMovies[i], rank: i + 1),
+                    child: Consumer<MovieHomeViewModel>(
+                      builder: (context, viewModel, child) {
+                        final movies = viewModel.popularMovies;
+                        return switch (viewModel.status) {
+                          MovieHomeLoadStatus.idle ||
+                          MovieHomeLoadStatus.loading => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          MovieHomeLoadStatus.error => Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(viewModel.message ?? '인기 영화를 불러오지 못했어요.'),
+                                const SizedBox(height: 12),
+                                FilledButton(
+                                  onPressed: () => context
+                                      .read<MovieHomeViewModel>()
+                                      .loadPopular(),
+                                  child: const Text('다시 시도'),
+                                ),
+                              ],
+                            ),
+                          ),
+                          MovieHomeLoadStatus.empty => const Center(
+                            child: Text('인기 영화가 없습니다.'),
+                          ),
+                          // 인기 5개 뒤에 기존 개봉 예정작 카드를 붙인다
+                          MovieHomeLoadStatus.success => ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.zero,
+                            itemCount: movies.length + 1,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 16),
+                            itemBuilder: (context, i) => i == movies.length
+                                ? const _ComingSoon()
+                                : _PopularCard(movie: movies[i], rank: i + 1),
+                          ),
+                        };
+                      },
                     ),
                   ),
                 ],
@@ -141,12 +179,30 @@ class HomeScreen extends StatelessWidget {
   );
 }
 
+void _openDetail(BuildContext context, TmdbMovieDto movie) =>
+    context.push('/movies/${movie.id}', extra: MovieDetailArgs(movie: movie));
+
+class _FeaturedPlaceholder extends StatelessWidget {
+  const _FeaturedPlaceholder();
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 356,
+    height: 534,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFECE6EE),
+        borderRadius: BorderRadius.circular(24),
+      ),
+    ),
+  );
+}
+
 class _Featured extends StatelessWidget {
   const _Featured({required this.movie});
-  final Movie movie;
+  final TmdbMovieDto movie;
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: () => context.push('/movies/${movie.id}'),
+    onTap: () => _openDetail(context, movie),
     child: SizedBox(
       width: 356,
       height: 534,
@@ -155,7 +211,11 @@ class _Featured extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(heroPosterAsset, fit: BoxFit.cover),
+            TmdbPosterImage(
+              posterPath: movie.posterPath,
+              width: 356,
+              height: 534,
+            ),
             const ColoredBox(color: Color(0xB3000000)),
             Positioned(
               left: 24,
@@ -195,7 +255,7 @@ class _Featured extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${movie.genre} · ${movie.duration}',
+                    '${movie.releaseYear ?? ''} · ★ ${movie.voteAverage.toStringAsFixed(1)}',
                     style: const TextStyle(
                       fontSize: 16,
                       height: 24 / 16,
@@ -207,7 +267,7 @@ class _Featured extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: FilledButton.icon(
-                      onPressed: () => context.push('/movies/${movie.id}'),
+                      onPressed: () => _openDetail(context, movie),
                       style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFF4F378A),
                       ),
@@ -230,11 +290,11 @@ class _Featured extends StatelessWidget {
 
 class _PopularCard extends StatelessWidget {
   const _PopularCard({required this.movie, required this.rank});
-  final Movie movie;
+  final TmdbMovieDto movie;
   final int rank;
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: () => context.push('/movies/${movie.id}'),
+    onTap: () => _openDetail(context, movie),
     child: SizedBox(
       width: 140,
       child: Column(
@@ -244,11 +304,10 @@ class _PopularCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  movie.posterAsset,
+                child: TmdbPosterImage(
+                  posterPath: movie.posterPath,
                   width: 140,
                   height: 200,
-                  fit: BoxFit.cover,
                 ),
               ),
               Positioned(
@@ -284,6 +343,8 @@ class _PopularCard extends StatelessWidget {
             height: 24,
             child: Text(
               movie.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 16,
                 height: 24 / 16,
@@ -298,7 +359,7 @@ class _PopularCard extends StatelessWidget {
                 const Icon(Icons.star, size: 11.67, color: Color(0xFFC9A74D)),
                 const SizedBox(width: 4),
                 Text(
-                  '${movie.rating}',
+                  movie.voteAverage.toStringAsFixed(1),
                   style: const TextStyle(
                     fontSize: 12,
                     height: 16 / 12,
