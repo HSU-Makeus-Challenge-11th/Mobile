@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 
 abstract final class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/start',
+    initialLocation: '/home',
     routes: [
       GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
       GoRoute(

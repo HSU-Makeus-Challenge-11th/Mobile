@@ -31,6 +31,8 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(app());
+    AppRouter.router.go('/start');
+    await tester.pumpAndSettle();
     await tester.tap(find.text('시작하기'));
     await tester.pumpAndSettle();
     expect(find.text('회원가입'), findsOneWidget);
