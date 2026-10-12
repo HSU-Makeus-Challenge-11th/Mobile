@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "UMC Week05 Spring",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 닉네임 중복 (사용 중)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/nickname/수현"
+      }
+    },
+    {
+      "name": "02 닉네임 중복 (사용 가능)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/nickname/새닉네임"
+      }
+    },
+    {
+      "name": "03 이메일 중복 (사용 중)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/email/noco@umc.com"
+      }
+    },
+    {
+      "name": "04 이메일 중복 (사용 가능)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/email/new@umc.com"
+      }
+    },
+    {
+      "name": "05 유저별 평점 조회",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/1/ratings"
+      }
+    },
+    {
+      "name": "06 없는 유저 평점 (404)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/999/ratings"
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>MovieLog API 확인</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    section { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    h2 { font-size: 18px; margin: 0 0 12px; }
+    input { padding: 8px; width: 220px; }
+    button { padding: 8px 14px; margin-left: 6px; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }
+    .error { color: #c62828; }
+  </style>
+</head>
+<body>
+  <h1>MovieLog API 확인</h1>
+  <p>백엔드: <code id="base">http://localhost:8080</code> · 이 페이지: http://localhost:5173</p>
+
+  <section>
+    <h2>닉네임 중복 체크</h2>
+    <input id="nickname" value="수현"><button onclick="call('nickname')">확인</button>
+    <pre id="nickname-result"></pre>
+  </section>
+
+  <section>
+    <h2>이메일 중복 체크</h2>
+    <input id="email" value="noco@umc.com"><button onclick="call('email')">확인</button>
+    <pre id="email-result"></pre>
+  </section>
+
+  <section>
+    <h2>유저별 평점 조회</h2>
+    <input id="memberId" value="1"><button onclick="call('ratings')">조회</button>
+    <pre id="ratings-result"></pre>
+  </section>
+
+  <script>
+    const BASE = 'http://localhost:8080';
+    const paths = {
+      nickname: (v) => `/members/nickname/${encodeURIComponent(v)}`,
+      email: (v) => `/members/email/${encodeURIComponent(v)}`,
+      ratings: (v) => `/members/${encodeURIComponent(v)}/ratings`,
+    };
+    const inputs = { nickname: 'nickname', email: 'email', ratings: 'memberId' };
+
+    async function call(kind) {
+      const out = document.getElementById(`${kind}-result`);
+      const value = document.getElementById(inputs[kind]).value;
+      const url = BASE + paths[kind](value);
+      out.className = '';
+      out.textContent = `GET ${url}\n요청 중...`;
+      try {
+        const response = await fetch(url);
+        const body = await response.json();
+        out.textContent = `GET ${url}\n${response.status}\n${JSON.stringify(body, null, 2)}`;
+      } catch (error) {
+        // CORS로 막히면 응답을 읽지 못해 여기로 온다 (자세한 내용은 개발자 도구 Console)
+        out.className = 'error';
+        out.textContent = `GET ${url}\n요청 실패: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
