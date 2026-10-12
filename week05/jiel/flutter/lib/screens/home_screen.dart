@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/mock/movie.dart';
+import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
+import '../view_models/movie_home_view_model.dart';
+import '../widgets/empty_view.dart';
+import '../widgets/error_view.dart';
+import '../widgets/loading_view.dart';
+import '../widgets/tmdb_poster_image.dart';
 import '../widgets/top_app_bar.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -180,18 +187,14 @@ class _FeaturedBanner extends StatelessWidget {
   }
 }
 
-// 3. 인기 영화 가로 리스트 (Mock 목록에서 평점 높은 순)
+// 3. 인기 영화 가로 리스트 (TMDB Popular 결과 앞 5개)
 class _PopularMoviesSection extends StatelessWidget {
   const _PopularMoviesSection();
 
-  static const _popularCount = 4;
+  static const _listHeight = 272.0;
 
   @override
   Widget build(BuildContext context) {
-    final popularMovies = [...movies]
-      ..sort((a, b) => b.rating.compareTo(a.rating));
-    final topMovies = popularMovies.take(_popularCount).toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,24 +238,54 @@ class _PopularMoviesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // 상태가 바뀌어도 아래 영역이 출렁이지 않도록 높이를 고정한다.
         SizedBox(
-          height: 272,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: topMovies.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              final movie = topMovies[index];
-              return _MovieCard(
-                movie: movie,
-                rank: index + 1,
-                onTap: () => context.push('/movie/${movie.id}'),
-              );
+          height: _listHeight,
+          child: Consumer<MovieHomeViewModel>(
+            builder: (context, viewModel, child) {
+              return switch (viewModel.status) {
+                MovieHomeLoadStatus.idle ||
+                MovieHomeLoadStatus.loading => const LoadingView(),
+                MovieHomeLoadStatus.error => ErrorView(
+                  message: viewModel.message ?? '인기 영화를 불러오지 못했어요.',
+                  onRetry: () =>
+                      context.read<MovieHomeViewModel>().loadPopular(),
+                ),
+                MovieHomeLoadStatus.empty => const EmptyView(
+                  message: '인기 영화가 없어요.',
+                ),
+                MovieHomeLoadStatus.success => _PopularMovieList(
+                  movies: viewModel.popularMovies,
+                ),
+              };
             },
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PopularMovieList extends StatelessWidget {
+  const _PopularMovieList({required this.movies});
+
+  final List<TmdbMovieDto> movies;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: movies.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 16),
+      itemBuilder: (context, index) {
+        final movie = movies[index];
+        return _MovieCard(
+          movie: movie,
+          rank: index + 1,
+          onTap: () => context.push('/movie/${movie.id}'),
+        );
+      },
     );
   }
 }
@@ -264,7 +297,7 @@ class _MovieCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final Movie movie;
+  final TmdbMovieDto movie;
   final int rank;
   final VoidCallback onTap;
 
@@ -295,7 +328,11 @@ class _MovieCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(movie.posterAsset, fit: BoxFit.cover),
+                  TmdbPosterImage(
+                    posterPath: movie.posterPath,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                   Positioned(left: 8, top: 8, child: _RankBadge(rank: rank)),
                 ],
               ),
@@ -318,7 +355,7 @@ class _MovieCard extends StatelessWidget {
                 const Icon(Icons.star, size: 12, color: AppColors.tertiary300),
                 const SizedBox(width: 4),
                 Text(
-                  movie.rating.toStringAsFixed(1),
+                  movie.voteAverage.toStringAsFixed(1),
                   style: const TextStyle(
                     fontSize: 12,
                     height: 16 / 12,
