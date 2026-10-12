@@ -20,6 +20,8 @@ class MovieListViewModel extends ChangeNotifier {
   int _requestVersion = 0;
   bool _disposed = false;
 
+  bool get isLoading => status == MovieListLoadStatus.loading;
+
   Future<List<TmdbMovieDto>> fetchUpToThirtyMovies({int? genreId}) async {
     final byId = <int, TmdbMovieDto>{};
     var pageNumber = 1;
@@ -67,6 +69,8 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> selectGenre(int? genreId) async {
+    // Discover 요청 중에는 장르를 바꾸지 못하게 한다.
+    if (isLoading) return;
     selectedGenreId = genreId;
     final version = ++_requestVersion;
     status = MovieListLoadStatus.loading;

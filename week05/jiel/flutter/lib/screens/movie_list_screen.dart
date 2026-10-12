@@ -83,7 +83,10 @@ class _GenreChipBar extends StatelessWidget {
                   child: _GenreChip(
                     label: label,
                     selected: viewModel.selectedGenreId == genreId,
-                    onTap: () => viewModel.selectGenre(genreId),
+                    // 요청 중에는 null을 넘겨 칩을 비활성화한다.
+                    onTap: viewModel.isLoading
+                        ? null
+                        : () => viewModel.selectGenre(genreId),
                   ),
                 );
               },
@@ -104,37 +107,41 @@ class _GenreChip extends StatelessWidget {
 
   final String label;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
+      child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary500 : const Color(0xFFE6E0E9),
-          borderRadius: BorderRadius.circular(9999),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            height: 16 / 12,
-            fontWeight: FontWeight.w500,
-            color: selected ? Colors.white : AppColors.onSurfaceVariant,
+        opacity: onTap == null ? 0.5 : 1,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary500 : const Color(0xFFE6E0E9),
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              height: 16 / 12,
+              fontWeight: FontWeight.w500,
+              color: selected ? Colors.white : AppColors.onSurfaceVariant,
+            ),
           ),
         ),
       ),
