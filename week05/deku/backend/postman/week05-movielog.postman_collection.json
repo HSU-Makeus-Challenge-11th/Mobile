@@ -1,0 +1,42 @@
+{
+  "info": {
+    "name": "UMC Week05 MovieLog API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "닉네임 중복 체크",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/nickname/수현"
+      }
+    },
+    {
+      "name": "이메일 중복 체크",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/email/noco%40umc.com"
+      }
+    },
+    {
+      "name": "유저별 평점 조회",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/1/ratings"
+      }
+    },
+    {
+      "name": "유저별 평점 페이지 조회",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/1/ratings?page=0&size=10"
+      }
+    }
+  ]
+}
