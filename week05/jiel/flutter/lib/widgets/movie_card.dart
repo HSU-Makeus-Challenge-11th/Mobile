@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
 
-import '../data/mock/movie.dart';
+import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
+import 'tmdb_poster_image.dart';
 
 class MovieCard extends StatelessWidget {
-  const MovieCard({super.key, required this.movie, required this.onTap});
+  const MovieCard({
+    super.key,
+    required this.movie,
+    required this.onTap,
+    this.genreName,
+  });
 
-  final Movie movie;
+  final TmdbMovieDto movie;
   final VoidCallback onTap;
+  final String? genreName;
 
   @override
   Widget build(BuildContext context) {
+    // release_date는 'YYYY-MM-DD' 형식이라 앞 4자리만 연도로 쓴다.
+    final releaseDate = movie.releaseDate ?? '';
+    final year = releaseDate.length >= 4 ? releaseDate.substring(0, 4) : null;
+    final subtitle = [?year, ?genreName].join(' · ');
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -35,11 +47,15 @@ class MovieCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(movie.posterAsset, fit: BoxFit.cover),
+                  TmdbPosterImage(
+                    posterPath: movie.posterPath,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: _RatingBadge(rating: movie.rating),
+                    child: _RatingBadge(rating: movie.voteAverage),
                   ),
                 ],
               ),
@@ -60,7 +76,7 @@ class MovieCard extends StatelessWidget {
           Opacity(
             opacity: 0.8,
             child: Text(
-              '${movie.year} · ${movie.genre}',
+              subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
