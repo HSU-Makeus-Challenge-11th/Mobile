@@ -1,4 +1,4 @@
-import 'package:movielog/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 
 class TmdbMoviePageDto {
   const TmdbMoviePageDto({

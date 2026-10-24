@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:movielog/models/tmdb_movie_dto.dart';
-import 'package:movielog/service/tmdb_movie_service.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/services/tmdb_movie_service.dart';
 
 enum MovieHomeLoadStatus { idle, loading, success, empty, error }
 

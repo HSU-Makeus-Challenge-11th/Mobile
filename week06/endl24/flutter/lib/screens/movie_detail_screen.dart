@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:movielog/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';

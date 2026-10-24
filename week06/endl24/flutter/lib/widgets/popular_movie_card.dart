@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';
 

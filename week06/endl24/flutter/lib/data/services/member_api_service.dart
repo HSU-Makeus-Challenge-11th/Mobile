@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:movielog/models/rating_dto.dart';
+import 'package:movielog/data/models/rating_dto.dart';
 
 class MemberApiService {
   MemberApiService(this._dio);

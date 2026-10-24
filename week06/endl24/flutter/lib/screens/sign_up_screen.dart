@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/service/member_api_service.dart';
+import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/login_prompt.dart';

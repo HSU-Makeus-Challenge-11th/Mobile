@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/widgets/hero_movie_card.dart';
 import 'package:movielog/widgets/home_greeting.dart';

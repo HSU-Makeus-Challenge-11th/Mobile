@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/tmdb_genre_dto.dart';
+import 'package:movielog/data/models/tmdb_genre_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class GenreFilterChips extends StatelessWidget {

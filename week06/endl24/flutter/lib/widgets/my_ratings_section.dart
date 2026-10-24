@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/models/rating_dto.dart';
-import 'package:movielog/service/member_api_service.dart';
+import 'package:movielog/data/models/rating_dto.dart';
+import 'package:movielog/data/services/member_api_service.dart';
 import 'package:provider/provider.dart';
 
 class MyRatingsSection extends StatelessWidget {

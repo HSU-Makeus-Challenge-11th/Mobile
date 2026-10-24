@@ -3,8 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:movielog/core/network/movie_api_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
 import 'package:movielog/router/app_router.dart';
-import 'package:movielog/service/member_api_service.dart';
-import 'package:movielog/service/tmdb_movie_service.dart';
+import 'package:movielog/data/services/member_api_service.dart';
+import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:provider/provider.dart';
 
 import 'theme/app_theme.dart';

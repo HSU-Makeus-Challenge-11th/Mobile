@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:movielog/models/tmdb_genre_dto.dart';
-import 'package:movielog/models/tmdb_movie_page.dart';
+import 'package:movielog/data/models/tmdb_genre_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_page.dart';
 
 class TmdbMovieService {
   TmdbMovieService(this._dio);
