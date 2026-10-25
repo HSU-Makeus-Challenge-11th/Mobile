@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/data/models/rating_dto.dart';
-import 'package:movielog/data/services/member_api_service.dart';
+import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:provider/provider.dart';
 
 class MyRatingsSection extends StatelessWidget {
@@ -11,7 +11,7 @@ class MyRatingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<RatingDto>>(
-      future: context.read<MemberApiService>().fetchMemberRatings(memberId),
+      future: context.read<RatingApiService>().fetchMyRatings(memberId),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
