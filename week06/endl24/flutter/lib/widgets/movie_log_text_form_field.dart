@@ -15,6 +15,8 @@ class MovieLogTextFormField extends StatefulWidget {
     this.obscureText = false,
     this.onChanged,
     this.onFieldSubmitted,
+    this.errorText,
+    this.trailing,
   });
 
   final String label;
@@ -27,6 +29,8 @@ class MovieLogTextFormField extends StatefulWidget {
   final bool obscureText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
+  final String? errorText;
+  final Widget? trailing;
 
   @override
   State<MovieLogTextFormField> createState() => _MovieLogTextFormFieldState();
@@ -37,13 +41,60 @@ class _MovieLogTextFormFieldState extends State<MovieLogTextFormField> {
   @override
   Widget build(BuildContext context) {
     final text = widget.controller.text;
-    final hasError = text.isNotEmpty && widget.validator(text) != null;
-    final isValid = text.isNotEmpty && widget.validator(text) == null;
+    final hasError =
+        text.isNotEmpty &&
+        (widget.validator(text) != null || widget.errorText != null);
+    final isValid =
+        text.isNotEmpty &&
+        widget.validator(text) == null &&
+        widget.errorText == null;
     final stateIcon = hasError
         ? const Icon(Icons.error_outline, color: AppColors.red)
         : isValid
         ? const Icon(Icons.check_circle, color: AppColors.violet)
         : null;
+    final field = TextFormField(
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      obscureText: _obscured,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: widget.validator,
+      onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onFieldSubmitted,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        errorText: widget.errorText,
+        hintStyle: AppTextStyles.bodySmall,
+        filled: true,
+        fillColor: hasError ? AppColors.redLight : AppColors.grayLight,
+        suffixIcon: widget.obscureText
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ?stateIcon,
+                  IconButton(
+                    icon: Icon(
+                      _obscured ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () => setState(() => _obscured = !_obscured),
+                    color: AppColors.gray,
+                  ),
+                ],
+              )
+            : stateIcon,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        errorStyle: const TextStyle(fontSize: 12, color: AppColors.red),
+        enabledBorder: _border(AppColors.grayLine),
+        focusedBorder: _border(AppColors.violet, width: 1.5),
+        errorBorder: _border(AppColors.red),
+        focusedErrorBorder: _border(AppColors.red, width: 1.5),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -55,47 +106,17 @@ class _MovieLogTextFormFieldState extends State<MovieLogTextFormField> {
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: widget.controller,
-          focusNode: widget.focusNode,
-          keyboardType: widget.keyboardType,
-          textInputAction: widget.textInputAction,
-          obscureText: _obscured,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: widget.validator,
-          onChanged: widget.onChanged,
-          onFieldSubmitted: widget.onFieldSubmitted,
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            hintStyle: AppTextStyles.bodySmall,
-            filled: true,
-            fillColor: hasError ? AppColors.redLight : AppColors.grayLight,
-            suffixIcon: widget.obscureText
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ?stateIcon,
-                      IconButton(
-                        icon: Icon(
-                          _obscured ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () => setState(() => _obscured = !_obscured),
-                        color: AppColors.gray,
-                      ),
-                    ],
-                  )
-                : stateIcon,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            errorStyle: const TextStyle(fontSize: 12, color: AppColors.red),
-            enabledBorder: _border(AppColors.grayLine),
-            focusedBorder: _border(AppColors.violet, width: 1.5),
-            errorBorder: _border(AppColors.red),
-            focusedErrorBorder: _border(AppColors.red, width: 1.5),
+        if (widget.trailing == null)
+          field
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: field),
+              const SizedBox(width: 8),
+              widget.trailing!,
+            ],
           ),
-        ),
       ],
     );
   }
