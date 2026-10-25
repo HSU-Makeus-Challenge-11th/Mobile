@@ -14,26 +14,28 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonAppBar(title: '내 프로필'),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const ProfileHeader(),
-            const SizedBox(height: 24),
-            const EditProfileButton(),
-            const SizedBox(height: 24),
-            const ProfileStats(),
-            const SizedBox(height: 24),
-            const FavoriteGenres(genres: ['드라마', 'SF', '애니메이션']),
-            const SizedBox(height: 24),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('내가 등록한 평점'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/my/ratings'),
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const ProfileHeader(),
+              const SizedBox(height: 24),
+              const EditProfileButton(),
+              const SizedBox(height: 24),
+              const ProfileStats(),
+              const SizedBox(height: 24),
+              const FavoriteGenres(genres: ['드라마', 'SF', '애니메이션']),
+              const SizedBox(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('내가 등록한 평점'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/my/ratings'),
+              ),
+            ],
+          ),
         ),
       ),
     );
