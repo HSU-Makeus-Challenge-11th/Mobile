@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/theme/app_text_styles.dart';
+import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/login_prompt.dart';
 import 'package:movielog/widgets/movie_log_text_form_field.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 import 'package:movielog/widgets/sign_up_header.dart';
 import 'package:movielog/widgets/terms_agreement.dart';
 import 'package:provider/provider.dart';
@@ -62,42 +65,109 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         const SignUpHeader(),
                         const SizedBox(height: 40),
-                        MovieLogTextFormField(
-                          label: '닉네임',
-                          hintText: '닉네임을 입력해주세요',
-                          controller: _nicknameController,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            final nickname = value?.trim() ?? '';
-                            if (nickname.isEmpty) return '닉네임을 입력해주세요.';
-                            if (nickname.length < 2) {
-                              return '닉네임은 2자 이상이어야 합니다.';
-                            }
-                            return null;
+                        Consumer<SignUpViewModel>(
+                          builder: (context, viewModel, child) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                MovieLogTextFormField(
+                                  label: '닉네임',
+                                  hintText: '닉네임을 입력해주세요',
+                                  controller: _nicknameController,
+                                  textInputAction: TextInputAction.next,
+                                  validator: (value) {
+                                    final nickname = value?.trim() ?? '';
+                                    if (nickname.isEmpty) {
+                                      return '닉네임을 입력해주세요.';
+                                    }
+                                    if (nickname.length < 2) {
+                                      return '닉네임은 2자 이상이어야 합니다.';
+                                    }
+                                    return null;
+                                  },
+                                  errorText: viewModel.nicknameErrorText,
+                                  onChanged: (value) {
+                                    setState(() {});
+                                    viewModel.onNicknameChanged(value);
+                                  },
+                                  onFieldSubmitted: (_) =>
+                                      _emailFocusNode.requestFocus(),
+                                  trailing: MovieLogButton(
+                                    label: '중복 확인',
+                                    height: 52, // 입력창 높이에 맞춥니다.
+                                    isLoading:
+                                        viewModel.nicknameCheckStatus ==
+                                        CheckStatus.checking,
+                                    onPressed:
+                                        viewModel.canCheckNickname &&
+                                            _isNicknameFormatValid
+                                        ? () => viewModel.checkNickname(
+                                            _nicknameController.text,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                                if (viewModel.nicknameCheckStatus ==
+                                    CheckStatus.available) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '사용할 수 있는 닉네임입니다.',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.violet,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 20),
+                                MovieLogTextFormField(
+                                  label: '이메일',
+                                  hintText: '이메일을 입력해주세요',
+                                  controller: _emailController,
+                                  focusNode: _emailFocusNode,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
+                                  validator: (value) {
+                                    final email = value?.trim() ?? '';
+                                    if (email.isEmpty) return '이메일을 입력해주세요.';
+                                    if (!_emailRegExp.hasMatch(email)) {
+                                      return '올바른 이메일 형식이 아닙니다.';
+                                    }
+                                    return null;
+                                  },
+                                  errorText: viewModel.emailErrorText,
+                                  onChanged: (value) {
+                                    setState(() {});
+                                    viewModel.onEmailChanged(value);
+                                  },
+                                  onFieldSubmitted: (_) =>
+                                      _passwordFocusNode.requestFocus(),
+                                  trailing: MovieLogButton(
+                                    label: '중복 확인',
+                                    height: 52, // 입력창 높이에 맞춥니다.
+                                    isLoading:
+                                        viewModel.emailCheckStatus ==
+                                        CheckStatus.checking,
+                                    onPressed:
+                                        viewModel.canCheckEmail &&
+                                            _isEmailFormatValid
+                                        ? () => viewModel.checkEmail(
+                                            _emailController.text,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                                if (viewModel.emailCheckStatus ==
+                                    CheckStatus.available) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '사용할 수 있는 이메일입니다.',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.violet,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
                           },
-                          onChanged: (_) => setState(() {}),
-                          onFieldSubmitted: (_) =>
-                              _emailFocusNode.requestFocus(),
-                        ),
-                        const SizedBox(height: 20),
-                        MovieLogTextFormField(
-                          label: '이메일',
-                          hintText: '이메일을 입력해주세요',
-                          controller: _emailController,
-                          focusNode: _emailFocusNode,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            final email = value?.trim() ?? '';
-                            if (email.isEmpty) return '이메일을 입력해주세요.';
-                            if (!_emailRegExp.hasMatch(email)) {
-                              return '올바른 이메일 형식이 아닙니다.';
-                            }
-                            return null;
-                          },
-                          onChanged: (_) => setState(() {}),
-                          onFieldSubmitted: (_) =>
-                              _passwordFocusNode.requestFocus(),
                         ),
                         const SizedBox(height: 20),
                         MovieLogTextFormField(
@@ -126,24 +196,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               setState(() => _agreedToTerms = value),
                         ),
                         const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _canSubmit ? _submit : null,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            backgroundColor: AppColors.violet,
-                            foregroundColor: AppColors.white,
-                            disabledBackgroundColor: AppColors.violetMuted,
-                            disabledForegroundColor: AppColors.white,
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          child: const Text('가입하기'),
+                        Consumer<SignUpViewModel>(
+                          builder: (context, viewModel, child) {
+                            final checked =
+                                viewModel.nicknameCheckStatus ==
+                                    CheckStatus.available &&
+                                viewModel.emailCheckStatus ==
+                                    CheckStatus.available;
+                            return MovieLogButton(
+                              label: '가입하기',
+                              width: double.infinity,
+                              onPressed: _canSubmit && checked ? _submit : null,
+                            );
+                          },
                         ),
                         const SizedBox(height: 32),
                         const LoginPrompt(),
@@ -158,6 +223,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+
+  bool get _isNicknameFormatValid =>
+      _nicknameController.text.trim().length >= 2;
+  bool get _isEmailFormatValid =>
+      _emailRegExp.hasMatch(_emailController.text.trim());
 
   bool get _canSubmit =>
       _nicknameController.text.trim().length >= 2 &&
