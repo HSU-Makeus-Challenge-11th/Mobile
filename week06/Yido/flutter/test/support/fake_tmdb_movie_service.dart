@@ -26,12 +26,20 @@ class FakeTmdbMovieService extends TmdbMovieService {
     this.popular = const [],
     Map<int?, List<List<TmdbMovieDto>>>? discoverPages,
     this.fail = false,
+    this.detailMovies = const {},
   }) : discoverPages = discoverPages ?? {},
        super(Dio());
 
   final List<TmdbMovieDto> popular;
   final Map<int?, List<List<TmdbMovieDto>>> discoverPages;
   bool fail;
+
+  /// 상세 조회 결과. 없는 id는 null(TMDB 404)로 답한다
+  final Map<int, TmdbMovieDto> detailMovies;
+  final detailCalls = <int>[];
+
+  /// 여기 있는 id는 네트워크 실패로 답한다
+  final failingDetailIds = <int>{};
   final discoverCalls = <({int page, int? genreId})>[];
 
   static const genres = [
@@ -67,6 +75,13 @@ class FakeTmdbMovieService extends TmdbMovieService {
       totalPages: pages.length,
       totalResults: pages.fold(0, (sum, p) => sum + p.length),
     );
+  }
+
+  @override
+  Future<TmdbMovieDto?> findMovieById(int movieId) async {
+    detailCalls.add(movieId);
+    if (failingDetailIds.contains(movieId)) throw _error('/movie/$movieId');
+    return detailMovies[movieId];
   }
 
   @override
