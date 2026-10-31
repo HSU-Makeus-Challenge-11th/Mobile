@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
+import 'package:movielog/widgets/back_arrow_icon.dart';
 import 'package:movielog/widgets/ratings/my_rating_card.dart';
 import 'package:movielog/widgets/ratings/my_ratings_states.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,7 @@ class MyRatingsScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.surfaceBright,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+          icon: const BackArrowIcon(),
           onPressed: () => context.pop(),
         ),
         title: GestureDetector(

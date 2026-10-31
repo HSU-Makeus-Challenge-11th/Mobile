@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/app/movie_log_app.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/router/app_router.dart';
+import 'package:movielog/widgets/back_arrow_icon.dart';
 
 import 'support/fake_member_services.dart';
 import 'support/fake_tmdb_movie_service.dart';
@@ -83,7 +84,7 @@ void main() {
     expect(find.text('최고의 영화!'), findsOneWidget);
     expect(find.text('영화 #550'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byType(BackArrowIcon));
     await tester.pumpAndSettle();
     expect(find.text('내 프로필'), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);

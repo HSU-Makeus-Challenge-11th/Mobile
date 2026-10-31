@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/sign_up_validators.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/back_arrow_icon.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
 import 'package:movielog/widgets/signup/sign_up_fields.dart';
@@ -154,9 +155,6 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: AppColors.primary500,
       ),
     ),
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: AppColors.ink),
-      onPressed: onBack,
-    ),
+    leading: IconButton(icon: const BackArrowIcon(), onPressed: onBack),
   );
 }
