@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
@@ -17,7 +18,7 @@ void main() {
     movieService = FakeTmdbMovieService(
       detailMovies: {550: fakeMovie(550, title: '파이트 클럽')},
     );
-    viewModel = MyRatingsViewModel(ratingService, movieService, sampleMemberId);
+    viewModel = MyRatingsViewModel(ratingService, movieService, 1);
   });
 
   test('RatingDto parses a null comment and the date', () {
@@ -113,8 +114,84 @@ void main() {
       await viewModel.changeDebugMode(MyRatingsDebugMode.empty);
       await viewModel.changeDebugMode(MyRatingsDebugMode.failure);
       await viewModel.retry();
-      expect(ratingService.memberCalls, [3, 4, 1]);
+      expect(ratingService.memberCalls, [3, 999999, 1]);
       expect(viewModel.debugMode, MyRatingsDebugMode.normal);
     },
   );
+
+  group('writes', () {
+    setUp(
+      () => ratingService.ratings = [fakeRating(1), fakeRating(2, movieId: 13)],
+    );
+
+    test('update sends the ids and reloads the list', () async {
+      await viewModel.load();
+      ratingService.memberCalls.clear();
+      await viewModel.updateRating(ratingId: 1, score: 3, comment: '보통');
+      expect(ratingService.updated.single, (
+        memberId: 1,
+        ratingId: 1,
+        score: 3,
+        comment: '보통',
+      ));
+      expect(ratingService.memberCalls, [1]);
+      expect(viewModel.status, MyRatingsLoadStatus.success);
+    });
+
+    test('deleting the last rating shows Empty', () async {
+      await viewModel.load();
+      ratingService.ratings = const [];
+      await viewModel.deleteRating(2);
+      expect(ratingService.deleted.single, (memberId: 1, ratingId: 2));
+      expect(viewModel.status, MyRatingsLoadStatus.empty);
+    });
+
+    test('a failed GET after a write does not fail the write', () async {
+      await viewModel.load();
+      ratingService.errorStatus = 0;
+      await viewModel.updateRating(ratingId: 1, score: 3);
+      expect(viewModel.status, MyRatingsLoadStatus.error);
+      expect(viewModel.refreshWarning, contains('저장은 완료됐지만'));
+      expect(ratingService.updated, hasLength(1));
+
+      // 재시도는 GET만 다시 보내고 PATCH는 다시 보내지 않는다
+      ratingService.errorStatus = null;
+      await viewModel.retry();
+      expect(viewModel.status, MyRatingsLoadStatus.success);
+      expect(viewModel.refreshWarning, isNull);
+      expect(ratingService.updated, hasLength(1));
+    });
+
+    test('403 and 404 reload the list and rethrow', () async {
+      await viewModel.load();
+      for (final code in ['COMMON403', 'COMMON404']) {
+        ratingService.writeError = (
+          status: code == 'COMMON403' ? 403 : 404,
+          code: code,
+          message: '실패',
+        );
+        ratingService.memberCalls.clear();
+        await expectLater(
+          viewModel.deleteRating(1),
+          throwsA(isA<DioException>()),
+        );
+        expect(ratingService.memberCalls, [1]);
+      }
+    });
+
+    test('400 rethrows without reloading', () async {
+      await viewModel.load();
+      ratingService.memberCalls.clear();
+      ratingService.writeError = (
+        status: 400,
+        code: 'COMMON400',
+        message: '실패',
+      );
+      await expectLater(
+        viewModel.updateRating(ratingId: 1, score: 9),
+        throwsA(isA<DioException>()),
+      );
+      expect(ratingService.memberCalls, isEmpty);
+    });
+  });
 }

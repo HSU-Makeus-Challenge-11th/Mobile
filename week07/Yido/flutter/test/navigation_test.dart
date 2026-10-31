@@ -77,6 +77,10 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(app());
+    tester
+        .element(find.byType(Navigator).first)
+        .read<LearningMemberSession>()
+        .setMemberId(1);
     AppRouter.router.go('/my');
     await tester.pumpAndSettle();
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -93,6 +97,60 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('내 프로필'), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
+  testWidgets('edit opens prefilled, delete asks first and shows Empty', (
+    tester,
+  ) async {
+    final api = FakeRatingApiService(
+      ratings: [fakeRating(7, comment: '다시 봐도 좋아요')],
+    );
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(app(ratingService: api));
+    tester
+        .element(find.byType(Navigator).first)
+        .read<LearningMemberSession>()
+        .setMemberId(1);
+    AppRouter.router.go('/my/ratings');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('editRating_7')));
+    await tester.pumpAndSettle();
+    expect(find.text('평점을 남겨주세요'), findsOneWidget);
+    expect(find.text('다시 봐도 좋아요'), findsNWidgets(2));
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(api.updated, isEmpty);
+
+    await tester.tap(find.byKey(const Key('deleteRating_7')));
+    await tester.pumpAndSettle();
+    expect(find.text('평점을 삭제할까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(api.deleted, isEmpty);
+
+    await tester.tap(find.byKey(const Key('deleteRating_7')));
+    await tester.pumpAndSettle();
+    api.ratings = const [];
+    await tester.tap(find.byKey(const Key('confirmDeleteButton')));
+    await tester.pumpAndSettle();
+    expect(api.deleted.single.ratingId, 7);
+    expect(find.text('평점을 삭제할까요?'), findsNothing);
+    expect(find.text('등록된 평점이 없습니다'), findsOneWidget);
+    AppRouter.router.go('/my');
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('without a member the ratings screen asks to sign up', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    AppRouter.router.go('/my/ratings');
+    await tester.pumpAndSettle();
+    expect(find.text('학습용 회원가입이 필요합니다.'), findsOneWidget);
+    AppRouter.router.go('/my');
+    await tester.pumpAndSettle();
   });
 
   testWidgets('movie filter, detail favorite and rating confirmation work', (

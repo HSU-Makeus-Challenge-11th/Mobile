@@ -5,16 +5,13 @@ import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 
-/// 인증된 '내 계정'이 아닌 학습용 공개 데이터의 회원 번호다
-const int sampleMemberId = 1;
-
 enum MyRatingsLoadStatus { idle, loading, success, empty, error }
 
 /// 상태별 화면 확인용(디버그 모드 전용): 학습용 서버의 다른 회원을 조회한다
 enum MyRatingsDebugMode {
   normal,
   empty(memberId: 3), // 평점이 없는 회원
-  failure(memberId: 4); // 존재하지 않는 회원
+  failure(memberId: 999999); // 존재하지 않는 회원
 
   const MyRatingsDebugMode({this.memberId});
   final int? memberId;
@@ -32,12 +29,17 @@ class MyRatingsViewModel extends ChangeNotifier {
   List<RatingWithMovie> ratings = const [];
   MyRatingsLoadStatus status = MyRatingsLoadStatus.idle;
   String? message;
+
+  /// 쓰기는 성공했는데 뒤이은 목록 조회만 실패했을 때의 안내
+  String? refreshWarning;
   MyRatingsDebugMode debugMode = MyRatingsDebugMode.normal;
 
   Future<void> load() async {
+    if (_disposed) return;
     final version = ++_requestVersion;
     status = MyRatingsLoadStatus.loading;
     message = null;
+    refreshWarning = null;
     notifyListeners();
 
     try {
@@ -82,10 +84,47 @@ class MyRatingsViewModel extends ChangeNotifier {
     if (!_disposed && version == _requestVersion) notifyListeners();
   }
 
-  /// 다시 시도는 정상 모드로 memberId 1을 다시 조회한다
+  /// 다시 시도는 정상 모드로 현재 회원의 목록을 다시 조회한다
   Future<void> retry() {
     debugMode = MyRatingsDebugMode.normal;
     return load();
+  }
+
+  Future<void> _refreshAfterWrite() async {
+    await load();
+    if (!_disposed && status == MyRatingsLoadStatus.error) {
+      refreshWarning = '저장은 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateRating({
+    required int ratingId,
+    required int score,
+    String? comment,
+  }) async {
+    try {
+      await _service.updateRating(
+        memberId: memberId,
+        ratingId: ratingId,
+        score: score,
+        comment: comment,
+      );
+    } on DioException catch (error) {
+      if (shouldRefreshAfterRatingError(error)) await load();
+      rethrow; // 쓰기 실패일 때만 Dialog가 실패로 처리한다
+    }
+    await _refreshAfterWrite(); // GET 실패는 저장 실패로 다시 던지지 않는다
+  }
+
+  Future<void> deleteRating(int ratingId) async {
+    try {
+      await _service.deleteRating(memberId: memberId, ratingId: ratingId);
+    } on DioException catch (error) {
+      if (shouldRefreshAfterRatingError(error)) await load();
+      rethrow;
+    }
+    await _refreshAfterWrite();
   }
 
   Future<void> changeDebugMode(MyRatingsDebugMode mode) {
