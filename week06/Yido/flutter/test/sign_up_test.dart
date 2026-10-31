@@ -214,7 +214,7 @@ void main() {
             find.ancestor(of: nickname, matching: find.byType(Column)).first,
           )
           .height,
-      72,
+      70,
     );
     expect(tester.getSize(find.byKey(const Key('signUpButton'))).height, 44);
 

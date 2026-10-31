@@ -15,7 +15,6 @@ class SignUpFields extends StatefulWidget {
     required this.emailFocusNode,
     required this.passwordFocusNode,
     required this.onChanged,
-    required this.onErrorStateChanged,
   });
 
   final TextEditingController nicknameController;
@@ -25,7 +24,6 @@ class SignUpFields extends StatefulWidget {
   final FocusNode emailFocusNode;
   final FocusNode passwordFocusNode;
   final VoidCallback onChanged;
-  final ValueChanged<bool> onErrorStateChanged;
 
   @override
   State<SignUpFields> createState() => _SignUpFieldsState();
@@ -67,7 +65,15 @@ class _SignUpFieldsState extends State<SignUpFields> {
                 : null,
           ),
         ),
-        SizedBox(height: _hasStatus(viewModel.nicknameCheckStatus) ? 8 : 16),
+        SizedBox(
+          height: _gapAfter(
+            'nickname',
+            widget.nicknameController,
+            SignUpValidators.nickname,
+            viewModel.nicknameCheckStatus,
+            viewModel.nicknameErrorText,
+          ),
+        ),
         _field(
           const Key('emailField'),
           'email',
@@ -93,7 +99,15 @@ class _SignUpFieldsState extends State<SignUpFields> {
                 : null,
           ),
         ),
-        SizedBox(height: _hasStatus(viewModel.emailCheckStatus) ? 8 : 16),
+        SizedBox(
+          height: _gapAfter(
+            'email',
+            widget.emailController,
+            SignUpValidators.email,
+            viewModel.emailCheckStatus,
+            viewModel.emailErrorText,
+          ),
+        ),
         _field(
           const Key('passwordField'),
           'password',
@@ -110,16 +124,21 @@ class _SignUpFieldsState extends State<SignUpFields> {
     );
   }
 
-  bool _hasStatus(CheckStatus status) =>
-      status == CheckStatus.checking || status == CheckStatus.available;
-
-  bool get _hasErrors =>
-      _touched.contains('nickname') &&
-          SignUpValidators.nickname(widget.nicknameController.text) != null ||
-      _touched.contains('email') &&
-          SignUpValidators.email(widget.emailController.text) != null ||
-      _touched.contains('password') &&
-          SignUpValidators.password(widget.passwordController.text) != null;
+  /// 안내 문구 자리까지 합쳐 다음 라벨 위치를 고정한다 (문구 6 + 16, 아래 여백 9)
+  double _gapAfter(
+    String name,
+    TextEditingController controller,
+    FormFieldValidator<String> validator,
+    CheckStatus status,
+    String? errorText,
+  ) {
+    final hasMessage =
+        status == CheckStatus.checking ||
+        status == CheckStatus.available ||
+        errorText != null ||
+        (_touched.contains(name) && validator(controller.text) != null);
+    return hasMessage ? 9 : 31;
+  }
 
   Widget _field(
     Key key,
@@ -163,26 +182,23 @@ class _SignUpFieldsState extends State<SignUpFields> {
         setState(() => _touched.add(name));
         check?.onChanged(value);
         widget.onChanged();
-        widget.onErrorStateChanged(_hasErrors);
       },
-      style: TextStyle(
+      style: const TextStyle(
         fontFamily: 'Manrope',
-        fontSize: 16,
-        height: 24 / 16,
-        fontWeight: valid && name == 'nickname'
-            ? FontWeight.w500
-            : FontWeight.w400,
-        color: const Color(0xFF1D1B20),
+        fontSize: 14,
+        height: 19 / 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.inputText,
       ),
       decoration: InputDecoration(
         isDense: true,
         hintText: hint,
         hintStyle: const TextStyle(
           fontFamily: 'Manrope',
-          fontSize: 16,
-          height: 22 / 16,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF7A7582),
+          fontSize: 14,
+          height: 19 / 14,
+          fontWeight: FontWeight.w400,
+          color: AppColors.inputText,
         ),
         // 서버 중복 확인 결과. 형식 오류가 있으면 validator 문구가 먼저 보인다
         errorText: check?.errorText,
@@ -195,18 +211,16 @@ class _SignUpFieldsState extends State<SignUpFields> {
           color: AppColors.error,
         ),
         filled: true,
-        fillColor: invalid ? const Color(0xFFFFDAD6) : AppColors.surface,
+        fillColor: invalid ? const Color(0xFFFFDAD6) : AppColors.surfaceBright,
         // 안내 문구를 입력란 왼쪽 끝에 맞추려고 안쪽 여백은 prefixIcon으로 둔다
-        contentPadding: const EdgeInsets.fromLTRB(0, 10, 16, 10),
+        contentPadding: const EdgeInsets.fromLTRB(0, 12.5, 16, 12.5),
         prefixIcon: const SizedBox(width: 16),
         prefixIconConstraints: const BoxConstraints.tightFor(
           width: 16,
           height: 44,
         ),
-        border: border(const Color(0xFFCBC4D2)),
-        enabledBorder: border(
-          invalid ? AppColors.error : const Color(0xFFCBC4D2),
-        ),
+        border: border(AppColors.cardBorder),
+        enabledBorder: border(invalid ? AppColors.error : AppColors.cardBorder),
         focusedBorder: border(
           invalid ? AppColors.error : AppColors.primary500,
           2,
@@ -214,15 +228,15 @@ class _SignUpFieldsState extends State<SignUpFields> {
         errorBorder: border(AppColors.error),
         focusedErrorBorder: border(AppColors.error, 2),
         suffixIconConstraints: const BoxConstraints.tightFor(
-          width: 36,
+          width: 34,
           height: 44,
         ),
         suffixIcon: valid || invalid
             ? Padding(
-                padding: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsets.only(right: 10),
                 child: Icon(
                   valid ? Icons.check_circle : Icons.error_outline,
-                  size: 20,
+                  size: 24,
                   color: valid ? AppColors.primary500 : AppColors.error,
                   semanticLabel: valid ? '입력 완료' : '입력 오류',
                 ),
@@ -239,13 +253,13 @@ class _SignUpFieldsState extends State<SignUpFields> {
           label,
           style: const TextStyle(
             fontFamily: 'Manrope',
-            fontSize: 16,
-            height: 24 / 16,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF1D1B20),
+            fontSize: 14,
+            height: 19 / 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 7),
         if (check == null)
           input
         else
@@ -253,7 +267,7 @@ class _SignUpFieldsState extends State<SignUpFields> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: input),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               MovieLogButton(
                 key: check.buttonKey,
                 label: '중복 확인',
@@ -271,14 +285,14 @@ class _SignUpFieldsState extends State<SignUpFields> {
   }
 
   Widget _statusText(String text, Color color) => Padding(
-    padding: const EdgeInsets.only(top: 4),
+    padding: const EdgeInsets.only(left: 1, top: 6),
     child: Text(
       text,
       style: TextStyle(
         fontFamily: 'Manrope',
         fontSize: 12,
         height: 16 / 12,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: color,
       ),
     ),

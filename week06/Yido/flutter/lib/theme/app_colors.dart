@@ -47,6 +47,13 @@ abstract final class AppColors {
 
   static const outline = Color(0xFFCBC4D2);
   static const gray = Color(0xFF79747E);
+
+  // W6 피그마 프레임
+  static const surfaceBright = Color(0xFFFEFCF9);
+  static const ink = Color(0xFF25232A);
+  static const inputText = Color(0xFF8A8391);
+  static const mutedText = Color(0xFF655F6C);
+  static const cardBorder = Color(0xFFD9D3E1);
   static const error = Color(0xFFB3261E);
   static const success = Color(0xFF2E7D32);
   static const info = Color(0xFF1565C0);

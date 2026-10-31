@@ -14,9 +14,9 @@ class MovieLogButton extends StatelessWidget {
   });
 
   static const _defaultLabelStyle = TextStyle(
-    fontSize: 14,
-    height: 20 / 14,
-    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    height: 18 / 13,
+    fontWeight: FontWeight.w700,
   );
 
   final String label;
@@ -43,7 +43,7 @@ class MovieLogButton extends StatelessWidget {
           disabledBackgroundColor: disabledColor,
           foregroundColor: AppColors.white,
           disabledForegroundColor: AppColors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

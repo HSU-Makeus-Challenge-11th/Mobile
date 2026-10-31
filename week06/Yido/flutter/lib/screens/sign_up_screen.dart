@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/sign_up_validators.dart';
+import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
 import 'package:movielog/widgets/signup/sign_up_fields.dart';
@@ -24,7 +25,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailFocusNode = FocusNode(debugLabel: 'email');
   final _passwordFocusNode = FocusNode(debugLabel: 'password');
   bool _agreed = false;
-  bool _hasErrors = false;
 
   @override
   void initState() {
@@ -75,38 +75,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.surfaceBright,
     appBar: _SignUpAppBar(onBack: _back),
-    body: Container(
-      decoration: BoxDecoration(
-        border: Border.symmetric(
-          vertical: BorderSide(
-            color: _hasErrors
-                ? const Color(0xFFCBC4D2)
-                : const Color(0xFFE6E0E9),
-          ),
-        ),
-      ),
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: math.max(0, constraints.maxHeight - 48),
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SignUpHeader(),
-                        SizedBox(height: _hasErrors ? 24 : 32),
-                        SignUpFields(
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(17, 45, 17, 0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: math.max(0, constraints.maxHeight - 45),
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SignUpHeader(),
+                      const SizedBox(height: 27),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 1),
+                        child: SignUpFields(
                           nicknameController: _nicknameController,
                           emailController: _emailController,
                           passwordController: _passwordController,
@@ -114,26 +107,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           emailFocusNode: _emailFocusNode,
                           passwordFocusNode: _passwordFocusNode,
                           onChanged: _refresh,
-                          onErrorStateChanged: (hasErrors) {
-                            if (_hasErrors != hasErrors) {
-                              setState(() => _hasErrors = hasErrors);
-                            }
-                          },
                         ),
-                      ],
-                    ),
-                    SignUpActions(
-                      agreed: _agreed,
-                      canSubmit: _canSubmit(context.watch<SignUpViewModel>()),
-                      onAgreementChanged: (value) =>
-                          setState(() => _agreed = value ?? false),
-                      onSubmit: _submit,
-                      onLogin: () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('로그인 기능은 아직 연결되지 않았습니다.')),
                       ),
+                    ],
+                  ),
+                  SignUpActions(
+                    agreed: _agreed,
+                    canSubmit: _canSubmit(context.watch<SignUpViewModel>()),
+                    onAgreementChanged: (value) =>
+                        setState(() => _agreed = value ?? false),
+                    onSubmit: _submit,
+                    onLogin: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('로그인 기능은 아직 연결되지 않았습니다.')),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -154,18 +142,21 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) => AppBar(
     toolbarHeight: 64,
-    leadingWidth: 48,
     centerTitle: true,
+    backgroundColor: AppColors.surfaceBright,
     title: const Text(
       '회원가입',
       style: TextStyle(
         fontFamily: 'Manrope',
-        fontSize: 22,
-        height: 28 / 22,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF6750A4),
+        fontSize: 20,
+        height: 27 / 20,
+        fontWeight: FontWeight.w700,
+        color: AppColors.primary500,
       ),
     ),
-    leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
+    leading: IconButton(
+      icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+      onPressed: onBack,
+    ),
   );
 }
