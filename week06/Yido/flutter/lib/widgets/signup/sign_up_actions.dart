@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 
 class SignUpActions extends StatelessWidget {
   const SignUpActions({
@@ -83,32 +84,18 @@ class SignUpActions extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          height: 56,
-          child: ElevatedButton(
-            key: const Key('signUpButton'),
-            onPressed: canSubmit ? onSubmit : null,
-            style: ElevatedButton.styleFrom(
-              elevation: 1,
-              backgroundColor: const Color(0xFF6750A4),
-              disabledBackgroundColor: const Color(0xFFCCC2DC),
-              foregroundColor: Colors.white,
-              disabledForegroundColor: Colors.white,
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              '가입하기',
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 16,
-                height: 24 / 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        MovieLogButton(
+          key: const Key('signUpButton'),
+          label: '가입하기',
+          width: double.infinity,
+          disabledColor: const Color(0xFFD3C6E2),
+          labelStyle: const TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 16,
+            height: 24 / 16,
+            fontWeight: FontWeight.w500,
           ),
+          onPressed: canSubmit ? onSubmit : null,
         ),
         const SizedBox(height: 40),
         Row(

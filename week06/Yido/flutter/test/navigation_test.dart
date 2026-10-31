@@ -7,9 +7,12 @@ import 'package:movielog/app/movie_log_app.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/router/app_router.dart';
 
+import 'support/fake_member_services.dart';
 import 'support/fake_tmdb_movie_service.dart';
 
 Widget app() => MovieLogApp(
+  memberCheckService: FakeMemberCheckService(),
+  ratingApiService: FakeRatingApiService(ratings: [fakeRating(1)]),
   movieService: FakeTmdbMovieService(
     popular: [for (var i = 1; i <= 5; i++) fakeMovie(i, title: '인기 $i')],
     discoverPages: {
@@ -42,6 +45,11 @@ void main() {
       'movie@example.com',
     );
     await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('emailCheckButton')));
+    await tester.pump();
     await tester.ensureVisible(find.byKey(const Key('termsCheckbox')));
     await tester.tap(find.byKey(const Key('termsCheckbox')));
     await tester.pump();
@@ -106,7 +114,13 @@ void main() {
     for (final size in const [Size(390, 844), Size(360, 800)]) {
       await tester.binding.setSurfaceSize(size);
       await tester.pumpWidget(app());
-      for (final path in ['/home', '/movies', '/my', '/movies/1']) {
+      for (final path in [
+        '/home',
+        '/movies',
+        '/my',
+        '/register',
+        '/movies/1',
+      ]) {
         AppRouter.router.go(path);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$path at $size');

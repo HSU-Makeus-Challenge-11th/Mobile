@@ -3,9 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/sign_up_validators.dart';
+import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
 import 'package:movielog/widgets/signup/sign_up_fields.dart';
 import 'package:movielog/widgets/signup/sign_up_header.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -47,8 +49,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  bool get _canSubmit =>
+  bool _canSubmit(SignUpViewModel viewModel) =>
       _agreed &&
+      viewModel.nicknameCheckStatus == CheckStatus.available &&
+      viewModel.emailCheckStatus == CheckStatus.available &&
       SignUpValidators.nickname(_nicknameController.text) == null &&
       SignUpValidators.email(_emailController.text) == null &&
       SignUpValidators.password(_passwordController.text) == null;
@@ -57,7 +61,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _submit() {
-    if (!_canSubmit || !(_formKey.currentState?.validate() ?? false)) return;
+    if (!_canSubmit(context.read<SignUpViewModel>()) ||
+        !(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
     FocusScope.of(context).unfocus();
     context.go('/home');
   }
@@ -117,7 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SignUpActions(
                       agreed: _agreed,
-                      canSubmit: _canSubmit,
+                      canSubmit: _canSubmit(context.watch<SignUpViewModel>()),
                       onAgreementChanged: (value) =>
                           setState(() => _agreed = value ?? false),
                       onSubmit: _submit,
@@ -159,6 +166,6 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: Color(0xFF6750A4),
       ),
     ),
-    leading: const SizedBox(width: 48),
+    leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
   );
 }

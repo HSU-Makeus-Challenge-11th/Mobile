@@ -1,9 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
+import 'package:movielog/view_models/sign_up_view_model.dart';
+import 'package:provider/provider.dart';
+
+import 'support/fake_member_services.dart';
 
 void main() {
+  late FakeMemberCheckService service;
+
+  setUp(() => service = FakeMemberCheckService(duplicated: {'영화광'}));
+
   Future<void> pumpScreen(
     WidgetTester tester, {
     EdgeInsets viewInsets = EdgeInsets.zero,
@@ -15,7 +25,10 @@ void main() {
           data: MediaQuery.of(context).copyWith(viewInsets: viewInsets),
           child: child!,
         ),
-        home: const SignUpScreen(),
+        home: ChangeNotifierProvider(
+          create: (_) => SignUpViewModel(service),
+          child: const SignUpScreen(),
+        ),
       ),
     );
   }
@@ -28,10 +41,21 @@ void main() {
     );
     await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
     await tester.pump();
+    await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('emailCheckButton')));
+    await tester.pump();
   }
 
+  ElevatedButton buttonOf(WidgetTester tester, String key) => tester.widget(
+    find.descendant(
+      of: find.byKey(Key(key)),
+      matching: find.byType(ElevatedButton),
+    ),
+  );
+
   ElevatedButton signUpButton(WidgetTester tester) =>
-      tester.widget(find.byKey(const Key('signUpButton')));
+      buttonOf(tester, 'signUpButton');
 
   testWidgets('signup starts disabled without validation errors', (
     tester,
@@ -79,6 +103,10 @@ void main() {
       find.byKey(const Key('emailField')),
       'movie@example.com',
     );
+    await tester.pump();
+    // 입력을 바꾸면 이전 확인 결과가 사라져 다시 확인해야 한다
+    expect(signUpButton(tester).onPressed, isNull);
+    await tester.tap(find.byKey(const Key('emailCheckButton')));
     await tester.pump();
     expect(signUpButton(tester).onPressed, isNotNull);
 
@@ -179,16 +207,16 @@ void main() {
       ),
     );
     expect(normalContainer, isNotNull);
-    expect(normalContainer!.size.height, 42);
+    expect(normalContainer!.size.height, 44);
     expect(
       tester
           .getSize(
             find.ancestor(of: nickname, matching: find.byType(Column)).first,
           )
           .height,
-      70,
+      72,
     );
-    expect(tester.getSize(find.byKey(const Key('signUpButton'))).height, 56);
+    expect(tester.getSize(find.byKey(const Key('signUpButton'))).height, 44);
 
     await tester.enterText(nickname, '가');
     await tester.pumpAndSettle();
@@ -198,14 +226,81 @@ void main() {
       ),
     );
     expect(errorContainer, isNotNull);
-    expect(errorContainer!.size.height, 42);
-    expect(
-      tester
-          .getSize(
-            find.ancestor(of: nickname, matching: find.byType(Column)).first,
-          )
-          .height,
-      94,
-    );
+    expect(errorContainer!.size.height, 44);
+    expect(find.text('닉네임은 2자 이상이어야 합니다.'), findsOneWidget);
+  });
+
+  group('duplicate check on the form', () {
+    Future<void> enterNickname(WidgetTester tester, String value) async {
+      await tester.enterText(find.byKey(const Key('nicknameField')), value);
+      await tester.pump();
+    }
+
+    testWidgets('check button stays disabled until the format is valid', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNull);
+      await enterNickname(tester, '가');
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNull);
+      await enterNickname(tester, '가나');
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNotNull);
+    });
+
+    testWidgets('checking shows a spinner and keeps the button width', (
+      tester,
+    ) async {
+      final gate = service.pending['무비러버'] = Completer<void>();
+      await pumpScreen(tester);
+      await enterNickname(tester, '무비러버');
+      final idleWidth = tester
+          .getSize(find.byKey(const Key('nicknameCheckButton')))
+          .width;
+
+      await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('닉네임 사용 가능 여부를 확인 중입니다.'), findsOneWidget);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNull);
+      expect(
+        tester.getSize(find.byKey(const Key('nicknameCheckButton'))).width,
+        idleWidth,
+      );
+
+      gate.complete();
+      await tester.pump();
+      expect(find.text('사용 가능한 닉네임입니다.'), findsOneWidget);
+    });
+
+    testWidgets('duplicate shows the error and retyping restores it', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+      await enterNickname(tester, '영화광');
+      await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+      await tester.pump();
+      expect(find.text('이미 사용 중인 닉네임입니다.'), findsOneWidget);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNull);
+
+      await enterNickname(tester, '영화광2');
+      expect(find.text('이미 사용 중인 닉네임입니다.'), findsNothing);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNotNull);
+
+      await enterNickname(tester, '영화광');
+      expect(find.text('이미 사용 중인 닉네임입니다.'), findsOneWidget);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNull);
+      expect(service.nicknameCalls, ['영화광']);
+    });
+
+    testWidgets('network failure has its own message', (tester) async {
+      service.fail = true;
+      await pumpScreen(tester);
+      await enterNickname(tester, '무비러버');
+      await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+      await tester.pump();
+      expect(find.text('중복 확인에 실패했습니다. 다시 시도해 주세요.'), findsOneWidget);
+      expect(find.text('이미 사용 중인 닉네임입니다.'), findsNothing);
+      expect(buttonOf(tester, 'nicknameCheckButton').onPressed, isNotNull);
+    });
   });
 }
