@@ -13,14 +13,13 @@ class StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 86,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(top: 19),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLow,
-        border: Border.all(color: AppColors.primary200),
+        color: AppColors.surfaceBright,
+        border: Border.all(color: const Color(0xFFE4DAF1)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
@@ -35,24 +34,29 @@ class StatItem extends StatelessWidget {
                 height: 16 / 12,
                 forceStrutHeight: true,
               ),
-              style: AppTextStyles.labelMedium,
+              style: AppTextStyles.labelMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.mutedText,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           SizedBox(
-            height: 28,
+            height: 31,
             child: Text(
               value,
               maxLines: 1,
               strutStyle: const StrutStyle(
                 fontFamily: AppTextStyles.fontFamily,
-                fontSize: 22,
-                height: 28 / 22,
+                fontSize: 23,
+                height: 31 / 23,
                 forceStrutHeight: true,
               ),
               style: AppTextStyles.titleLarge.copyWith(
+                fontSize: 23,
+                height: 31 / 23,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary600,
+                color: AppColors.primary500,
               ),
             ),
           ),

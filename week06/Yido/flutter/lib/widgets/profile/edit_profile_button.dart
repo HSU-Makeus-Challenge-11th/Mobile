@@ -9,29 +9,27 @@ class EditProfileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: SizedBox(
-        width: 127,
-        height: 42,
-        child: TextButton(
-          onPressed: () {
-            debugPrint('프로필 수정 버튼을 눌렀습니다.');
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary500,
-            // Figma 크기(128x42)는 테두리 1px을 포함하므로 여백에 1씩 더한다.
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            side: const BorderSide(color: AppColors.primary500),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            textStyle: AppTextStyles.bodyLarge,
+    return SizedBox(
+      width: 128,
+      height: 40,
+      child: TextButton(
+        onPressed: () {
+          debugPrint('프로필 수정 버튼을 눌렀습니다.');
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary500,
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          side: const BorderSide(color: AppColors.primary500),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: AppTextStyles.bodyLarge.copyWith(
+            fontSize: 15,
+            height: 20 / 15,
+            fontWeight: FontWeight.w700,
           ),
-          child: const Text('프로필 수정'),
         ),
+        child: const Text('프로필 수정'),
       ),
     );
   }

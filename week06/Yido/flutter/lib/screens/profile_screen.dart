@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/profile/favorite_genres.dart';
 import 'package:movielog/widgets/profile/my_ratings_entry.dart';
 import 'package:movielog/widgets/profile/profile_header.dart';
@@ -11,36 +12,39 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(
-      child: Column(
-        children: [
-          SizedBox(
-            height: 64,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 16),
-                child: Text(
-                  '내 프로필',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 22,
-                    height: 28 / 22,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF6750A4),
+    return const ColoredBox(
+      color: AppColors.surfaceBright,
+      child: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(
+              height: 64,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 16),
+                  child: Text(
+                    '내 프로필',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 22,
+                      height: 30 / 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary500,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          Expanded(child: ProfileBody()),
-        ],
+            Expanded(child: ProfileBody()),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// AppBar 아래 본문. 섹션 사이 간격은 32로 맞춘다.
+/// AppBar 아래 본문. 섹션 사이 간격은 W6-ENTRY 프레임 값을 따른다.
 class ProfileBody extends StatelessWidget {
   const ProfileBody({super.key});
 
@@ -55,24 +59,20 @@ class ProfileBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(16, 24, 16, 128),
+      padding: EdgeInsets.fromLTRB(16, 25, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 32,
         children: [
           ProfileHeader(
             name: '무비러버',
-            bio: '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
+            bio: '매주 주말엔 영화관으로 출근하는 프로 관람객.\n좋은 영화를 보고 기록하는 것을 좋아합니다.',
             imagePath: 'assets/images/profile.jpg',
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 24,
-            children: [
-              ProfileStats(stats: _stats),
-              MyRatingsEntry(),
-            ],
-          ),
+          SizedBox(height: 33),
+          ProfileStats(stats: _stats),
+          SizedBox(height: 26),
+          MyRatingsEntry(),
+          SizedBox(height: 28),
           FavoriteGenres(genres: _genres),
         ],
       ),

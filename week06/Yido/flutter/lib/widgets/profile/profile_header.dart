@@ -20,63 +20,65 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 16,
       children: [
         _ProfileAvatar(imagePath: imagePath),
+        const SizedBox(height: 18),
         SizedBox(
-          width: 318,
-          height: 84,
-          child: Column(
-            spacing: 8,
-            children: [
-              SizedBox(
-                height: 28,
-                child: Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  strutStyle: const StrutStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    fontSize: 22,
-                    height: 28 / 22,
-                    forceStrutHeight: true,
-                  ),
-                  style: AppTextStyles.titleLarge,
-                ),
-              ),
-              SizedBox(
-                height: 48,
-                child: Text(
-                  bio,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  strutStyle: const StrutStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    fontSize: 16,
-                    height: 24 / 16,
-                    forceStrutHeight: true,
-                  ),
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
+          height: 27,
+          child: Text(
+            name,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            strutStyle: const StrutStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              fontSize: 20,
+              height: 27 / 20,
+              forceStrutHeight: true,
+            ),
+            style: AppTextStyles.titleLarge.copyWith(
+              fontSize: 20,
+              height: 27 / 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
           ),
         ),
+        const SizedBox(height: 9),
+        SizedBox(
+          height: 44,
+          child: Text(
+            bio,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            strutStyle: const StrutStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              fontSize: 13,
+              height: 22 / 13,
+              forceStrutHeight: true,
+            ),
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              fontSize: 13,
+              height: 22 / 13,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mutedText,
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
         const EditProfileButton(),
       ],
     );
   }
 }
 
-/// 2px 테두리가 있는 128 크기의 원형 프로필 사진.
+/// 2px 테두리가 있는 126 크기의 원형 프로필 사진.
 class _ProfileAvatar extends StatelessWidget {
   const _ProfileAvatar({required this.imagePath});
 
-  static const _size = 128.0;
+  static const _size = 126.0;
 
   final String imagePath;
 
@@ -87,7 +89,7 @@ class _ProfileAvatar extends StatelessWidget {
       height: _size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary300, width: 2),
+        border: Border.all(color: AppColors.primary500, width: 2),
       ),
       child: ClipOval(
         child: Image.asset(

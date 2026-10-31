@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/theme/app_colors.dart';
 
 class MovieNavigationBar extends StatelessWidget {
   const MovieNavigationBar({super.key, required this.location});
@@ -10,67 +11,72 @@ class MovieNavigationBar extends StatelessWidget {
       ? 2
       : 0;
   @override
-  Widget build(BuildContext context) => NavigationBar(
-    height: 80,
-    backgroundColor: const Color(0xFFFAF9F5),
-    indicatorColor: Colors.transparent,
-    labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-    selectedIndex: _index,
-    onDestinationSelected: (value) =>
-        context.go(['/home', '/movies', '/my'][value]),
-    destinations: [
-      _destination(Icons.home_outlined, Icons.home, '홈', 56, 40.8),
-      _destination(Icons.movie_outlined, Icons.movie, '영화', 63, 44),
-      _destination(Icons.person_outline, Icons.person, '마이', 63, 44),
-    ],
-  );
-  NavigationDestination _destination(
-    IconData icon,
-    IconData selectedIcon,
-    String label,
-    double width,
-    double height,
-  ) => NavigationDestination(
-    label: label,
-    icon: _tab(icon, label, width, height, false),
-    selectedIcon: _tab(selectedIcon, label, width, height, true),
-  );
-  Widget _tab(
-    IconData icon,
-    String label,
-    double width,
-    double height,
-    bool selected,
-  ) => SizedBox(
-    width: width,
-    height: height,
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: selected ? const Color(0xFFE8DEF9) : Colors.transparent,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: label == '홈' ? 16 : 20,
-            color: selected ? const Color(0xFF686177) : const Color(0xFF494551),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              height: 16 / 12,
-              fontWeight: FontWeight.w500,
-              color: selected
-                  ? const Color(0xFF686177)
-                  : const Color(0xFF494551),
-            ),
-          ),
+  Widget build(BuildContext context) => ColoredBox(
+    color: AppColors.white,
+    child: Padding(
+      // 탭 중심을 73 · 195 · 313에 맞춘다
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: NavigationBar(
+        height: 64,
+        backgroundColor: AppColors.white,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: Colors.transparent,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        selectedIndex: _index,
+        onDestinationSelected: (value) =>
+            context.go(['/home', '/movies', '/my'][value]),
+        destinations: [
+          _destination(Icons.home_outlined, '홈'),
+          _destination(Icons.movie_outlined, '영화'),
+          _destination(Icons.person, '마이'),
         ],
       ),
     ),
   );
+
+  NavigationDestination _destination(IconData icon, String label) =>
+      NavigationDestination(
+        label: label,
+        icon: _tab(icon, label, false),
+        selectedIcon: _tab(icon, label, true),
+      );
+
+  /// 선택 표시(62x38)는 아이콘 뒤에만 깔리고 라벨은 그 아래쪽에 걸친다
+  Widget _tab(IconData icon, String label, bool selected) {
+    final color = selected ? AppColors.primary500 : AppColors.mutedText;
+    return SizedBox(
+      width: 62,
+      height: 54,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          if (selected)
+            Container(
+              width: 62,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEE1FA),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          Positioned(
+            top: selected ? 7 : 13,
+            child: Icon(icon, size: 22, color: color),
+          ),
+          Positioned(
+            top: 36,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                height: 16 / 12,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

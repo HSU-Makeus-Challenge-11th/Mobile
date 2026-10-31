@@ -29,6 +29,11 @@ Widget app() => MovieLogApp(
   ),
 );
 
+Finder tab(IconData icon) => find.descendant(
+  of: find.byType(NavigationBar),
+  matching: find.byIcon(icon),
+);
+
 void main() {
   testWidgets('registration reaches home and tab route changes', (
     tester,
@@ -57,7 +62,7 @@ void main() {
     await tester.tap(find.byKey(const Key('signUpButton')));
     await tester.pumpAndSettle();
     expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
-    await tester.tap(find.text('영화').last);
+    await tester.tap(tab(Icons.movie_outlined));
     await tester.pumpAndSettle();
     expect(find.text('전체'), findsOneWidget);
   });
@@ -161,14 +166,14 @@ void main() {
         AppRouter.router.go('/home');
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('영화').last);
+        await tester.tap(tab(Icons.movie_outlined));
         await tester.pump();
         expect(find.text('전체'), findsOneWidget);
         expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsNothing);
         await tester.pump(const Duration(milliseconds: 150));
         expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsNothing);
 
-        await tester.tap(find.text('마이').last);
+        await tester.tap(tab(Icons.person));
         await tester.pump();
         expect(find.text('내 프로필'), findsOneWidget);
         expect(find.text('전체'), findsNothing);
@@ -191,9 +196,9 @@ void main() {
 
       await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.text('무비러버')).height, 28);
+      expect(tester.getSize(find.text('무비러버')).height, 27);
       expect(tester.getSize(find.text('본 영화')).height, 16);
-      expect(tester.getSize(find.text('342')).height, 28);
+      expect(tester.getSize(find.text('342')).height, 31);
       expect(tester.takeException(), isNull);
     } finally {
       await tester.binding.setSurfaceSize(null);
