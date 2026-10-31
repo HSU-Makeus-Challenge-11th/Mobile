@@ -62,6 +62,28 @@ void main() {
     expect(find.text('전체'), findsOneWidget);
   });
 
+  testWidgets('my page opens ratings without the tab bar and comes back', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    AppRouter.router.go('/my');
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+
+    await tester.ensureVisible(find.text('내가 등록한 평점'));
+    await tester.tap(find.text('내가 등록한 평점'));
+    await tester.pumpAndSettle();
+    expect(AppRouter.router.state.uri.path, '/my/ratings');
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text('최고의 영화!'), findsOneWidget);
+    expect(find.text('영화 #550'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('내 프로필'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
   testWidgets('movie filter, detail favorite and rating confirmation work', (
     tester,
   ) async {
@@ -118,6 +140,7 @@ void main() {
         '/home',
         '/movies',
         '/my',
+        '/my/ratings',
         '/register',
         '/movies/1',
       ]) {

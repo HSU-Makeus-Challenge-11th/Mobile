@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/widgets/profile/favorite_genres.dart';
+import 'package:movielog/widgets/profile/my_ratings_entry.dart';
 import 'package:movielog/widgets/profile/profile_header.dart';
 import 'package:movielog/widgets/profile/profile_stats.dart';
 
@@ -64,7 +65,14 @@ class ProfileBody extends StatelessWidget {
             bio: '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
             imagePath: 'assets/images/profile.jpg',
           ),
-          ProfileStats(stats: _stats),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 24,
+            children: [
+              ProfileStats(stats: _stats),
+              MyRatingsEntry(),
+            ],
+          ),
           FavoriteGenres(genres: _genres),
         ],
       ),
