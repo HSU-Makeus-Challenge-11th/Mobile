@@ -6,13 +6,16 @@ import com.umc.movie.controller.RatingController;
 import com.umc.movie.dto.EmailCheckResponse;
 import com.umc.movie.dto.NicknameCheckResponse;
 import com.umc.movie.dto.RatingResponse;
+import com.umc.movie.dto.SignUpRequest;
 import com.umc.movie.service.MemberService;
 import com.umc.movie.service.RatingService;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,8 +23,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest({MemberController.class, RatingController.class})
@@ -65,7 +70,10 @@ class ControllerTest {
                 .andExpect(jsonPath("$[0].createdAt").value("2026-08-26T10:00:00"))
                 .andExpect(jsonPath("$[0].member").doesNotExist());
         mockMvc.perform(get("/members/999/ratings"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value("COMMON404"))
+                .andExpect(jsonPath("$.message").value("존재하지 않는 유저입니다."));
     }
 
     @Test
@@ -76,5 +84,20 @@ class ControllerTest {
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
         mockMvc.perform(get("/members/nickname/noco").header("Origin", "http://evil.com"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void dbUniqueViolationBecomes409InTheSameShape() throws Exception {
+        when(memberService.signUp(any(SignUpRequest.class)))
+                .thenThrow(new DataIntegrityViolationException("uk_email"));
+
+        mockMvc.perform(post("/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email": "umc@example.com", "password": "Umc!1234", "nickname": "moviefan"}"""))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value("COMMON4091"))
+                .andExpect(jsonPath("$.message").value("이미 존재하는 데이터입니다."));
     }
 }
