@@ -30,10 +30,7 @@ Widget app() => MovieLogApp(
   ),
 );
 
-Finder tab(IconData icon) => find.descendant(
-  of: find.byType(NavigationBar),
-  matching: find.byIcon(icon),
-);
+Finder tab(String label) => find.byKey(Key('tab_$label'));
 
 void main() {
   testWidgets('registration reaches home and tab route changes', (
@@ -63,7 +60,7 @@ void main() {
     await tester.tap(find.byKey(const Key('signUpButton')));
     await tester.pumpAndSettle();
     expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
-    await tester.tap(tab(Icons.movie_outlined));
+    await tester.tap(tab('영화'));
     await tester.pumpAndSettle();
     expect(find.text('전체'), findsOneWidget);
   });
@@ -167,14 +164,14 @@ void main() {
         AppRouter.router.go('/home');
         await tester.pumpAndSettle();
 
-        await tester.tap(tab(Icons.movie_outlined));
+        await tester.tap(tab('영화'));
         await tester.pump();
         expect(find.text('전체'), findsOneWidget);
         expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsNothing);
         await tester.pump(const Duration(milliseconds: 150));
         expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsNothing);
 
-        await tester.tap(tab(Icons.person));
+        await tester.tap(tab('마이'));
         await tester.pump();
         expect(find.text('내 프로필'), findsOneWidget);
         expect(find.text('전체'), findsNothing);

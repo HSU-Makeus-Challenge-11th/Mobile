@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/movies/tab_icons.dart';
 
 class MovieNavigationBar extends StatelessWidget {
   const MovieNavigationBar({super.key, required this.location});
@@ -26,15 +27,15 @@ class MovieNavigationBar extends StatelessWidget {
         onDestinationSelected: (value) =>
             context.go(['/home', '/movies', '/my'][value]),
         destinations: [
-          _destination(Icons.home_outlined, '홈'),
-          _destination(Icons.movie_outlined, '영화'),
-          _destination(Icons.person, '마이'),
+          _destination(TabIconShape.home, '홈'),
+          _destination(TabIconShape.movie, '영화'),
+          _destination(TabIconShape.my, '마이'),
         ],
       ),
     ),
   );
 
-  NavigationDestination _destination(IconData icon, String label) =>
+  NavigationDestination _destination(TabIconShape icon, String label) =>
       NavigationDestination(
         label: label,
         icon: _tab(icon, label, false),
@@ -42,9 +43,10 @@ class MovieNavigationBar extends StatelessWidget {
       );
 
   /// 선택 표시(62x38)는 아이콘 뒤에만 깔리고 라벨은 그 아래쪽에 걸친다
-  Widget _tab(IconData icon, String label, bool selected) {
+  Widget _tab(TabIconShape icon, String label, bool selected) {
     final color = selected ? AppColors.primary500 : AppColors.mutedText;
     return SizedBox(
+      key: Key('tab_$label'),
       width: 62,
       height: 54,
       child: Stack(
@@ -60,8 +62,8 @@ class MovieNavigationBar extends StatelessWidget {
               ),
             ),
           Positioned(
-            top: selected ? 7 : 13,
-            child: Icon(icon, size: 22, color: color),
+            top: selected ? 7 : 14,
+            child: TabIcon(shape: icon, color: color),
           ),
           Positioned(
             top: 36,
