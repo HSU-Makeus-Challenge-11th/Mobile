@@ -9,6 +9,7 @@ import com.umc.movie.dto.RatingResponse;
 import com.umc.movie.dto.SignUpRequest;
 import com.umc.movie.service.MemberService;
 import com.umc.movie.service.RatingService;
+import com.umc.movie.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ class ControllerTest {
 
     @MockitoBean
     private RatingService ratingService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @Test
     void nicknameAndEmailCheckReturnAvailable() throws Exception {

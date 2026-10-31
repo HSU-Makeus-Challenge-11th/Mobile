@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.umc.movie.entity.Member;
 import com.umc.movie.repository.MemberRepository;
 import com.umc.movie.repository.RatingRepository;
+import com.umc.movie.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,9 @@ class WriteApiTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     private Long owner;
     private Long other;
 
@@ -65,7 +69,12 @@ class WriteApiTest {
 
     private ResultActions patchRating(Long memberId, Object ratingId, String body) throws Exception {
         return mockMvc.perform(patch("/members/{m}/ratings/{r}", memberId, ratingId)
+                .header("Authorization", bearer(memberId))
                 .contentType(MediaType.APPLICATION_JSON).content(body));
+    }
+
+    private String bearer(Long memberId) {
+        return "Bearer " + jwtUtil.createAccessToken(memberId, "member@umc.com");
     }
 
     private ResultActions signUp(String email, String password, String nickname) throws Exception {
@@ -219,6 +228,7 @@ class WriteApiTest {
     }
 
     private ResultActions mockMvcDelete(Long memberId, Object ratingId) throws Exception {
-        return mockMvc.perform(delete("/members/{m}/ratings/{r}", memberId, ratingId));
+        return mockMvc.perform(delete("/members/{m}/ratings/{r}", memberId, ratingId)
+                .header("Authorization", bearer(memberId)));
     }
 }
