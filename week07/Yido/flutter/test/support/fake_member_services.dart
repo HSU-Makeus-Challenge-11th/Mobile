@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:movielog/data/models/rating_dto.dart';
+import 'package:movielog/data/models/rating_request.dart';
 import 'package:movielog/data/models/common_response.dart';
 import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/data/models/sign_up_models.dart';
@@ -123,5 +124,67 @@ class FakeRatingApiService extends RatingApiService {
       );
     }
     return ratings;
+  }
+
+  /// 값을 넣으면 쓰기 요청이 그 상태 코드와 code로 실패한다
+  ({int status, String code, String message})? writeError;
+  Completer<void>? writeGate;
+  final created = <({int memberId, CreateRatingRequest request})>[];
+  final updated =
+      <({int memberId, int ratingId, int score, String? comment})>[];
+  final deleted = <({int memberId, int ratingId})>[];
+
+  Future<void> _write(String path) async {
+    await writeGate?.future;
+    final error = writeError;
+    if (error == null) return;
+    final options = RequestOptions(path: path);
+    throw DioException(
+      requestOptions: options,
+      response: Response(
+        requestOptions: options,
+        statusCode: error.status,
+        data: {
+          'isSuccess': false,
+          'code': error.code,
+          'message': error.message,
+          'result': null,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<void> createRating({
+    required int memberId,
+    required CreateRatingRequest request,
+  }) async {
+    created.add((memberId: memberId, request: request));
+    await _write('/v6/members/$memberId/ratings');
+  }
+
+  @override
+  Future<void> updateRating({
+    required int memberId,
+    required int ratingId,
+    required int score,
+    String? comment,
+  }) async {
+    updated.add((
+      memberId: memberId,
+      ratingId: ratingId,
+      score: score,
+      comment: comment,
+    ));
+    await _write('/v6/members/$memberId/ratings/$ratingId');
+  }
+
+  @override
+  Future<void> deleteRating({
+    required int memberId,
+    required int ratingId,
+  }) async {
+    deleted.add((memberId: memberId, ratingId: ratingId));
+    await _write('/v6/members/$memberId/ratings/$ratingId');
   }
 }
