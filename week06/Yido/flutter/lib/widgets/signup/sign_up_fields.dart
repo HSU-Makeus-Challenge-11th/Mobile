@@ -154,14 +154,10 @@ class _SignUpFieldsState extends State<SignUpFields> {
     bool obscureText = false,
     _FieldCheck? check,
   }) {
-    final formatValid =
-        controller.text.isNotEmpty && validator(controller.text) == null;
     final error = _touched.contains(name) ? validator(controller.text) : null;
     final invalid = error != null || check?.errorText != null;
-    // 중복 확인이 있는 입력란은 서버가 사용 가능하다고 답해야 체크 표시를 보여 준다
-    final valid = check == null
-        ? formatValid
-        : check.status == CheckStatus.available;
+    // 체크 표시는 서버가 사용 가능하다고 답한 입력란에만 보여 준다
+    final valid = check?.status == CheckStatus.available;
     OutlineInputBorder border(Color color, [double width = 1]) =>
         OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

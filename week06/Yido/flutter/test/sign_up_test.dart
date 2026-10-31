@@ -230,6 +230,22 @@ void main() {
     expect(find.text('닉네임은 2자 이상이어야 합니다.'), findsOneWidget);
   });
 
+  testWidgets('check mark shows only after the server says available', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpScreen(tester);
+    await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
+    await tester.enterText(find.byKey(const Key('nicknameField')), '무비러버');
+    await tester.pump();
+    expect(find.bySemanticsLabel('입력 완료'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('nicknameCheckButton')));
+    await tester.pump();
+    expect(find.bySemanticsLabel('입력 완료'), findsOneWidget);
+    semantics.dispose();
+  });
+
   group('duplicate check on the form', () {
     Future<void> enterNickname(WidgetTester tester, String value) async {
       await tester.enterText(find.byKey(const Key('nicknameField')), value);
