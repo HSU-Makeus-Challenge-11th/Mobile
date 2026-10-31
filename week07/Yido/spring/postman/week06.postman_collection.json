@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "UMC Week06 Spring",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "ratingId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 회원가입 성공 201",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"umc@example.com\",\n  \"password\": \"Umc!1234\",\n  \"nickname\": \"moviefan\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 이메일 중복 409",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"umc@example.com\",\n  \"password\": \"Umc!1234\",\n  \"nickname\": \"새닉네임\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03 닉네임 중복 409",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"new@example.com\",\n  \"password\": \"Umc!1234\",\n  \"nickname\": \"moviefan\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04 이메일 형식 오류 400",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"not-email\",\n  \"password\": \"Umc!1234\",\n  \"nickname\": \"무비팬\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "05 비밀번호 규칙 오류 400",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"new@example.com\",\n  \"password\": \"password\",\n  \"nickname\": \"무비팬\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 평점 등록 201",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members/1/ratings",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 680,\n  \"score\": 5,\n  \"comment\": \"다시 봐도 좋아요\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('ratingId', pm.response.json().result);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 중복 평점 409",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members/1/ratings",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 680,\n  \"score\": 4\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 별점 범위 오류 400",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members/1/ratings",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 13,\n  \"score\": 6\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "09 평점 수정 200",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/members/1/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 3,\n  \"comment\": \"다시 보니 보통이에요\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 수정 결과 조회 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/1/ratings"
+      }
+    },
+    {
+      "name": "11 다른 회원 수정 403",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/members/2/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 없는 평점 수정 404",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/members/1/ratings/999999",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13 평점 삭제 204",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/members/1/ratings/{{ratingId}}"
+      }
+    },
+    {
+      "name": "14 삭제 결과 조회 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/1/ratings"
+      }
+    }
+  ]
+}
