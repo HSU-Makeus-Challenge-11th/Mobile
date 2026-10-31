@@ -1,6 +1,7 @@
 package com.umc.movie.controller;
 
 import com.umc.movie.dto.ApiResponse;
+import com.umc.movie.exception.ApiException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,6 +13,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // 직접 던진 예외는 들고 온 상태 코드와 코드 문자열을 그대로 쓴다
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException exception) {
+        return ResponseEntity.status(exception.getStatus())
+                .body(ApiResponse.failure(exception.getCode(), exception.getMessage()));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
