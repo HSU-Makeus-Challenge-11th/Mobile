@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:provider/provider.dart';
 
 import 'support/fake_member_services.dart';
 
 void main() {
-  late FakeMemberCheckService service;
+  late FakeSignUpService service;
 
-  setUp(() => service = FakeMemberCheckService(duplicated: {'영화광'}));
+  setUp(() => service = FakeSignUpService(duplicated: {'영화광'}));
 
   Future<void> pumpScreen(
     WidgetTester tester, {
@@ -26,8 +27,11 @@ void main() {
           child: child!,
         ),
         home: ChangeNotifierProvider(
-          create: (_) => SignUpViewModel(service),
-          child: const SignUpScreen(),
+          create: (_) => LearningMemberSession(),
+          child: ChangeNotifierProvider(
+            create: (_) => SignUpViewModel(service),
+            child: const SignUpScreen(),
+          ),
         ),
       ),
     );
@@ -39,7 +43,10 @@ void main() {
       find.byKey(const Key('emailField')),
       'movie@example.com',
     );
-    await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
+    await tester.enterText(
+      find.byKey(const Key('passwordField')),
+      'Movie!1234',
+    );
     await tester.pump();
     await tester.tap(find.byKey(const Key('nicknameCheckButton')));
     await tester.pump();
@@ -235,7 +242,10 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await pumpScreen(tester);
-    await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
+    await tester.enterText(
+      find.byKey(const Key('passwordField')),
+      'Movie!1234',
+    );
     await tester.enterText(find.byKey(const Key('nicknameField')), '무비러버');
     await tester.pump();
     expect(find.bySemanticsLabel('입력 완료'), findsNothing);
@@ -244,6 +254,78 @@ void main() {
     await tester.pump();
     expect(find.bySemanticsLabel('입력 완료'), findsOneWidget);
     semantics.dispose();
+  });
+
+  group('submit', () {
+    Future<void> fillAndAgree(WidgetTester tester) async {
+      await enterValidDetails(tester);
+      await tester.tap(find.byKey(const Key('termsCheckbox')));
+      await tester.pump();
+    }
+
+    testWidgets('password 400 goes to the field and editing clears it', (
+      tester,
+    ) async {
+      service.signUpError = (
+        status: 400,
+        code: 'COMMON400',
+        message: '비밀번호는 대문자/소문자/숫자/특수문자를 포함한 8자 이상이어야 합니다.',
+      );
+      await pumpScreen(tester);
+      await fillAndAgree(tester);
+      await tester.tap(find.byKey(const Key('signUpButton')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('비밀번호는 대문자/소문자/숫자/특수문자를 포함한 8자 이상이어야 합니다.'),
+        findsOneWidget,
+      );
+      expect(find.byType(SnackBar), findsNothing);
+
+      await tester.enterText(
+        find.byKey(const Key('passwordField')),
+        'Movie!12345',
+      );
+      await tester.pump();
+      expect(
+        find.text('비밀번호는 대문자/소문자/숫자/특수문자를 포함한 8자 이상이어야 합니다.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('409 goes to a snackbar and keeps the input', (tester) async {
+      service.signUpError = (
+        status: 409,
+        code: 'COMMON409',
+        message: '이미 사용 중인 이메일입니다.',
+      );
+      await pumpScreen(tester);
+      await fillAndAgree(tester);
+      await tester.tap(find.byKey(const Key('signUpButton')));
+      await tester.pump();
+      await tester.pump();
+      expect(find.widgetWithText(SnackBar, '이미 사용 중인 이메일입니다.'), findsOneWidget);
+      expect(find.text('movie@example.com'), findsOneWidget);
+    });
+
+    testWidgets('submitting shows a spinner and blocks a second tap', (
+      tester,
+    ) async {
+      final gate = service.signUpGate = Completer<void>();
+      await pumpScreen(tester);
+      await fillAndAgree(tester);
+      await tester.tap(find.byKey(const Key('signUpButton')));
+      await tester.pump();
+      expect(signUpButton(tester).onPressed, isNull);
+      expect(
+        tester.widget<PopScope>(find.byType(PopScope).first).canPop,
+        isFalse,
+      );
+      service.signUpError = (status: 409, code: 'COMMON409', message: '중복');
+      gate.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(service.signUpRequests, hasLength(1));
+    });
   });
 
   group('duplicate check on the form', () {

@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/core/network/movie_log_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/router/app_router.dart';
 import 'package:movielog/theme/app_theme.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:provider/provider.dart';
 
 class MovieLogApp extends StatelessWidget {
   const MovieLogApp({
     super.key,
     this.movieService,
-    this.memberCheckService,
+    this.signUpService,
     this.ratingApiService,
   });
 
   /// 테스트에서 가짜 Service를 넣을 때만 사용한다
   final TmdbMovieService? movieService;
-  final MemberCheckService? memberCheckService;
+  final SignUpService? signUpService;
   final RatingApiService? ratingApiService;
 
   @override
@@ -32,9 +33,11 @@ class MovieLogApp extends StatelessWidget {
         Provider<TmdbMovieService>(
           create: (_) => movieService ?? TmdbMovieService(createTmdbClient()),
         ),
-        Provider<MemberCheckService>(
-          create: (_) =>
-              memberCheckService ?? MemberCheckService(movieLogClient),
+        ChangeNotifierProvider<LearningMemberSession>(
+          create: (_) => LearningMemberSession(),
+        ),
+        Provider<SignUpService>(
+          create: (_) => signUpService ?? SignUpService(movieLogClient),
         ),
         Provider<RatingApiService>(
           create: (_) => ratingApiService ?? RatingApiService(movieLogClient),

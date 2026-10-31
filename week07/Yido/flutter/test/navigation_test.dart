@@ -12,7 +12,7 @@ import 'support/fake_member_services.dart';
 import 'support/fake_tmdb_movie_service.dart';
 
 Widget app() => MovieLogApp(
-  memberCheckService: FakeMemberCheckService(),
+  signUpService: FakeSignUpService(),
   ratingApiService: FakeRatingApiService(ratings: [fakeRating(1)]),
   movieService: FakeTmdbMovieService(
     popular: [for (var i = 1; i <= 5; i++) fakeMovie(i, title: '인기 $i')],
@@ -47,7 +47,10 @@ void main() {
       find.byKey(const Key('emailField')),
       'movie@example.com',
     );
-    await tester.enterText(find.byKey(const Key('passwordField')), 'movie1234');
+    await tester.enterText(
+      find.byKey(const Key('passwordField')),
+      'Movie!1234',
+    );
     await tester.pump();
     await tester.tap(find.byKey(const Key('nicknameCheckButton')));
     await tester.pump();
@@ -59,10 +62,12 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('signUpButton')));
     await tester.tap(find.byKey(const Key('signUpButton')));
     await tester.pumpAndSettle();
-    expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
-    await tester.tap(tab('영화'));
-    await tester.pumpAndSettle();
+    // 가입에 성공하면 memberId를 세션에 저장하고 영화 목록으로 이동한다
     expect(find.text('전체'), findsOneWidget);
+    expect(find.text('회원가입을 완료했습니다. (memberId: 77)'), findsOneWidget);
+    await tester.tap(tab('홈'));
+    await tester.pumpAndSettle();
+    expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
   });
 
   testWidgets('my page opens ratings without the tab bar and comes back', (

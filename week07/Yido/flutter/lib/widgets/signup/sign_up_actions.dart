@@ -7,6 +7,7 @@ class SignUpActions extends StatelessWidget {
     super.key,
     required this.agreed,
     required this.canSubmit,
+    required this.isSubmitting,
     required this.onAgreementChanged,
     required this.onSubmit,
     required this.onLogin,
@@ -14,6 +15,7 @@ class SignUpActions extends StatelessWidget {
 
   final bool agreed;
   final bool canSubmit;
+  final bool isSubmitting;
   final ValueChanged<bool?> onAgreementChanged;
   final VoidCallback onSubmit;
   final VoidCallback onLogin;
@@ -99,6 +101,7 @@ class SignUpActions extends StatelessWidget {
           key: const Key('signUpButton'),
           label: '가입하기',
           width: double.infinity,
+          isLoading: isSubmitting,
           disabledColor: const Color(0xFFD3C6E2),
           labelStyle: const TextStyle(
             fontFamily: 'Manrope',

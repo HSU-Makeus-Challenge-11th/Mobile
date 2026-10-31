@@ -2,10 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/sign_up_validators.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/back_arrow_icon.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
+import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
 import 'package:movielog/widgets/signup/sign_up_fields.dart';
 import 'package:movielog/widgets/signup/sign_up_header.dart';
@@ -52,6 +55,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _canSubmit(SignUpViewModel viewModel) =>
       _agreed &&
+      viewModel.submitStatus != SubmitStatus.submitting &&
       viewModel.nicknameCheckStatus == CheckStatus.available &&
       viewModel.emailCheckStatus == CheckStatus.available &&
       SignUpValidators.nickname(_nicknameController.text) == null &&
@@ -61,21 +65,60 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (mounted) setState(() {});
   }
 
-  void _submit() {
-    if (!_canSubmit(context.read<SignUpViewModel>()) ||
+  Future<void> _submit() async {
+    final viewModel = context.read<SignUpViewModel>();
+    if (!_canSubmit(viewModel) ||
         !(_formKey.currentState?.validate() ?? false)) {
       return;
     }
     FocusScope.of(context).unfocus();
-    context.go('/home');
+    final session = context.read<LearningMemberSession>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    await viewModel.submit(
+      CreateMemberRequest(
+        email: _emailController.text,
+        password: _passwordController.text,
+        nickname: _nicknameController.text,
+      ),
+    );
+    if (!mounted) return;
+
+    final memberId = viewModel.createdMemberId;
+    if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
+      session.setMemberId(memberId);
+      messenger.showSnackBar(
+        SnackBar(content: Text('회원가입을 완료했습니다. (memberId: $memberId)')),
+      );
+      context.go('/movies');
+      return;
+    }
+    final message = viewModel.snackbarMessage;
+    if (message != null) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   void _back() {
+    if (context.read<SignUpViewModel>().submitStatus ==
+        SubmitStatus.submitting) {
+      return;
+    }
     context.go('/start');
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<SignUpViewModel>();
+    final isSubmitting = viewModel.submitStatus == SubmitStatus.submitting;
+    // 제출 중에는 뒤로가기와 스와이프로 화면을 벗어나지 못한다
+    return PopScope(
+      canPop: !isSubmitting,
+      child: _scaffold(viewModel, isSubmitting),
+    );
+  }
+
+  Widget _scaffold(SignUpViewModel viewModel, bool isSubmitting) => Scaffold(
     backgroundColor: AppColors.surfaceBright,
     appBar: _SignUpAppBar(onBack: _back),
     body: SafeArea(
@@ -114,7 +157,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SignUpActions(
                     agreed: _agreed,
-                    canSubmit: _canSubmit(context.watch<SignUpViewModel>()),
+                    canSubmit: _canSubmit(viewModel),
+                    isSubmitting: isSubmitting,
                     onAgreementChanged: (value) =>
                         setState(() => _agreed = value ?? false),
                     onSubmit: _submit,

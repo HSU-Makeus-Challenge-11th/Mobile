@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:movielog/data/models/rating_dto.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/models/common_response.dart';
+import 'package:movielog/data/models/create_member_request.dart';
+import 'package:movielog/data/models/sign_up_models.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 
 /// duplicated에 있는 값만 중복으로 답하고, 요청 기록을 남긴다
-class FakeMemberCheckService extends MemberCheckService {
-  FakeMemberCheckService({this.duplicated = const {}, this.fail = false})
+class FakeSignUpService extends SignUpService {
+  FakeSignUpService({this.duplicated = const {}, this.fail = false})
     : super(Dio());
 
   final Set<String> duplicated;
@@ -24,6 +27,49 @@ class FakeMemberCheckService extends MemberCheckService {
       throw DioException(requestOptions: RequestOptions(path: '/v5/members'));
     }
     return !duplicated.contains(value);
+  }
+
+  /// 값을 넣으면 회원가입이 그 상태 코드와 메시지로 실패한다
+  ({int status, String code, String message})? signUpError;
+  bool signUpWithoutId = false;
+  Completer<void>? signUpGate;
+  final signUpRequests = <CreateMemberRequest>[];
+
+  @override
+  Future<CommonResponse<SignUpResult>> signUp(
+    CreateMemberRequest request,
+  ) async {
+    signUpRequests.add(request);
+    await signUpGate?.future;
+    final error = signUpError;
+    if (error != null) {
+      final options = RequestOptions(path: '/v6/members');
+      throw DioException(
+        requestOptions: options,
+        response: Response(
+          requestOptions: options,
+          statusCode: error.status,
+          data: {
+            'isSuccess': false,
+            'code': error.code,
+            'message': error.message,
+            'result': null,
+          },
+        ),
+      );
+    }
+    return CommonResponse(
+      isSuccess: true,
+      code: 'COMMON201',
+      message: '회원가입에 성공했습니다.',
+      result: signUpWithoutId
+          ? null
+          : SignUpResult(
+              memberId: 77,
+              email: request.email,
+              nickname: request.nickname,
+            ),
+    );
   }
 
   @override

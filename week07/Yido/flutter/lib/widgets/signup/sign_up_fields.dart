@@ -119,6 +119,8 @@ class _SignUpFieldsState extends State<SignUpFields> {
           TextInputAction.done,
           (_) => widget.passwordFocusNode.unfocus(),
           obscureText: true,
+          serverError: viewModel.passwordErrorText,
+          onValueChanged: (_) => viewModel.onPasswordChanged(),
         ),
       ],
     );
@@ -153,9 +155,12 @@ class _SignUpFieldsState extends State<SignUpFields> {
     TextInputType? keyboardType,
     bool obscureText = false,
     _FieldCheck? check,
+    String? serverError,
+    ValueChanged<String>? onValueChanged,
   }) {
+    final serverErrorText = check?.errorText ?? serverError;
     final error = _touched.contains(name) ? validator(controller.text) : null;
-    final invalid = error != null || check?.errorText != null;
+    final invalid = error != null || serverErrorText != null;
     // 체크 표시는 서버가 사용 가능하다고 답한 입력란에만 보여 준다
     final valid = check?.status == CheckStatus.available;
     OutlineInputBorder border(Color color, [double width = 1]) =>
@@ -177,6 +182,7 @@ class _SignUpFieldsState extends State<SignUpFields> {
       onChanged: (value) {
         setState(() => _touched.add(name));
         check?.onChanged(value);
+        onValueChanged?.call(value);
         widget.onChanged();
       },
       style: const TextStyle(
@@ -196,8 +202,8 @@ class _SignUpFieldsState extends State<SignUpFields> {
           fontWeight: FontWeight.w400,
           color: AppColors.inputText,
         ),
-        // 서버 중복 확인 결과. 형식 오류가 있으면 validator 문구가 먼저 보인다
-        errorText: check?.errorText,
+        // 서버 검증 결과. 형식 오류가 있으면 validator 문구가 먼저 보인다
+        errorText: serverErrorText,
         errorMaxLines: 2,
         errorStyle: const TextStyle(
           fontFamily: 'Manrope',

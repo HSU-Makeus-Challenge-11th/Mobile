@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
+import 'package:movielog/view_models/submit_status.dart';
 
 import 'support/fake_member_services.dart';
 
 void main() {
-  late FakeMemberCheckService service;
+  late FakeSignUpService service;
   late SignUpViewModel viewModel;
 
   setUp(() {
-    service = FakeMemberCheckService(duplicated: {'영화광', 'movie@umc.com'});
+    service = FakeSignUpService(duplicated: {'영화광', 'movie@umc.com'});
     viewModel = SignUpViewModel(service);
   });
 
@@ -100,5 +102,72 @@ void main() {
     viewModel.dispose();
     gate.complete();
     await expectLater(request, completes);
+  });
+
+  group('submit', () {
+    const request = CreateMemberRequest(
+      email: ' new@umc.com ',
+      password: ' Movie!1234 ',
+      nickname: ' 무비러버 ',
+    );
+
+    test('toJson trims email and nickname but not the password', () {
+      expect(request.toJson(), {
+        'email': 'new@umc.com',
+        'password': ' Movie!1234 ',
+        'nickname': '무비러버',
+      });
+    });
+
+    test('success stores the memberId', () async {
+      await viewModel.submit(request);
+      expect(viewModel.submitStatus, SubmitStatus.success);
+      expect(viewModel.createdMemberId, 77);
+    });
+
+    test('a success without memberId is not treated as done', () async {
+      service.signUpWithoutId = true;
+      await viewModel.submit(request);
+      expect(viewModel.submitStatus, SubmitStatus.error);
+      expect(viewModel.createdMemberId, isNull);
+      expect(viewModel.snackbarMessage, contains('가입 결과'));
+    });
+
+    test('a password 400 goes to the field, others to the snackbar', () async {
+      service.signUpError = (
+        status: 400,
+        code: 'COMMON400',
+        message: '비밀번호 규칙',
+      );
+      await viewModel.submit(request);
+      expect(viewModel.passwordErrorText, '비밀번호 규칙');
+      expect(viewModel.snackbarMessage, isNull);
+
+      service.signUpError = (status: 400, code: 'COMMON400', message: '이메일 형식');
+      await viewModel.submit(request);
+      expect(viewModel.passwordErrorText, isNull);
+      expect(viewModel.snackbarMessage, '이메일 형식');
+
+      service.signUpError = (status: 409, code: 'COMMON409', message: '중복');
+      await viewModel.submit(request);
+      expect(viewModel.snackbarMessage, '중복');
+    });
+
+    test('editing a field clears the previous submit error', () async {
+      service.signUpError = (status: 409, code: 'COMMON409', message: '중복');
+      await viewModel.submit(request);
+      viewModel.onEmailChanged('other@umc.com');
+      expect(viewModel.snackbarMessage, isNull);
+      expect(viewModel.submitStatus, SubmitStatus.idle);
+    });
+
+    test('a second submit while running is ignored', () async {
+      final gate = service.signUpGate = Completer<void>();
+      final first = viewModel.submit(request);
+      await viewModel.submit(request);
+      gate.complete();
+      await first;
+      expect(service.signUpRequests, hasLength(1));
+    });
   });
 }
