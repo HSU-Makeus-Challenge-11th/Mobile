@@ -44,11 +44,13 @@ class MyRatingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surfaceBright,
       appBar: AppBar(
         toolbarHeight: 64,
         centerTitle: true,
+        backgroundColor: AppColors.surfaceBright,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.ink),
           onPressed: () => context.pop(),
         ),
         title: GestureDetector(
@@ -56,6 +58,9 @@ class MyRatingsScreen extends StatelessWidget {
           child: Text(
             '내가 등록한 평점',
             style: AppTextStyles.titleLarge.copyWith(
+              fontSize: 20,
+              height: 27 / 20,
+              fontWeight: FontWeight.w700,
               color: AppColors.primary500,
             ),
           ),
@@ -88,7 +93,7 @@ class _RatingList extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = viewModel.message;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(19, 31, 19, 24),
+      padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
       children: [
         if (message != null)
           Padding(
@@ -96,7 +101,7 @@ class _RatingList extends StatelessWidget {
             child: Text(message, style: AppTextStyles.labelMedium),
           ),
         for (final (index, entry) in viewModel.ratings.indexed) ...[
-          if (index > 0) const SizedBox(height: 16),
+          if (index > 0) const SizedBox(height: 18),
           MyRatingCard(entry: entry),
         ],
       ],
