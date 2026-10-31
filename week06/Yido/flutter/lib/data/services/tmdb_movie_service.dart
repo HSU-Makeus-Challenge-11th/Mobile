@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:movielog/data/models/tmdb_genre_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/models/tmdb_movie_page.dart';
 
 /// HTTP 요청과 DTO 변환만 담당한다. 개수 제한·장르 선택 같은 화면 정책은 ViewModel이 맡는다
@@ -43,5 +44,23 @@ class TmdbMovieService {
     return genres
         .map((item) => TmdbGenreDto.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<TmdbMovieDto> fetchMovieDetail(int movieId) async {
+    final response = await _dio.get(
+      '/movie/$movieId',
+      queryParameters: {'language': 'ko-KR'},
+    );
+    return TmdbMovieDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// TMDB에 없는 영화(404)만 null로 바꾸고, 다른 오류는 호출한 쪽에서 처리한다
+  Future<TmdbMovieDto?> findMovieById(int movieId) async {
+    try {
+      return await fetchMovieDetail(movieId);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
 }
