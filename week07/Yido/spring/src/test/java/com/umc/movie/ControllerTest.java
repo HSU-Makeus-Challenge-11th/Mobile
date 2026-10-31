@@ -7,6 +7,7 @@ import com.umc.movie.dto.EmailCheckResponse;
 import com.umc.movie.dto.NicknameCheckResponse;
 import com.umc.movie.dto.RatingResponse;
 import com.umc.movie.dto.SignUpRequest;
+import com.umc.movie.exception.ApiException;
 import com.umc.movie.service.MemberService;
 import com.umc.movie.service.RatingService;
 import com.umc.movie.util.JwtUtil;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,7 +65,7 @@ class ControllerTest {
         when(ratingService.getRatingsByMember(1L)).thenReturn(List.of(
                 new RatingResponse(2L, 155L, 4, "다시 봐도 명작", now, now)));
         when(ratingService.getRatingsByMember(999L))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+                .thenThrow(new ApiException(HttpStatus.NOT_FOUND, "MEMBER404_1", "해당 회원을 찾을 수 없습니다."));
 
         mockMvc.perform(get("/members/1/ratings"))
                 .andExpect(status().isOk())
@@ -76,8 +76,8 @@ class ControllerTest {
         mockMvc.perform(get("/members/999/ratings"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value("COMMON404"))
-                .andExpect(jsonPath("$.message").value("존재하지 않는 유저입니다."));
+                .andExpect(jsonPath("$.code").value("MEMBER404_1"))
+                .andExpect(jsonPath("$.message").value("해당 회원을 찾을 수 없습니다."));
     }
 
     @Test

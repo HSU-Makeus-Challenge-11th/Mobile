@@ -97,7 +97,7 @@ class AuthInterceptorTest {
         mockMvc.perform(get("/members/nickname/아무개")).andExpect(status().isOk());
         mockMvc.perform(get("/members/email/nobody@umc.com")).andExpect(status().isOk());
         mockMvc.perform(get("/members/999999/ratings")).andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("COMMON404"));
+                .andExpect(jsonPath("$.code").value("MEMBER404_1"));
     }
 
     @Test
