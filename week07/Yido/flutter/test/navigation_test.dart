@@ -6,14 +6,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/app/movie_log_app.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/router/app_router.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/widgets/back_arrow_icon.dart';
+import 'package:provider/provider.dart';
 
 import 'support/fake_member_services.dart';
 import 'support/fake_tmdb_movie_service.dart';
 
-Widget app() => MovieLogApp(
+Widget app({FakeRatingApiService? ratingService}) => MovieLogApp(
   signUpService: FakeSignUpService(),
-  ratingApiService: FakeRatingApiService(ratings: [fakeRating(1)]),
+  ratingApiService:
+      ratingService ?? FakeRatingApiService(ratings: [fakeRating(1)]),
   movieService: FakeTmdbMovieService(
     popular: [for (var i = 1; i <= 5; i++) fakeMovie(i, title: '인기 $i')],
     discoverPages: {
@@ -95,7 +98,12 @@ void main() {
   testWidgets('movie filter, detail favorite and rating confirmation work', (
     tester,
   ) async {
-    await tester.pumpWidget(app());
+    final ratingService = FakeRatingApiService();
+    await tester.pumpWidget(app(ratingService: ratingService));
+    tester
+        .element(find.byType(Navigator).first)
+        .read<LearningMemberSession>()
+        .setMemberId(77);
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
     expect(find.text('별빛 아래 우리'), findsOneWidget);
@@ -115,21 +123,33 @@ void main() {
     await tester.tap(find.text('즐겨찾기'));
     await tester.pump();
     expect(find.text('즐겨찾기에 추가했습니다.'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('openRatingButton')))
+          .onPressed,
+      isNotNull,
+    );
     await tester.tap(find.text('평점 남기기'));
     await tester.pumpAndSettle();
-    expect(find.text('영화는 어떠셨나요?'), findsOneWidget);
+    expect(find.text('평점을 남겨주세요'), findsOneWidget);
+    final confirm = find.descendant(
+      of: find.byKey(const Key('confirmRatingButton')),
+      matching: find.byType(ElevatedButton),
+    );
+    expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
     final stars = find.descendant(
       of: find.byType(RatingBar),
       matching: find.byType(GestureDetector),
     );
-    final bounds = tester.getRect(stars.at(3));
-    await tester.tapAt(bounds.center);
+    await tester.tapAt(tester.getRect(stars.at(3)).center);
     await tester.pump();
-    final confirm = find.byKey(const Key('confirmRatingButton'));
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
+    expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
     await tester.tap(confirm);
     await tester.pumpAndSettle();
-    expect(find.textContaining('점'), findsWidgets);
+    expect(find.textContaining('평점을 등록했습니다.'), findsOneWidget);
+    expect(ratingService.created.single.memberId, 77);
+    expect(ratingService.created.single.request.movieId, 11);
+    expect(ratingService.created.single.request.score, 4);
     await tester.tap(find.text('즐겨찾기'));
     await tester.pump();
     expect(find.byIcon(Icons.bookmark_border), findsWidgets);

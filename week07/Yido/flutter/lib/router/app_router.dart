@@ -5,6 +5,7 @@ import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
+import 'package:movielog/screens/movie_detail_loader.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
 import 'package:movielog/screens/movie_list_screen.dart';
 import 'package:movielog/screens/my_ratings_screen.dart';
@@ -88,7 +89,7 @@ abstract final class AppRouter {
       ),
       GoRoute(
         path: '/movies/:movieId',
-        builder: (_, state) => MovieDetailScreen(
+        builder: (_, state) => MovieDetailLoader(
           movieId: int.tryParse(state.pathParameters['movieId']!) ?? -1,
           args: state.extra as MovieDetailArgs?,
         ),

@@ -11,6 +11,11 @@ class MovieLogButton extends StatelessWidget {
     this.width,
     this.disabledColor = AppColors.gray,
     this.labelStyle = _defaultLabelStyle,
+    this.height = 44,
+    this.backgroundColor = AppColors.primary500,
+    this.foregroundColor = AppColors.white,
+    this.borderRadius = 12,
+    this.horizontalPadding = 25,
   });
 
   static const _defaultLabelStyle = TextStyle(
@@ -27,6 +32,11 @@ class MovieLogButton extends StatelessWidget {
   final double? width;
   final Color disabledColor;
   final TextStyle labelStyle;
+  final double height;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final double borderRadius;
+  final double horizontalPadding;
 
   bool get _disabled => isLoading || onPressed == null;
 
@@ -34,18 +44,18 @@ class MovieLogButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      height: 44,
+      height: height,
       child: ElevatedButton(
         onPressed: _disabled ? null : onPressed,
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: AppColors.primary500,
+          backgroundColor: backgroundColor,
           disabledBackgroundColor: disabledColor,
-          foregroundColor: AppColors.white,
+          foregroundColor: foregroundColor,
           disabledForegroundColor: AppColors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 25),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
         child: isLoading

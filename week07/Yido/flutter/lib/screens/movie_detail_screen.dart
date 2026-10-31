@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/view_models/movie_detail_view_model.dart';
+import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/movies/rating_dialog.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';
+import 'package:provider/provider.dart';
 
 /// 목록·홈에서 상세로 넘기는 값. 장르 이름은 Genre API 결과에서 찾아 둔다
 class MovieDetailArgs {
@@ -12,25 +16,54 @@ class MovieDetailArgs {
 }
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId, this.args});
+  const MovieDetailScreen({super.key, required this.args});
 
-  /// TMDB 영화 id. 이후 평점 저장 시 movieId로 그대로 쓴다
-  final int movieId;
-  final MovieDetailArgs? args;
+  final MovieDetailArgs args;
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool favorite = false;
-  double? rating;
+
+  Future<void> _openRatingDialog() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final saved = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막는다
+      barrierColor: ratingDialogBarrierColor,
+      builder: (_) => RatingDialog(
+        onSubmit: (score, comment) async {
+          final viewModel = context.read<MovieDetailViewModel>();
+          await viewModel.createRating(score: score, comment: comment);
+          if (viewModel.submitStatus != SubmitStatus.success) {
+            final message = viewModel.submitMessage ?? '저장에 실패했습니다.';
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(message)));
+            throw StateError(message);
+          }
+        },
+      ),
+    );
+
+    if (!mounted || saved != true) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.'),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final args = widget.args;
-    if (args == null || args.movie.id != widget.movieId) {
-      return const Scaffold(body: Center(child: Text('영화를 찾을 수 없습니다.')));
-    }
     final movie = args.movie;
+    final hasMember = context.select<MovieDetailViewModel, bool>(
+      (viewModel) => viewModel.memberId != null,
+    );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
@@ -185,77 +218,94 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        height: 81,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFAF9F5),
-          border: Border(top: BorderSide(color: Color(0xFFCBC4D2))),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final favoriteWidth = (constraints.maxWidth - 8) * 176 / 350;
-            final ratingWidth = (constraints.maxWidth - 8) * 174 / 350;
-            return Row(
-              children: [
-                SizedBox(
-                  width: favoriteWidth,
-                  height: 48,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      setState(() => favorite = !favorite);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            favorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 제거했습니다.',
-                          ),
-                        ),
-                      );
-                    },
-                    icon: Icon(
-                      favorite ? Icons.bookmark : Icons.bookmark_border,
-                      size: 18,
-                    ),
-                    label: const Text('즐겨찾기'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: ratingWidth,
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: () => showDialog(
-                      context: context,
-                      barrierColor: const Color(0x7A000000),
-                      builder: (_) => RatingDialog(
-                        movieId: movie.id,
-                        onSaved: (v) {
-                          setState(() => rating = v);
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!hasMember) const _SignUpRequiredBanner(),
+          Container(
+            height: 81,
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAF9F5),
+              border: Border(top: BorderSide(color: Color(0xFFCBC4D2))),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final favoriteWidth = (constraints.maxWidth - 8) * 176 / 350;
+                final ratingWidth = (constraints.maxWidth - 8) * 174 / 350;
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: favoriteWidth,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() => favorite = !favorite);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '${v.toStringAsFixed(1)}점을 저장했습니다.',
+                                favorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 제거했습니다.',
                               ),
                             ),
                           );
                         },
+                        icon: Icon(
+                          favorite ? Icons.bookmark : Icons.bookmark_border,
+                          size: 18,
+                        ),
+                        label: const Text('즐겨찾기'),
                       ),
                     ),
-                    icon: const Icon(Icons.star, size: 20),
-                    label: Text(
-                      rating == null
-                          ? '평점 남기기'
-                          : '${rating!.toStringAsFixed(1)}점',
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: ratingWidth,
+                      height: 48,
+                      child: FilledButton.icon(
+                        key: const Key('openRatingButton'),
+                        onPressed: hasMember ? _openRatingDialog : null,
+                        icon: const Icon(Icons.star, size: 20),
+                        label: const Text('평점 남기기'),
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+/// memberId가 없으면 평점을 등록할 수 없으므로 학습용 회원가입으로 안내한다
+class _SignUpRequiredBanner extends StatelessWidget {
+  const _SignUpRequiredBanner();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    color: const Color(0xFFFAF9F5),
+    padding: const EdgeInsets.fromLTRB(16, 4, 8, 0),
+    child: Row(
+      children: [
+        const Expanded(
+          child: Text(
+            '평점을 남기려면 학습용 회원가입이 필요합니다.',
+            style: TextStyle(
+              fontSize: 13,
+              height: 18 / 13,
+              color: Color(0xFF494551),
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => context.push('/register'),
+          child: const Text('회원가입'),
+        ),
+      ],
+    ),
+  );
 }
 
 class _GenreChip extends StatelessWidget {
