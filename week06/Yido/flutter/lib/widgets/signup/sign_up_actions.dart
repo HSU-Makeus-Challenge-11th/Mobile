@@ -61,10 +61,17 @@ class SignUpActions extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: agreed
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 16,
-                                  color: Colors.white,
+                              ? const Center(
+                                  child: Text(
+                                    '✓',
+                                    style: TextStyle(
+                                      fontFamily: 'Manrope',
+                                      fontSize: 17,
+                                      height: 23 / 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
                                 )
                               : null,
                         ),

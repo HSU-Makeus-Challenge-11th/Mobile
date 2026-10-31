@@ -224,17 +224,22 @@ class _SignUpFieldsState extends State<SignUpFields> {
         errorBorder: border(AppColors.error),
         focusedErrorBorder: border(AppColors.error, 2),
         suffixIconConstraints: const BoxConstraints.tightFor(
-          width: 34,
+          width: 32,
           height: 44,
         ),
-        suffixIcon: valid || invalid
-            ? Padding(
-                padding: const EdgeInsets.only(right: 10),
+        suffixIcon: valid
+            ? const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Center(child: _CheckMark()),
+              )
+            : invalid
+            ? const Padding(
+                padding: EdgeInsets.only(right: 12),
                 child: Icon(
-                  valid ? Icons.check_circle : Icons.error_outline,
-                  size: 24,
-                  color: valid ? AppColors.primary500 : AppColors.error,
-                  semanticLabel: valid ? '입력 완료' : '입력 오류',
+                  Icons.error_outline,
+                  size: 20,
+                  color: AppColors.error,
+                  semanticLabel: '입력 오류',
                 ),
               )
             : null,
@@ -314,4 +319,43 @@ class _FieldCheck {
   final String availableText;
   final ValueChanged<String> onChanged;
   final VoidCallback? onCheck;
+}
+
+/// W6-01의 입력칸 체크 표시: 20 크기 원에 2px 흰 선
+class _CheckMark extends StatelessWidget {
+  const _CheckMark();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: '입력 완료',
+    child: const CustomPaint(size: Size.square(20), painter: _CheckPainter()),
+  );
+}
+
+class _CheckPainter extends CustomPainter {
+  const _CheckPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawCircle(
+      size.center(Offset.zero),
+      size.width / 2,
+      Paint()..color = AppColors.primary500,
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(5, 10)
+        ..lineTo(9, 14)
+        ..lineTo(16, 6),
+      Paint()
+        ..color = AppColors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CheckPainter oldDelegate) => false;
 }
