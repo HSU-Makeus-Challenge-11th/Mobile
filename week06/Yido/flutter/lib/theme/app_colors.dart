@@ -46,5 +46,9 @@ abstract final class AppColors {
   static const textSecondary = Color(0xFF494551);
 
   static const outline = Color(0xFFCBC4D2);
+  static const gray = Color(0xFF79747E);
+  static const error = Color(0xFFB3261E);
+  static const success = Color(0xFF2E7D32);
+  static const info = Color(0xFF1565C0);
   static const white = Color(0xFFFFFFFF);
 }
