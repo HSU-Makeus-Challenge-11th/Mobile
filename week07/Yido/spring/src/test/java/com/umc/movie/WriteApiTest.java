@@ -26,7 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.datasource.url=jdbc:h2:mem:week06;MODE=MySQL",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "jwt.secret=test-secret-key-for-week07-at-least-32-bytes",
+        "jwt.access-expiration=3600"
 })
 class WriteApiTest {
 
