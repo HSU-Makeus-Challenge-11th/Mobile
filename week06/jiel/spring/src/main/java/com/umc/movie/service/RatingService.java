@@ -37,7 +37,7 @@ public class RatingService {
     public Long create(Long memberId, CreateRatingRequest request){
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
 
-        if(ratingRepository.existByMember_MemberIdAndMovieId(memberId, request.movieId())){
+        if(ratingRepository.existsByMember_MemberIdAndMovieId(memberId, request.movieId())){
             throw new IllegalArgumentException("이미 이 영화에 평점을 남기셨습니다.");
         }
 
