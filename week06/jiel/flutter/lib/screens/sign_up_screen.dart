@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
+import '../view_models/sign_up_view_model.dart';
+import '../widgets/movielog_button.dart';
+
+// 로컬 형식 검사(validator). 서버 중복 여부는 모르며, 중복 확인은 ViewModel이 담당한다.
+String? validateNickname(String? value) {
+  final nickname = value?.trim() ?? '';
+  if (nickname.isEmpty) return '닉네임을 입력해주세요.';
+  if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+  return null;
+}
+
+String? validateEmail(String? value) {
+  final email = value?.trim() ?? '';
+  if (email.isEmpty) return '이메일을 입력해주세요';
+  if (!email.contains('@') || !email.contains('.')) return '올바른 이메일 형식이 아닙니다';
+  return null;
+}
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -45,11 +63,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SignUpViewModel>();
+    // 형식 검사 + 서버 중복 확인(닉네임·이메일 모두 사용 가능)까지 끝나야 가입할 수 있다.
     final canSubmit =
-        _nicknameController.text.trim().length >= 2 &&
-        _emailController.text.contains('@') &&
+        validateNickname(_nicknameController.text) == null &&
+        validateEmail(_emailController.text) == null &&
         _passwordController.text.length >= 8 &&
-        _agreedToTerms;
+        _agreedToTerms &&
+        viewModel.isAllChecked;
 
     // 회원가입 화면에서는 시스템 뒤로 가기를 막는다.
     return PopScope(
@@ -67,6 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _SignUpFormSection(
+                    viewModel: viewModel,
                     nicknameController: _nicknameController,
                     emailController: _emailController,
                     emailFocusNode: _emailFocusNode,
@@ -139,6 +161,7 @@ class _SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
 /// "Main - Form Section"에 해당하는 묶음이다.
 class _SignUpFormSection extends StatelessWidget {
   const _SignUpFormSection({
+    required this.viewModel,
     required this.nicknameController,
     required this.emailController,
     required this.emailFocusNode,
@@ -148,6 +171,7 @@ class _SignUpFormSection extends StatelessWidget {
     required this.onPasswordSubmitted,
   });
 
+  final SignUpViewModel viewModel;
   final TextEditingController nicknameController;
   final TextEditingController emailController;
   final FocusNode emailFocusNode;
@@ -179,16 +203,21 @@ class _SignUpFormSection extends StatelessWidget {
           hintText: '닉네임을 입력해주세요',
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => emailFocusNode.requestFocus(),
-          validator: (value) {
-            final nickname = value?.trim() ?? '';
-            if (nickname.isEmpty) {
-              return '닉네임을 입력해주세요.';
-            }
-            if (nickname.length < 2) {
-              return '닉네임은 2자 이상이어야 합니다.';
-            }
-            return null;
-          },
+          validator: validateNickname,
+          onChanged: viewModel.onNicknameChanged,
+          serverErrorText: viewModel.nicknameErrorText,
+          checkStatus: viewModel.nicknameCheckStatus,
+          availableText: '사용할 수 있는 닉네임입니다.',
+          // 입력창 옆 보조 버튼: width를 주지 않아(null) 내용 기반 크기를 쓴다.
+          trailing: MovieLogButton(
+            label: '중복 확인',
+            height: 48,
+            isLoading: viewModel.nicknameCheckStatus == CheckStatus.checking,
+            onPressed: viewModel.canCheckNickname &&
+                    validateNickname(nicknameController.text) == null
+                ? () => viewModel.checkNickname(nicknameController.text)
+                : null,
+          ),
         ),
         const SizedBox(height: 16),
         _LabeledTextField(
@@ -199,15 +228,21 @@ class _SignUpFormSection extends StatelessWidget {
           hintText: '이메일 주소를 입력해주세요',
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => passwordFocusNode.requestFocus(),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return '이메일을 입력해주세요';
-            }
-            if (!value.contains('@') || !value.contains('.')) {
-              return '올바른 이메일 형식이 아닙니다';
-            }
-            return null;
-          },
+          keyboardType: TextInputType.emailAddress,
+          validator: validateEmail,
+          onChanged: viewModel.onEmailChanged,
+          serverErrorText: viewModel.emailErrorText,
+          checkStatus: viewModel.emailCheckStatus,
+          availableText: '사용할 수 있는 이메일입니다.',
+          trailing: MovieLogButton(
+            label: '중복 확인',
+            height: 48,
+            isLoading: viewModel.emailCheckStatus == CheckStatus.checking,
+            onPressed: viewModel.canCheckEmail &&
+                    validateEmail(emailController.text) == null
+                ? () => viewModel.checkEmail(emailController.text)
+                : null,
+          ),
         ),
         const SizedBox(height: 16),
         _LabeledTextField(
@@ -273,22 +308,12 @@ class _SignUpFooter extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        ElevatedButton(
+        // Form 하단 버튼: 전체 너비. 실제 회원가입 POST는 v6부터라 모양만 완성한다.
+        MovieLogButton(
+          label: '가입하기',
+          width: double.infinity,
+          height: 56,
           onPressed: canSubmit ? onSubmit : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary500,
-            disabledBackgroundColor: AppColors.secondary300,
-            foregroundColor: Colors.white,
-            disabledForegroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(56),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text(
-            '가입하기',
-            style: textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -330,6 +355,12 @@ class _LabeledTextField extends StatelessWidget {
     this.textInputAction,
     this.onFieldSubmitted,
     this.autovalidate = false,
+    this.keyboardType,
+    this.onChanged,
+    this.serverErrorText,
+    this.checkStatus,
+    this.availableText,
+    this.trailing,
   });
 
   final String label;
@@ -345,6 +376,21 @@ class _LabeledTextField extends StatelessWidget {
   // validator 자체는 항상 등록돼 있어서, 제출 버튼을 눌렀을 때의
   // Form.validate() 호출은 정상적으로 동작한다.
   final bool autovalidate;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+
+  /// ViewModel이 내려준 서버 중복 확인 에러 문구. 로컬 validator가 통과해도
+  /// 이 값이 있으면 입력창은 에러 상태로 보인다.
+  final String? serverErrorText;
+
+  /// 서버 중복 확인이 필요한 필드면 그 상태. null이면 로컬 검사만 하는 필드.
+  final CheckStatus? checkStatus;
+
+  /// 서버가 사용 가능하다고 응답했을 때 입력창 아래에 보여줄 안내 문구.
+  final String? availableText;
+
+  /// 입력창 오른쪽(바깥)에 나란히 둘 위젯. 예: 중복 확인 버튼
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -356,8 +402,13 @@ class _LabeledTextField extends StatelessWidget {
     // - autovalidate: 제출을 한 번 시도한 뒤라 아직 안 건드린(빈칸) 필드까지 포함해서 보여준다.
     // - controller.text.isNotEmpty: 제출 전이라도, 뭔가 입력하자마자 바로 피드백을 준다.
     final isTouched = autovalidate || controller.text.isNotEmpty;
-    final hasError = isTouched && validator(controller.text) != null;
-    final isValid = isTouched && !hasError;
+    final hasLocalError = isTouched && validator(controller.text) != null;
+    final hasError = hasLocalError || serverErrorText != null;
+    final isAvailable = checkStatus == CheckStatus.available;
+    // 중복 확인이 필요한 필드는 서버가 "사용 가능"이라고 답했을 때만 체크 표시를 한다.
+    final isValid = isTouched &&
+        !hasError &&
+        (checkStatus == null || isAvailable);
     // 디자인이 지정한 에러 배경색(#FFDAD6)은 Material 3 표준 errorContainer
     // 값과 같은데, 현재 앱 테마의 errorContainer(#F9DEDC)는 이와 다르다.
     // 이 화면 스펙에 정확히 맞추기 위해 값을 직접 사용했다.
@@ -372,12 +423,14 @@ class _LabeledTextField extends StatelessWidget {
           style: textTheme.titleMedium?.copyWith(color: AppColors.onSurface),
         ),
         const SizedBox(height: 4),
-        TextFormField(
+        _withTrailing(TextFormField(
           controller: controller,
           focusNode: focusNode,
           obscureText: obscureText,
+          keyboardType: keyboardType,
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
+          onChanged: onChanged,
           validator: validator,
           // onUserInteraction은 "값이 바뀐 뒤"에만 검증하므로, 아직 아무것도
           // 안 건드린 빈칸 필드가 처음부터 빨갛게 뜨는 일은 없다.
@@ -387,6 +440,15 @@ class _LabeledTextField extends StatelessWidget {
             filled: true,
             fillColor: hasError ? errorBackground : AppColors.surfaceLow,
             hintText: hintText,
+            // 로컬 validator 에러가 없을 때 이 값이 표시된다(서버 중복/통신 실패 문구).
+            errorText: serverErrorText,
+            errorMaxLines: 2,
+            helperText: isAvailable ? availableText : null,
+            helperStyle: textTheme.labelMedium?.copyWith(
+              fontSize: 12,
+              height: 16 / 12,
+              color: AppColors.primary500,
+            ),
             hintStyle: textTheme.titleMedium?.copyWith(
               height: 22 / 16,
               color: AppColors.neutral800,
@@ -429,7 +491,22 @@ class _LabeledTextField extends StatelessWidget {
               borderSide: BorderSide(color: errorColor),
             ),
           ),
-        ),
+        )),
+      ],
+    );
+  }
+
+  /// trailing이 있으면 입력창과 trailing을 Row의 별도 형제로 두고 8px 간격을 준다.
+  /// 체크 아이콘은 입력창 내부(suffixIcon)에만 있으므로 버튼과 겹치지 않는다.
+  Widget _withTrailing(Widget field) {
+    final trailingWidget = trailing;
+    if (trailingWidget == null) return field;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 8),
+        trailingWidget,
       ],
     );
   }
