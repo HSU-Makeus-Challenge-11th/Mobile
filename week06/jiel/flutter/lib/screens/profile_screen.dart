@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/stat_item.dart';
@@ -32,6 +34,8 @@ class ProfileBody extends StatelessWidget {
           ProfileStats(),
           SizedBox(height: 32),
           FavoriteGenres(),
+          SizedBox(height: 32),
+          ProfileMenu(),
         ],
       ),
     );
@@ -171,6 +175,70 @@ class GenreChip extends StatelessWidget {
           color: AppColors.primary600,
         ),
       ),
+    );
+  }
+}
+
+/// 마이페이지 하단 메뉴. 「내가 등록한 평점」 행을 탭하면 자식 화면(/my/ratings)을 push한다.
+class ProfileMenu extends StatelessWidget {
+  const ProfileMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLow,
+        border: Border.all(color: AppColors.primary200),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          _ProfileMenuTile(
+            icon: Icons.star_outline_rounded,
+            title: '내가 등록한 평점',
+            onTap: () => context.push('/my/ratings'),
+          ),
+          // MovieLogButton width 비교 화면은 디버그 빌드에서만 노출한다.
+          if (kDebugMode) ...[
+            const Divider(height: 1, color: AppColors.primary200),
+            _ProfileMenuTile(
+              icon: Icons.smart_button_outlined,
+              title: '버튼 너비 비교 (개발용)',
+              onTap: () => context.push('/dev/buttons'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileMenuTile extends StatelessWidget {
+  const _ProfileMenuTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary500),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: AppColors.onSurface),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: AppColors.onSurfaceVariant,
+      ),
+      onTap: onTap,
     );
   }
 }
