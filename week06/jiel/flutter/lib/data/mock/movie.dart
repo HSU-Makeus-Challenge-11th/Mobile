@@ -1,0 +1,98 @@
+class Movie {
+  const Movie({
+    required this.id,
+    required this.title,
+    required this.genre,
+    required this.year,
+    required this.rating,
+    required this.posterAsset,
+    this.runtime,
+    this.reviewCount,
+    this.tags = const [],
+    this.synopsis = const [],
+  });
+
+  final int id;
+  final String title;
+  final String genre;
+  final int year;
+  final double rating;
+  final String posterAsset;
+
+  // 상세 화면에서 쓰는 정보
+  final int? runtime; // 분
+  final int? reviewCount;
+  final List<String> tags;
+  final List<String> synopsis; // 문단 단위
+}
+
+const movies = [
+  Movie(
+    id: 1,
+    title: '별빛 아래 우리',
+    genre: '드라마',
+    year: 2023,
+    rating: 4.5,
+    posterAsset: 'assets/images/posters/hero_under_the_starlight.jpg',
+    runtime: 124,
+    reviewCount: 1245,
+    tags: ['로맨스', '드라마', '감동적인'],
+    synopsis: [
+      '바쁜 현대 사회 속에서 서로의 존재를 잊고 살아가던 두 남녀가 우연한 계기로 작은 천문대에서 만나게 됩니다. 매일 밤 별을 관측하며 서로의 상처를 치유하고, 잊고 있던 꿈과 사랑을 다시금 깨닫게 되는 따뜻한 이야기입니다.',
+      '과거의 아픔으로 인해 사람에게 마음을 열지 못하던 여주인공은, 별자리처럼 변함없는 모습으로 자신을 기다려주는 남주인공을 통해 서서히 마음의 문을 열게 됩니다. 하지만 두 사람 앞에 놓인 현실적인 장벽들은 그들의 관계를 시험하게 되는데...',
+      '별이 쏟아지는 밤하늘 아래, 그들이 나눈 조용한 약속들은 과연 영원할 수 있을까요? 눈부신 영상미와 감성적인 OST가 어우러져 깊은 여운을 남기는 올 겨울 최고의 로맨스 영화.',
+      '잔잔한 감동과 함께 삶의 의미를 다시 한번 되돌아보게 만드는 수작입니다.',
+    ],
+  ),
+  Movie(
+    id: 2,
+    title: '우주의 끝에서',
+    genre: 'SF',
+    year: 2024,
+    rating: 4.2,
+    posterAsset: 'assets/images/posters/poster_echoes_of_the_void.jpg',
+  ),
+  Movie(
+    id: 3,
+    title: '기억의 숲',
+    genre: '애니메이션',
+    year: 2022,
+    rating: 4.9,
+    posterAsset: 'assets/images/posters/poster_whispering_woods.jpg',
+  ),
+  Movie(
+    id: 4,
+    title: '밤의 그림자',
+    genre: '스릴러',
+    year: 2024,
+    rating: 3.8,
+    posterAsset: 'assets/images/posters/poster_night_shadows.jpg',
+  ),
+  Movie(
+    id: 5,
+    title: '봄날의 커피',
+    genre: '로맨스',
+    year: 2021,
+    rating: 4.5,
+    posterAsset: 'assets/images/posters/poster_fourth_afternoon.jpg',
+  ),
+  Movie(
+    id: 6,
+    title: '도시의 선',
+    genre: '다큐멘터리',
+    year: 2023,
+    rating: 4.1,
+    posterAsset:
+        'assets/images/posters/poster_a_modern_architecture_flim_archive.jpg',
+  ),
+];
+
+/// 장르 필터(Chip, BottomSheet)에서 공통으로 쓰는 장르 목록
+const genres = ['드라마', 'SF', '애니메이션', '스릴러', '로맨스', '코미디', '판타지', '다큐멘터리'];
+
+Movie? findMovieById(int? id) {
+  for (final movie in movies) {
+    if (movie.id == id) return movie;
+  }
+  return null;
+}
