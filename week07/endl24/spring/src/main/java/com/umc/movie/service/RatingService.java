@@ -5,13 +5,13 @@ import com.umc.movie.dto.RatingResponse;
 import com.umc.movie.dto.UpdateRatingRequest;
 import com.umc.movie.entity.Member;
 import com.umc.movie.entity.Rating;
-import com.umc.movie.repository.RatingRepository;
+import com.umc.movie.exception.ApiException;
 import com.umc.movie.repository.MemberRepository;
+import com.umc.movie.repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,9 +25,8 @@ public class RatingService {
     @Transactional(readOnly = true)
     public List<RatingResponse> getRatingsByMember(Long memberId) {
         if (!memberRepository.existsById(memberId)) {
-            // @RestControllerAdvice로 예외를 한 곳에서 다루는 방법은 6주차에 배웁니다.
-            // 지금은 Spring이 기본 제공하는 ResponseStatusException으로 404를 바로 응답합니다.
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다.");
+            throw new ApiException(HttpStatus.NOT_FOUND, "MEMBER404_1",
+                    "해당 회원을 찾을 수 없습니다.");
         }
 
         return ratingRepository.findByMember_MemberIdOrderByRatingIdDesc(memberId).stream()
@@ -36,14 +35,16 @@ public class RatingService {
     }
 
     @Transactional
-    public Long create(Long memberId, CreateRatingRequest request) {
+    public RatingResponse create(Long memberId, CreateRatingRequest request) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER404_1",
+                        "해당 회원을 찾을 수 없습니다."));
 
         // rating 테이블에는 (member_id, movie_id) 복합 UNIQUE 제약이 걸려 있습니다.
-        // 그냥 저장해도 DB가 막아주지만, 우리가 정한 메시지로 응답하기 위해 먼저 확인합니다.
+        // 그냥 저장해도 DB가 막아주지만, 우리가 정한 응답을 주기 위해 먼저 확인합니다.
         if (ratingRepository.existsByMember_MemberIdAndMovieId(memberId, request.movieId())) {
-            throw new IllegalArgumentException("이미 이 영화에 평점을 남기셨습니다.");
+            throw new ApiException(HttpStatus.CONFLICT, "RATING409_1",
+                    "이미 이 영화에 평점을 남기셨습니다.");
         }
 
         Rating rating = Rating.builder()
@@ -53,20 +54,23 @@ public class RatingService {
                 .comment(request.comment())
                 .build();
 
-        return ratingRepository.save(rating).getRatingId();
+        return RatingResponse.from(ratingRepository.save(rating));
     }
 
     @Transactional
-    public void update(Long ratingId, Long memberId, UpdateRatingRequest request) {
-        Rating rating = findOwnedRating(ratingId, memberId);
+    public RatingResponse update(Long memberId, Long ratingId, UpdateRatingRequest request) {
+        Rating rating = findOwnedRating(memberId, ratingId);
 
         rating.update(request.score(), request.comment());
-        ratingRepository.save(rating);
+        // updatedAt은 DB에 반영(flush)되는 순간 갱신되므로, 응답을 만들기 전에 먼저 반영합니다
+        ratingRepository.saveAndFlush(rating);
+
+        return RatingResponse.from(rating);
     }
 
     @Transactional
-    public void delete(Long ratingId, Long memberId) {
-        Rating rating = findOwnedRating(ratingId, memberId);
+    public void delete(Long memberId, Long ratingId) {
+        Rating rating = findOwnedRating(memberId, ratingId);
 
         ratingRepository.delete(rating);
     }
@@ -76,12 +80,15 @@ public class RatingService {
      * 수정과 삭제가 똑같은 검사를 하므로 메서드로 묶었습니다.
      * 먼저 찾아보고(없으면 404), 찾았으면 주인을 봅니다(내 것이 아니면 403).
      */
-    private Rating findOwnedRating(Long ratingId, Long memberId) {
+    private Rating findOwnedRating(Long memberId, Long ratingId) {
         Rating rating = ratingRepository.findById(ratingId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 평점입니다."));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "RATING404_1",
+                        "해당 평점을 찾을 수 없습니다."));
 
+        // 존재는 하지만 내 것이 아니라면 인가 실패입니다
         if (!rating.getMember().getMemberId().equals(memberId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.");
+            throw new ApiException(HttpStatus.FORBIDDEN, "RATING403_1",
+                    "본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.");
         }
 
         return rating;
