@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
+import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:movielog/widgets/login_prompt.dart';
 import 'package:movielog/widgets/movie_log_text_form_field.dart';
@@ -169,24 +172,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        MovieLogTextFormField(
-                          label: '비밀번호',
-                          hintText: '비밀번호를 입력해주세요',
-                          controller: _passwordController,
-                          focusNode: _passwordFocusNode,
-                          textInputAction: TextInputAction.done,
-                          obscureText: true,
-                          validator: (value) {
-                            final password = value ?? '';
-                            if (password.isEmpty) return '비밀번호를 입력해주세요.';
-                            if (!_passwordRegExp.hasMatch(password)) {
-                              return '영문과 숫자를 포함해 8자 이상 입력해주세요.';
-                            }
-                            return null;
+                        Consumer<SignUpViewModel>(
+                          builder: (context, viewModel, child) {
+                            return MovieLogTextFormField(
+                              label: '비밀번호',
+                              hintText: '비밀번호를 입력해주세요',
+                              controller: _passwordController,
+                              focusNode: _passwordFocusNode,
+                              textInputAction: TextInputAction.done,
+                              obscureText: true,
+                              validator: (value) {
+                                final password = value ?? '';
+                                if (password.isEmpty) {
+                                  return '비밀번호를 입력해주세요.';
+                                }
+                                if (!_passwordRegExp.hasMatch(password)) {
+                                  return '영문과 숫자를 포함해 8자 이상 입력해주세요.';
+                                }
+                                return null;
+                              },
+                              // 로컬 검사를 통과해도 서버가 거부하면 계속 에러로 보여줍니다.
+                              errorText: viewModel.passwordErrorText,
+                              onChanged: (_) {
+                                setState(() {});
+                                viewModel.onPasswordChanged();
+                              },
+                              onFieldSubmitted: (_) =>
+                                  FocusScope.of(context).unfocus(),
+                            );
                           },
-                          onChanged: (_) => setState(() {}),
-                          onFieldSubmitted: (_) =>
-                              FocusScope.of(context).unfocus(),
                         ),
                         const SizedBox(height: 48),
                         TermsAgreement(
@@ -202,10 +216,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     CheckStatus.available &&
                                 viewModel.emailCheckStatus ==
                                     CheckStatus.available;
+                            final submitting =
+                                viewModel.submitStatus ==
+                                SubmitStatus.submitting;
                             return MovieLogButton(
                               label: '가입하기',
                               width: double.infinity,
-                              onPressed: _canSubmit && checked ? _submit : null,
+                              isLoading: submitting,
+                              onPressed: _canSubmit && checked && !submitting
+                                  ? _submit
+                                  : null,
                             );
                           },
                         ),
@@ -233,11 +253,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _emailRegExp.hasMatch(_emailController.text.trim()) &&
       _passwordRegExp.hasMatch(_passwordController.text) &&
       _agreedToTerms;
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
     FocusScope.of(context).unfocus();
-    context.go('/home');
+
+    final viewModel = context.read<SignUpViewModel>();
+    await viewModel.submit(
+      CreateMemberRequest(
+        email: _emailController.text,
+        password: _passwordController.text,
+        nickname: _nicknameController.text,
+      ),
+    );
+    if (!mounted) return; // 요청 중 화면을 떠났다면 결과를 반영하지 않습니다.
+
+    final memberId = viewModel.createdMemberId;
+    if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
+      context.read<LearningMemberSession>().setMemberId(memberId);
+      context.go('/movies');
+      return;
+    }
+    final message = viewModel.snackbarMessage;
+    if (message != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    }
   }
 
   @override

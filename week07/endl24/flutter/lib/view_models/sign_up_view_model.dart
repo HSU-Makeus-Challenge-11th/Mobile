@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
+import 'package:movielog/view_models/submit_status.dart';
 
 enum CheckStatus { idle, checking, available, duplicated, error }
 
@@ -19,6 +21,11 @@ class SignUpViewModel extends ChangeNotifier {
   String? _duplicatedEmail;
   String _currentEmail = '';
   int _emailRequestVersion = 0;
+
+  SubmitStatus submitStatus = SubmitStatus.idle;
+  int? createdMemberId; // 가입 성공 응답에서 읽은 실제 ID입니다.
+  String? passwordErrorText; // 비밀번호 칸 아래에 붙일 서버 오류
+  String? snackbarMessage; // 특정 칸에 붙일 수 없는 오류(409 등)
 
   bool _disposed = false;
 
@@ -128,6 +135,45 @@ class SignUpViewModel extends ChangeNotifier {
       emailErrorText = '중복 확인에 실패했습니다. 다시 시도해 주세요.';
     }
     if (!_disposed && version == _emailRequestVersion) notifyListeners();
+  }
+
+  void onPasswordChanged() {
+    if (passwordErrorText == null) return;
+    passwordErrorText = null; // 비밀번호를 고치면 서버 오류 문구를 지웁니다.
+    notifyListeners();
+  }
+
+  Future<void> submit(CreateMemberRequest request) async {
+    if (submitStatus == SubmitStatus.submitting) return; // 연속 탭 방지
+    submitStatus = SubmitStatus.submitting;
+    createdMemberId = null;
+    passwordErrorText = null;
+    snackbarMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _service.signUp(request);
+      if (_disposed) return;
+      final id = response.result?.memberId;
+      if (id == null) throw StateError('회원가입 결과에 memberId가 없습니다.');
+      createdMemberId = id;
+      submitStatus = SubmitStatus.success;
+    } on DioException catch (error) {
+      if (_disposed) return;
+      submitStatus = SubmitStatus.error;
+      final message = writeSignUpErrorMessage(error);
+      // 비밀번호 형식 400만 입력칸에, 나머지 400·409·통신 실패는 Snackbar로 보여줍니다.
+      if (error.response?.statusCode == 400 && message.contains('비밀번호')) {
+        passwordErrorText = message;
+      } else {
+        snackbarMessage = message;
+      }
+    } on StateError {
+      if (_disposed) return;
+      submitStatus = SubmitStatus.error;
+      snackbarMessage = '가입 결과를 확인하지 못했습니다. 새 요청 전에 서버 상태를 확인해 주세요.';
+    }
+    if (!_disposed) notifyListeners();
   }
 
   @override
