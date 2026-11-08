@@ -4,6 +4,7 @@ import com.umc.movie.dto.ApiResponse;
 import com.umc.movie.dto.EmailCheckResponse;
 import com.umc.movie.dto.MemberInfoResponse;
 import com.umc.movie.dto.MemberResponse;
+import com.umc.movie.dto.MemberUpdateRequest;
 import com.umc.movie.dto.NicknameCheckResponse;
 import com.umc.movie.dto.SignUpRequest;
 import com.umc.movie.interceptor.AuthInterceptor;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -51,5 +53,14 @@ public class MemberController {
     ) {
         MemberInfoResponse response = memberService.getMyInfo(memberId);
         return ResponseEntity.ok(ApiResponse.ok("회원 정보를 조회했습니다.", response));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<MemberInfoResponse>> updateMyInfo(
+            @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,
+            @Valid @RequestBody MemberUpdateRequest request
+    ) {
+        MemberInfoResponse response = memberService.updateMyInfo(memberId, request);
+        return ResponseEntity.ok(ApiResponse.ok("회원 정보를 수정했습니다.", response));
     }
 }
