@@ -66,6 +66,7 @@ class _MovieLogTextFormFieldState extends State<MovieLogTextFormField> {
       decoration: InputDecoration(
         hintText: widget.hintText,
         errorText: widget.errorText,
+        errorMaxLines: 2, // 서버 오류 문구처럼 긴 메시지도 잘리지 않게 합니다.
         hintStyle: AppTextStyles.bodySmall,
         filled: true,
         fillColor: hasError ? AppColors.redLight : AppColors.grayLight,
