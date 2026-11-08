@@ -144,7 +144,10 @@ class _RatingDialogState extends State<RatingDialog> {
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
-        _errorText = '저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        // 호출부가 StateError에 서버 문구를 담아 던지면 그 문구를 보여줍니다.
+        _errorText = error is StateError
+            ? error.message
+            : '저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       });
     }
   }

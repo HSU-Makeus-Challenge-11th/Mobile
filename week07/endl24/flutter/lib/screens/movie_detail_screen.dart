@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/view_models/movie_detail_view_model.dart';
+import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';
+import 'package:provider/provider.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movie});
@@ -31,30 +34,43 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       );
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+  }
+
   Future<void> _openRatingDialog(TmdbMovieDto movie) async {
+    final viewModel = context.read<MovieDetailViewModel>();
+    if (viewModel.memberId == null) {
+      // 가입한 회원이 없으면 Dialog를 열지 않고 안내만 합니다.
+      _showSnackBar('먼저 회원가입을 완료해 주세요.');
+      return;
+    }
+
     final saved = await showDialog<bool>(
       context: context,
       barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막아요.
       builder: (_) => RatingDialog(
         movieTitle: movie.title,
         onSubmit: (score, comment) async {
-          // TODO(평점 API): MovieDetailViewModel.createRating으로 교체
-          debugPrint('[평점] movieId=${movie.id} score=$score comment=$comment');
+          await viewModel.createRating(score: score, comment: comment);
+          if (viewModel.submitStatus != SubmitStatus.success) {
+            // Dialog가 실패로 처리하고 서버 문구를 보여주도록 예외를 던집니다.
+            throw StateError(viewModel.submitMessage ?? '저장에 실패했습니다.');
+          }
         },
       ),
     );
 
     if (!mounted || saved != true) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('평점을 저장했습니다.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
+    _showSnackBar('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.');
   }
 
   @override

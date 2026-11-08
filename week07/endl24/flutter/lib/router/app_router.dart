@@ -13,6 +13,7 @@ import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
@@ -94,8 +95,18 @@ class AppRouter {
       GoRoute(
         path: '/movies/:movieId',
         builder: (context, state) {
-          final movie = state.extra;
-          return MovieDetailScreen(movie: movie is TmdbMovieDto ? movie : null);
+          final extra = state.extra;
+          if (extra is! TmdbMovieDto) {
+            return const MovieDetailScreen(movie: null); // 영화를 찾을 수 없음 화면
+          }
+          return ChangeNotifierProvider<MovieDetailViewModel>(
+            create: (context) => MovieDetailViewModel(
+              context.read<RatingApiService>(),
+              context.read<LearningMemberSession>().memberId,
+              extra,
+            ),
+            child: MovieDetailScreen(movie: extra),
+          );
         },
       ),
     ],
