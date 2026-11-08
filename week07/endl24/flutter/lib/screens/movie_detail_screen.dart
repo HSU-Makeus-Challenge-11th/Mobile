@@ -32,24 +32,27 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   }
 
   Future<void> _openRatingDialog(TmdbMovieDto movie) async {
-    final rating = await showDialog<double>(
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => RatingDialog(movieTitle: movie.title),
+      barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막아요.
+      builder: (_) => RatingDialog(
+        movieTitle: movie.title,
+        onSubmit: (score, comment) async {
+          // TODO(평점 API): MovieDetailViewModel.createRating으로 교체
+          debugPrint('[평점] movieId=${movie.id} score=$score comment=$comment');
+        },
+      ),
     );
 
-    if (rating == null) return;
-    if (!mounted) return;
-
-    // TODO(평점 API): CreateRatingRequest(movieId: movie.id, score: rating)로 전송
-    debugPrint('[평점] movieId=${movie.id} score=$rating');
+    if (!mounted || saved != true) return;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text('$rating점으로 평점을 등록했습니다.'),
+        const SnackBar(
+          content: Text('평점을 저장했습니다.'),
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
+          duration: Duration(seconds: 2),
         ),
       );
   }
