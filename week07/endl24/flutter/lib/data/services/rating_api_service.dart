@@ -6,7 +6,7 @@ class RatingApiService {
   final Dio _dio;
 
   Future<List<RatingDto>> fetchMyRatings(int memberId) async {
-    final response = await _dio.get('/v5/members/$memberId/ratings');
+    final response = await _dio.get('/v6/members/$memberId/ratings');
     final list = response.data as List<dynamic>;
     return list
         .map((item) => RatingDto.fromJson(item as Map<String, dynamic>))

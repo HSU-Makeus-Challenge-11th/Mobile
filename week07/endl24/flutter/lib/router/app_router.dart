@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
@@ -30,7 +30,7 @@ class AppRouter {
         path: '/signup',
         builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
           create: (context) =>
-              SignUpViewModel(context.read<MemberCheckService>()),
+              SignUpViewModel(context.read<SignUpService>()),
           child: const SignUpScreen(),
         ),
       ),

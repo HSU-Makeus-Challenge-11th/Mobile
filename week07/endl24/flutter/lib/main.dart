@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:movielog/core/network/movie_api_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/router/app_router.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
@@ -28,8 +28,8 @@ class MovieLogApp extends StatelessWidget {
         Provider<RatingApiService>(
           create: (_) => RatingApiService(movieApiClient),
         ),
-        Provider<MemberCheckService>(
-          create: (_) => MemberCheckService(movieApiClient),
+        Provider<SignUpService>(
+          create: (_) => SignUpService(movieApiClient),
         ),
         Provider<TmdbMovieService>(
           create: (_) => TmdbMovieService(createTmdbClient()),
