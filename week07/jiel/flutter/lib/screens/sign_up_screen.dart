@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/models/create_member_request.dart';
 import '../theme/app_colors.dart';
+import '../view_models/learning_member_session.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movielog_button.dart';
 
 // 로컬 형식 검사(validator). 서버 중복 여부는 모르며, 중복 확인은 ViewModel이 담당한다.
+// 클라이언트 검증은 빠른 안내용이고 서버 검증(400)을 대체하지 않는다.
 String? validateNickname(String? value) {
   final nickname = value?.trim() ?? '';
   if (nickname.isEmpty) return '닉네임을 입력해주세요.';
-  if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+  if (nickname.length < 2 || nickname.length > 12) {
+    return '닉네임은 2~12자여야 합니다.';
+  }
   return null;
 }
 
@@ -18,6 +23,23 @@ String? validateEmail(String? value) {
   final email = value?.trim() ?? '';
   if (email.isEmpty) return '이메일을 입력해주세요';
   if (!email.contains('@') || !email.contains('.')) return '올바른 이메일 형식이 아닙니다';
+  return null;
+}
+
+/// v6 회원가입 비밀번호 제약: 8자 이상, 소문자·대문자·숫자·!@#$%^&* 특수문자 각각 1개 이상.
+/// 비밀번호는 trim()하지 않으므로 앞뒤 공백도 여기서 명확히 막는다.
+String? validatePasswordFormat(String? value) {
+  final password = value ?? '';
+  if (password.isEmpty) return '비밀번호를 입력해주세요';
+  if (password.trim() != password) return '비밀번호 앞뒤에 공백을 넣을 수 없습니다';
+  if (password.length < 8) return '비밀번호는 8자 이상이어야 합니다';
+  final hasLower = password.contains(RegExp(r'[a-z]'));
+  final hasUpper = password.contains(RegExp(r'[A-Z]'));
+  final hasDigit = password.contains(RegExp(r'[0-9]'));
+  final hasSpecial = password.contains(RegExp(r'[!@#$%^&*]'));
+  if (!hasLower || !hasUpper || !hasDigit || !hasSpecial) {
+    return '대문자/소문자/숫자/특수문자(!@#\$%^&*)를 각각 포함해야 합니다';
+  }
   return null;
 }
 
@@ -50,15 +72,52 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() {});
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
       setState(() => _autoValidate = true);
       return;
     }
     FocusScope.of(context).unfocus();
-    // 검증 완료 → 홈으로 이동. go로 스택을 교체해 홈에서 회원가입으로 돌아갈 수 없게 한다.
-    context.go('/home');
+
+    final viewModel = context.read<SignUpViewModel>();
+    // 제출 중이면 ViewModel이 무시한다(연속 탭 방지). 버튼도 isLoading으로 잠긴다.
+    await viewModel.submit(CreateMemberRequest(
+      email: _emailController.text,
+      password: _passwordController.text,
+      nickname: _nicknameController.text,
+    ));
+    // 저장 요청과 화면 이동/Snackbar는 서로 다른 비동기 경계. await 뒤에는 mounted를 다시 확인한다.
+    if (!mounted) return;
+
+    final createdMemberId = viewModel.createdMemberId;
+    if (viewModel.submitStatus == SubmitStatus.success &&
+        createdMemberId != null) {
+      // 가입 결과의 memberId를 학습용 세션에 보관한다. 이후 평점 요청 path에서 이 값을 읽는다.
+      context.read<LearningMemberSession>().setMemberId(createdMemberId);
+      // 성공 응답의 result.memberId를 화면에서 바로 확인할 수 있게 Snackbar로 보여준다.
+      // ScaffoldMessenger는 MaterialApp 최상단에 있어 화면이 바뀌어도 Snackbar가 유지된다.
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('회원가입 완료! 학습용 memberId: $createdMemberId'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      // go로 스택을 교체해 영화 목록에서 회원가입으로 돌아갈 수 없게 한다.
+      context.go('/movies');
+      return;
+    }
+
+    // 실패: 입력값은 컨트롤러에 그대로 남아 있다(입력 보존).
+    final message = viewModel.snackbarMessage;
+    if (message != null) {
+      viewModel.consumeSnackbarMessage();
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
@@ -68,11 +127,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final canSubmit =
         validateNickname(_nicknameController.text) == null &&
         validateEmail(_emailController.text) == null &&
-        _passwordController.text.length >= 8 &&
+        validatePasswordFormat(_passwordController.text) == null &&
         _agreedToTerms &&
-        viewModel.isAllChecked;
+        viewModel.isAllChecked &&
+        !viewModel.isSubmitting;
 
     // 회원가입 화면에서는 시스템 뒤로 가기를 막는다.
+    // (제출 중 이탈 방지도 포함 — 요청이 서버에 도착했는데 화면만 사라지는 상황을 막는다)
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -107,6 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       });
                     },
                     canSubmit: canSubmit,
+                    isSubmitting: viewModel.isSubmitting,
                     onSubmit: _submit,
                     onLoginTap: () {},
                   ),
@@ -201,6 +263,7 @@ class _SignUpFormSection extends StatelessWidget {
           controller: nicknameController,
           autovalidate: autovalidate,
           hintText: '닉네임을 입력해주세요',
+          enabled: !viewModel.isSubmitting,
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => emailFocusNode.requestFocus(),
           validator: validateNickname,
@@ -226,6 +289,7 @@ class _SignUpFormSection extends StatelessWidget {
           focusNode: emailFocusNode,
           autovalidate: autovalidate,
           hintText: '이메일 주소를 입력해주세요',
+          enabled: !viewModel.isSubmitting,
           textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => passwordFocusNode.requestFocus(),
           keyboardType: TextInputType.emailAddress,
@@ -252,17 +316,14 @@ class _SignUpFormSection extends StatelessWidget {
           autovalidate: autovalidate,
           hintText: '비밀번호를 입력해주세요',
           obscureText: true,
+          enabled: !viewModel.isSubmitting,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: onPasswordSubmitted,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return '비밀번호를 입력해주세요';
-            }
-            if (value.length < 8) {
-              return '비밀번호는 8자 이상이어야 합니다';
-            }
-            return null;
-          },
+          // 로컬 validator와 서버 400 응답이 동시에 작동한다.
+          // 로컬 validator가 통과한 뒤에도 서버가 거부한 값이면 errorText로 계속 에러로 보인다.
+          validator: validatePasswordFormat,
+          onChanged: (_) => viewModel.onPasswordChanged(),
+          serverErrorText: viewModel.passwordErrorText,
         ),
       ],
     );
@@ -276,6 +337,7 @@ class _SignUpFooter extends StatelessWidget {
     required this.agreedToTerms,
     required this.onAgreedToTermsChanged,
     required this.canSubmit,
+    required this.isSubmitting,
     required this.onSubmit,
     required this.onLoginTap,
   });
@@ -283,6 +345,7 @@ class _SignUpFooter extends StatelessWidget {
   final bool agreedToTerms;
   final ValueChanged<bool?> onAgreedToTermsChanged;
   final bool canSubmit;
+  final bool isSubmitting;
   final VoidCallback onSubmit;
   final VoidCallback onLoginTap;
 
@@ -301,18 +364,19 @@ class _SignUpFooter extends StatelessWidget {
           checkColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           side: const BorderSide(color: AppColors.primary500),
-          onChanged: onAgreedToTermsChanged,
+          onChanged: isSubmitting ? null : onAgreedToTermsChanged,
           title: Text(
             '필수 약관에 동의합니다',
             style: textTheme.titleMedium?.copyWith(color: AppColors.onSurface),
           ),
         ),
         const SizedBox(height: 24),
-        // Form 하단 버튼: 전체 너비. 실제 회원가입 POST는 v6부터라 모양만 완성한다.
+        // Form 하단 버튼: 전체 너비. 제출 중에는 회색 + 인디케이터로 바뀌어 중복 탭을 막는다.
         MovieLogButton(
           label: '가입하기',
           width: double.infinity,
           height: 56,
+          isLoading: isSubmitting,
           onPressed: canSubmit ? onSubmit : null,
         ),
         const SizedBox(height: 16),
@@ -352,6 +416,7 @@ class _LabeledTextField extends StatelessWidget {
     required this.validator,
     this.focusNode,
     this.obscureText = false,
+    this.enabled = true,
     this.textInputAction,
     this.onFieldSubmitted,
     this.autovalidate = false,
@@ -368,6 +433,7 @@ class _LabeledTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final String hintText;
   final bool obscureText;
+  final bool enabled;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onFieldSubmitted;
   final FormFieldValidator<String> validator;
@@ -427,6 +493,7 @@ class _LabeledTextField extends StatelessWidget {
           controller: controller,
           focusNode: focusNode,
           obscureText: obscureText,
+          enabled: enabled,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
