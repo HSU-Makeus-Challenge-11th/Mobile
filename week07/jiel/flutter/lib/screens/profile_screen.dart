@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
+import '../view_models/learning_member_session.dart';
 import '../widgets/stat_item.dart';
 import '../widgets/top_app_bar.dart';
 
@@ -197,6 +199,11 @@ class ProfileMenu extends StatelessWidget {
           _ProfileMenuTile(
             icon: Icons.star_outline_rounded,
             title: '내가 등록한 평점',
+            // 회원가입 성공 응답(result.memberId)으로 저장된 학습용 회원 ID를 보여준다.
+            // 인증이 아니므로 앱을 재시작하면 사라진다.
+            subtitle: context.watch<LearningMemberSession>().memberId == null
+                ? '학습용 회원가입이 필요합니다'
+                : '학습용 memberId: ${context.watch<LearningMemberSession>().memberId}',
             onTap: () => context.push('/my/ratings'),
           ),
           // MovieLogButton width 비교 화면은 디버그 빌드에서만 노출한다.
@@ -218,11 +225,13 @@ class _ProfileMenuTile extends StatelessWidget {
   const _ProfileMenuTile({
     required this.icon,
     required this.title,
+    this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
 
   @override
@@ -234,6 +243,13 @@ class _ProfileMenuTile extends StatelessWidget {
         style: Theme.of(context).textTheme.titleMedium
             ?.copyWith(color: AppColors.onSurface),
       ),
+      subtitle: subtitle == null
+          ? null
+          : Text(
+              subtitle!,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
       trailing: const Icon(
         Icons.chevron_right,
         color: AppColors.onSurfaceVariant,
