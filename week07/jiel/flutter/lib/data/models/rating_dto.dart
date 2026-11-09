@@ -1,4 +1,4 @@
-/// v5 유저별 평점 조회(GET /v5/members/{memberId}/ratings) 응답의 한 항목.
+/// v6 유저별 평점 조회(GET /v6/members/{memberId}/ratings) 응답의 한 항목.
 class RatingDto {
   const RatingDto({
     required this.ratingId,
