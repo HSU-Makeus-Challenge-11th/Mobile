@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-/// 워크북 자체 백엔드(/v5)용 Dio Client.
+/// 워크북 자체 백엔드(/v6)용 Dio Client.
 /// TMDB Client(createTmdbClient)와 baseUrl·헤더가 다르므로 절대 하나로 합치지 않는다.
 Dio createMovieLogClient() {
   return Dio(

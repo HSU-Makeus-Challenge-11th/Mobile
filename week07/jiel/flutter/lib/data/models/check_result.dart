@@ -1,5 +1,5 @@
-/// v5 닉네임·이메일 중복 확인 응답.
-/// v5는 공통 Wrapper가 없으므로 응답 body가 곧 이 모델이다. 예: { "available": true }
+/// v6 닉네임·이메일 중복 확인 **성공** 응답.
+/// 성공 시에는 공통 Wrapper 없이 응답 body가 곧 이 모델이다(오류만 CommonResponse 형식). 예: { "available": true }
 class CheckResult {
   const CheckResult({required this.available});
 
