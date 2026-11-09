@@ -1,47 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
+import '../view_models/movie_detail_view_model.dart';
 import '../widgets/rating_dialog.dart';
 import '../widgets/tmdb_poster_image.dart';
 
 const _outline = Color(0xFFCBC4D2);
 
+/// 영화 상세 화면. 영화 DTO와 평점 등록 상태는 MovieDetailLoader가 제공한 MovieDetailViewModel에서 읽는다.
+/// 이 화면은 평점 **등록**만 하고, 조회·수정·삭제는 마이페이지의 "내가 등록한 평점" 화면에서 한다.
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId, this.movie});
-
-  final int? movieId;
-
-  /// 목록에서 넘겨받은 영화. 새로고침·딥링크로 들어오면 null일 수 있다.
-  final TmdbMovieDto? movie;
+  const MovieDetailScreen({super.key});
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  // 즐겨찾기·내 평점은 API 없이 화면 내부 상태로만 관리한다.
+  // 즐겨찾기는 API 없이 화면 내부 상태로만 관리한다.
   bool _isFavorite = false;
-  double? _myRating;
 
   void _toggleFavorite() {
     setState(() => _isFavorite = !_isFavorite);
     _showSnackBar(_isFavorite ? '즐겨찾기에 추가했어요.' : '즐겨찾기에서 삭제했어요.');
   }
 
-  Future<void> _openRatingDialog(TmdbMovieDto movie) async {
-    final rating = await showDialog<double>(
-      context: context,
-      // 이미 남긴 평점이 있으면 그 값에서 시작한다.
-      builder: (context) =>
-          RatingDialog(movieId: movie.id, initialRating: _myRating ?? 0),
-    );
-    if (!mounted || rating == null || rating == 0) return;
+  Future<void> _openRatingDialog() async {
+    final viewModel = context.read<MovieDetailViewModel>();
+    if (!viewModel.canRate) {
+      // 회원가입 결과의 memberId가 없는 상태에서는 등록하지 않고 학습용 회원가입으로 안내한다.
+      _showSnackBar('먼저 회원가입을 완료해 주세요.');
+      return;
+    }
 
-    setState(() => _myRating = rating);
-    _showSnackBar('평점 ${rating.toStringAsFixed(1)}점을 남겼어요.');
+    // 저장은 Dialog 안에서 끝낸다. 성공하면 true, 취소하면 false(요청 없음), 뒤로가기면 null.
+    final saved = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막는다.
+      builder: (_) => RatingDialog(
+        onSubmit: (score, comment) async {
+          await viewModel.createRating(score: score, comment: comment);
+          if (viewModel.submitStatus != SubmitStatus.success) {
+            // 실패 문구는 Dialog가 받아 그 자리에서 보여주고, 입력은 유지된다.
+            throw StateError(viewModel.submitMessage ?? '저장에 실패했습니다.');
+          }
+        },
+      ),
+    );
+    // 저장 요청과 Snackbar 표시는 서로 다른 비동기 경계다. await 뒤에는 mounted를 다시 확인한다.
+    if (!mounted || saved != true) return;
+
+    _showSnackBar('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.');
   }
 
   void _showSnackBar(String message) {
@@ -58,31 +71,28 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // URL의 id와 넘겨받은 영화의 id가 다르면 잘못된 진입으로 본다.
-    final movie = widget.movie?.id == widget.movieId ? widget.movie : null;
+    final viewModel = context.watch<MovieDetailViewModel>();
+    final movie = viewModel.movie;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceBase,
       appBar: const _DetailAppBar(),
-      body: movie == null
-          ? const Center(child: Text('영화를 찾을 수 없어요.'))
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _HeroPoster(movie: movie),
-                  _InformationSection(movie: movie, myRating: _myRating),
-                  _SynopsisSection(movie: movie),
-                ],
-              ),
-            ),
-      bottomNavigationBar: movie == null
-          ? null
-          : _ActionButtons(
-              isFavorite: _isFavorite,
-              onFavoriteTap: _toggleFavorite,
-              onRateTap: () => _openRatingDialog(movie),
-            ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _HeroPoster(movie: movie),
+            _InformationSection(movie: movie, canRate: viewModel.canRate),
+            _SynopsisSection(movie: movie),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _ActionButtons(
+        isFavorite: _isFavorite,
+        onFavoriteTap: _toggleFavorite,
+        // memberId가 없으면 버튼을 비활성화한다. 저장 중 중복 탭은 Dialog가 막는다.
+        onRateTap: viewModel.canRate ? _openRatingDialog : null,
+      ),
     );
   }
 }
@@ -162,10 +172,12 @@ class _HeroPoster extends StatelessWidget {
 
 // 2. 제목 · 연도 · 별점
 class _InformationSection extends StatelessWidget {
-  const _InformationSection({required this.movie, required this.myRating});
+  const _InformationSection({required this.movie, required this.canRate});
 
   final TmdbMovieDto movie;
-  final double? myRating;
+
+  /// 학습용 회원가입(memberId)이 끝났는지. 아니면 평점 등록 안내 문구를 보여준다.
+  final bool canRate;
 
   @override
   Widget build(BuildContext context) {
@@ -224,11 +236,11 @@ class _InformationSection extends StatelessWidget {
               ),
             ],
           ),
-          if (myRating != null) ...[
+          if (!canRate) ...[
             const SizedBox(height: 8),
-            Text(
-              '내 평점 ${myRating!.toStringAsFixed(1)}',
-              style: const TextStyle(
+            const Text(
+              '평점을 남기려면 먼저 학습용 회원가입을 완료해 주세요.',
+              style: TextStyle(
                 fontSize: 14,
                 height: 20 / 14,
                 fontWeight: FontWeight.w500,
@@ -296,7 +308,9 @@ class _ActionButtons extends StatelessWidget {
 
   final bool isFavorite;
   final VoidCallback onFavoriteTap;
-  final VoidCallback onRateTap;
+
+  /// null이면 비활성화(학습용 회원가입 전).
+  final VoidCallback? onRateTap;
 
   static const _labelStyle = TextStyle(
     fontSize: 14,
@@ -345,6 +359,8 @@ class _ActionButtons extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary500,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: AppColors.neutral600,
+                      disabledForegroundColor: AppColors.neutral800,
                       shape: const StadiumBorder(),
                       elevation: 1,
                     ),
