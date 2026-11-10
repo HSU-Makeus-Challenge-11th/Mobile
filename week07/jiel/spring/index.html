@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Movie API 테스트</title>
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #fff; --text: #1d1f23; --muted: #6b7280;
+      --border: #e3e5e8; --primary: #3b5bdb; --ok: #2b8a3e; --bad: #c92a2a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+    section { background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    h2 { font-size: 16px; margin: 0 0 4px; }
+    code { font-size: 12px; color: var(--muted); }
+    form { display: flex; gap: 8px; margin-top: 12px; }
+    input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; }
+    button { padding: 9px 16px; border: 0; border-radius: 6px; background: var(--primary);
+      color: #fff; font-size: 14px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .result { margin-top: 12px; font-size: 14px; min-height: 20px; }
+    .ok { color: var(--ok); font-weight: 600; }
+    .bad { color: var(--bad); font-weight: 600; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .stars { color: #f59f00; letter-spacing: 1px; }
+    .base { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .base input { max-width: 260px; padding: 6px 10px; font-size: 13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Movie API 테스트</h1>
+  <p class="sub">week05 백엔드 API를 호출하는 화면</p>
+
+  <section>
+    <label class="base">서버 주소 <input id="baseUrl" value="http://localhost:8080" /></label>
+  </section>
+
+  <section>
+    <h2>닉네임 중복 확인</h2>
+    <code>GET /members/nickname/{nickname}</code>
+    <form id="nicknameForm">
+      <input name="value" placeholder="예: 수현" required />
+      <button>확인</button>
+    </form>
+    <div class="result" id="nicknameResult"></div>
+  </section>
+
+  <section>
+    <h2>이메일 중복 확인</h2>
+    <code>GET /members/email/{email}</code>
+    <form id="emailForm">
+      <input name="value" type="email" placeholder="예: noco@umc.com" required />
+      <button>확인</button>
+    </form>
+    <div class="result" id="emailResult"></div>
+  </section>
+
+  <section>
+    <h2>회원별 평점 조회</h2>
+    <code>GET /members/{memberId}/ratings</code>
+    <form id="ratingForm">
+      <input name="value" type="number" min="1" placeholder="회원 ID (예: 1)" required />
+      <button>조회</button>
+    </form>
+    <div class="result" id="ratingResult"></div>
+  </section>
+</main>
+
+<script>
+  const baseUrl = () => document.getElementById('baseUrl').value.replace(/\/+$/, '');
+
+  async function callApi(path) {
+    const res = await fetch(baseUrl() + path);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  }
+
+  function showError(el, err) {
+    el.innerHTML = `<span class="bad">요청 실패: ${escapeHtml(err.message)}</span>
+      <div class="muted">서버 실행 여부와 CORS 설정(localhost:5173 허용)을 확인하세요.</div>`;
+  }
+
+  // form 제출 시 버튼 잠금 + 에러 처리를 공통으로 처리
+  function bind(formId, resultId, handler) {
+    const form = document.getElementById(formId);
+    const result = document.getElementById(resultId);
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const button = form.querySelector('button');
+      const value = form.value.value.trim();
+      button.disabled = true;
+      result.innerHTML = '<span class="muted">요청 중...</span>';
+      try {
+        await handler(value, result);
+      } catch (err) {
+        showError(result, err);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  function renderAvailable(el, label, value, available) {
+    el.innerHTML = available
+      ? `<span class="ok">사용 가능한 ${label}입니다.</span> <span class="muted">(${escapeHtml(value)})</span>`
+      : `<span class="bad">이미 사용 중인 ${label}입니다.</span> <span class="muted">(${escapeHtml(value)})</span>`;
+  }
+
+  bind('nicknameForm', 'nicknameResult', async (value, el) => {
+    const data = await callApi(`/members/nickname/${encodeURIComponent(value)}`);
+    renderAvailable(el, '닉네임', value, data.available);
+  });
+
+  bind('emailForm', 'emailResult', async (value, el) => {
+    const data = await callApi(`/members/email/${encodeURIComponent(value)}`);
+    renderAvailable(el, '이메일', value, data.available);
+  });
+
+  bind('ratingForm', 'ratingResult', async (value, el) => {
+    const ratings = await callApi(`/members/${encodeURIComponent(value)}/ratings`);
+    if (ratings.length === 0) {
+      el.innerHTML = '<span class="muted">평점이 없습니다.</span>';
+      return;
+    }
+    const rows = ratings.map(r => `
+      <tr>
+        <td>${r.ratingId}</td>
+        <td>${r.movieId}</td>
+        <td><span class="stars">${'★'.repeat(r.score)}${'☆'.repeat(5 - r.score)}</span></td>
+        <td>${escapeHtml(r.comment)}</td>
+        <td class="muted">${r.createdAt ? r.createdAt.replace('T', ' ').slice(0, 16) : '-'}</td>
+      </tr>`).join('');
+    el.innerHTML = `
+      <div class="muted">총 ${ratings.length}건</div>
+      <table>
+        <thead><tr><th>ID</th><th>영화 ID</th><th>평점</th><th>코멘트</th><th>작성일</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  });
+</script>
+</body>
+</html>
