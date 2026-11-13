@@ -63,24 +63,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  /// 바뀐 내용이 있을 때 뒤로가기를 누르면 확인 Dialog를 띄웁니다.
+  /// "나가기"를 고르면 마이페이지로, "계속 수정"이면 이 화면에 머무릅니다.
+  Future<void> _confirmDiscard() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _DiscardChangesDialog(),
+    );
+    if (leave == true && mounted) context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final email = context.select<AuthViewModel, String?>(
       (auth) => auth.member?.email,
     );
+    final savedNickname = context.select<AuthViewModel, String?>(
+      (auth) => auth.member?.nickname,
+    );
+    // 입력값이 지금 저장된 닉네임과 다르면 "변경 내용이 있다"고 봅니다.
+    final hasChanges = _controller.text.trim() != (savedNickname ?? '');
 
     return Consumer<EditProfileViewModel>(
       builder: (context, viewModel, child) {
         final saving = viewModel.status == EditProfileStatus.saving;
         return PopScope(
-          canPop: !saving, // 저장 중에는 뒤로가기를 막습니다.
+          // 저장 중이거나 바뀐 내용이 있으면 바로 닫지 않습니다.
+          canPop: !saving && !hasChanges,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop || saving) return; // 이미 닫혔거나 저장 중이면 아무것도 하지 않음
+            _confirmDiscard(); // 바뀐 내용이 있어 막힌 경우에만 확인합니다.
+          },
           child: Scaffold(
             appBar: CommonAppBar(
               title: '프로필 수정',
               centerTitle: true,
-              onBack: () {
-                if (!saving) context.pop();
-              },
+              // 시스템 뒤로가기와 같은 규칙(PopScope)을 따르도록 maybePop을 씁니다.
+              onBack: () => Navigator.maybePop(context),
             ),
             body: SafeArea(
               child: Padding(
@@ -104,7 +123,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       enabled: !saving,
                       maxLength: 12, // 오른쪽 아래에 '4/12' 카운터가 생깁니다.
                       textInputAction: TextInputAction.done,
-                      onChanged: (_) => viewModel.onNicknameChanged(),
+                      onChanged: (_) {
+                        setState(() {}); // 변경 여부(hasChanges)를 다시 계산합니다.
+                        viewModel.onNicknameChanged();
+                      },
                       onSubmitted: (_) {
                         if (!saving) _submit();
                       },
@@ -169,6 +191,54 @@ class _FieldLabel extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+}
+
+/// 변경 내용이 있을 때 뒤로가기 확인 Dialog입니다. true면 나가기, false면 계속 수정입니다.
+class _DiscardChangesDialog extends StatelessWidget {
+  const _DiscardChangesDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('변경 내용을 버릴까요?', textAlign: TextAlign.center),
+      content: Text(
+        '저장하지 않은 내용은 사라집니다.',
+        textAlign: TextAlign.center,
+        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grayDark),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.violetLight,
+                  foregroundColor: AppColors.violet,
+                  elevation: 0,
+                  minimumSize: const Size.fromHeight(44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('계속 수정'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: MovieLogButton(
+                label: '나가기',
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
