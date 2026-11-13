@@ -12,7 +12,7 @@ import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/router/app_router.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/view_models/session_ratings.dart';
 import 'package:provider/provider.dart';
 
 import 'theme/app_theme.dart';
@@ -35,18 +35,16 @@ class MovieLogApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<TokenStorage>.value(value: tokenStorage),
-        ChangeNotifierProvider<LearningMemberSession>(
-          create: (_) => LearningMemberSession(),
-        ),
         // 공개 Client
         Provider<AuthApiService>(create: (_) => AuthApiService(movieApiClient)),
         Provider<SignUpService>(create: (_) => SignUpService(movieApiClient)),
-        Provider<RatingApiService>(
-          create: (_) => RatingApiService(movieApiClient),
-        ),
         // 보호 Client
         Provider<MemberApiService>(
           create: (_) => MemberApiService(authMovieApiClient),
+        ),
+        // 평점 조회는 공개용, 등록·수정·삭제는 보호용 Client로 보냅니다.
+        Provider<RatingApiService>(
+          create: (_) => RatingApiService(movieApiClient, authMovieApiClient),
         ),
         Provider<TmdbMovieService>(
           create: (_) => TmdbMovieService(createTmdbClient()),
@@ -57,6 +55,10 @@ class MovieLogApp extends StatelessWidget {
             context.read<MemberApiService>(),
             context.read<TokenStorage>(),
           ),
+        ),
+        // 이번 로그인 세션에서 등록한 평점. 세션이 바뀌면 스스로 비웁니다.
+        ChangeNotifierProvider<SessionRatings>(
+          create: (context) => SessionRatings(context.read<AuthViewModel>()),
         ),
       ],
       child: const _MovieLogRouterApp(),

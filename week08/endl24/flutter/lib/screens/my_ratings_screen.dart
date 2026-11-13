@@ -7,7 +7,6 @@ import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
-import 'package:movielog/widgets/movie_list_error.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';
@@ -35,43 +34,44 @@ class MyRatingsScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, MyRatingsViewModel viewModel) {
-    return switch (viewModel.status) {
-      MyRatingsLoadStatus.idle || MyRatingsLoadStatus.loading => const Center(
-        child: CircularProgressIndicator(),
+    // v7에는 토큰으로 내 평점 전체를 받는 API가 없어 이번 로그인에서 등록한 평점만 보여줘요.
+    const notice = Padding(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Text(
+        '이번 로그인에서 등록한 평점만 보여요. 로그아웃하거나 앱을 다시 실행하면 목록이 비워져요.',
+        style: AppTextStyles.bodySmall,
       ),
-      // 저장 후 재조회만 실패했다면 그 안내를, 아니면 조회 실패 문구를 보여줘요.
-      MyRatingsLoadStatus.error => MovieListError(
-        message: viewModel.refreshWarning ?? viewModel.message,
-        onRetry: viewModel.load,
-      ),
-      MyRatingsLoadStatus.empty => const Center(child: Text('아직 등록한 평점이 없어요.')),
-      MyRatingsLoadStatus.success => Column(
+    );
+    if (viewModel.ratings.isEmpty) {
+      return const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 영화 정보 일부를 못 가져왔을 때의 안내
-          if (viewModel.message != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Text(viewModel.message!, style: AppTextStyles.bodySmall),
-            ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: viewModel.ratings.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final entry = viewModel.ratings[index];
-                return _RatingCard(
-                  entry: entry,
-                  onEdit: () => _onEditPressed(context, entry),
-                  onDelete: () => _onDeletePressed(context, entry),
-                );
-              },
-            ),
-          ),
+          notice,
+          Expanded(child: Center(child: Text('이번 로그인에서 등록한 평점이 없어요.'))),
         ],
-      ),
-    };
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        notice,
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: viewModel.ratings.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final entry = viewModel.ratings[index];
+              return _RatingCard(
+                entry: entry,
+                onEdit: () => _onEditPressed(context, entry),
+                onDelete: () => _onDeletePressed(context, entry),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _onEditPressed(
@@ -101,7 +101,7 @@ class MyRatingsScreen extends StatelessWidget {
         },
       ),
     );
-    // 성공하면 updateRating 안에서 목록을 다시 불러오므로 따로 할 일이 없어요.
+    // 성공하면 updateRating이 수정 결과로 목록 카드를 바로 바꿔요.
   }
 
   Future<void> _onDeletePressed(
@@ -116,7 +116,7 @@ class MyRatingsScreen extends StatelessWidget {
         onConfirm: () => viewModel.deleteRating(entry.rating.ratingId),
       ),
     );
-    // 삭제에 성공하면 deleteRating 안에서 목록을 다시 불러와요.
+    // 삭제에 성공하면 deleteRating이 목록에서 바로 빼요.
   }
 }
 

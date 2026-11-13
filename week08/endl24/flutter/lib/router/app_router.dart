@@ -14,13 +14,12 @@ import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
+import 'package:movielog/view_models/session_ratings.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
-import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:provider/provider.dart';
 
 /// 인증 상태와 이동하려는 경로를 보고, 다른 경로로 보내야 하면 그 경로를 돌려줍니다.
@@ -105,28 +104,15 @@ class AppRouter {
               GoRoute(
                 path: 'ratings', // 최종 경로: /my/ratings
                 parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) {
-                  final memberId =
-                      context.read<LearningMemberSession>().memberId;
-                  if (memberId == null) {
-                    return Scaffold(
-                      appBar: CommonAppBar(
-                        title: '내가 등록한 평점',
-                        centerTitle: true,
-                        onBack: () => context.pop(),
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MyRatingsViewModel>(
+                      create: (context) => MyRatingsViewModel(
+                        context.read<RatingApiService>(),
+                        context.read<SessionRatings>(),
+                        context.read<AuthViewModel>(),
                       ),
-                      body: const Center(child: Text('학습용 회원가입이 필요합니다.')),
-                    );
-                  }
-                  return ChangeNotifierProvider<MyRatingsViewModel>(
-                    create: (context) => MyRatingsViewModel(
-                      context.read<RatingApiService>(),
-                      context.read<TmdbMovieService>(),
-                      memberId,
-                    )..load(),
-                    child: const MyRatingsScreen(),
-                  );
-                },
+                      child: const MyRatingsScreen(),
+                    ),
               ),
             ],
           ),
@@ -142,7 +128,8 @@ class AppRouter {
           return ChangeNotifierProvider<MovieDetailViewModel>(
             create: (context) => MovieDetailViewModel(
               context.read<RatingApiService>(),
-              context.read<LearningMemberSession>().memberId,
+              context.read<AuthViewModel>(),
+              context.read<SessionRatings>(),
               extra,
             ),
             child: MovieDetailScreen(movie: extra),

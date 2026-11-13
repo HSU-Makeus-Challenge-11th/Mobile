@@ -48,11 +48,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Future<void> _openRatingDialog(TmdbMovieDto movie) async {
     final viewModel = context.read<MovieDetailViewModel>();
-    if (viewModel.memberId == null) {
-      // 가입한 회원이 없으면 Dialog를 열지 않고 안내만 합니다.
-      _showSnackBar('먼저 회원가입을 완료해 주세요.');
-      return;
-    }
 
     final saved = await showDialog<bool>(
       context: context,
