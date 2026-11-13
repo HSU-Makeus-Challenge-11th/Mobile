@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 
-/// 회원가입 화면 하단의 로그인 안내. 2주차에는 로그인 화면이 없어 동작은 넣지 않는다.
+/// 회원가입 화면 하단의 로그인 안내. 회원가입은 로그인 화면에서 push로 열리므로 닫아서 돌아갑니다.
 class LoginPrompt extends StatelessWidget {
   const LoginPrompt({super.key});
 
@@ -16,7 +17,8 @@ class LoginPrompt extends StatelessWidget {
           style: AppTextStyles.bodySmall.copyWith(color: AppColors.grayDark),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/login'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.violet,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

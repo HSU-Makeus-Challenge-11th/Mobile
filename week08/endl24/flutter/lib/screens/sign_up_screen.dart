@@ -270,8 +270,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final memberId = viewModel.createdMemberId;
     if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
+      // 내 평점 목록이 아직 memberId로 조회하므로 평점 v7 전환 전까지 유지합니다.
       context.read<LearningMemberSession>().setMemberId(memberId);
-      context.go('/movies');
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('회원가입이 완료됐어요. 로그인해 주세요.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      context.pop(); // 회원가입은 로그인 화면에서 push로 열립니다.
       return;
     }
     final message = viewModel.snackbarMessage;
