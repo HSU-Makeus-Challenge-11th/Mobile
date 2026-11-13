@@ -158,6 +158,11 @@ class AuthViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// 사용자가 직접 누른 로그아웃입니다. 저장된 토큰과 내 정보를 지우고 signedOut이 되며,
+  /// Router가 /login으로 보냅니다. 만료 Snackbar는 켜지 않습니다.
+  /// 서버의 토큰을 즉시 폐기하는 것은 아니고, 이 기기의 세션만 비웁니다.
+  Future<void> logout() => _clearCurrentSession(expired: false);
+
   /// 다른 ViewModel이 보호 요청에서 AUTH401_2/3/4를 받았을 때 세션 정리를 요청합니다.
   /// _clearCurrentSession()은 private이라 이 공개 메서드를 통해 부릅니다.
   Future<void> expireSession() => _clearCurrentSession(expired: true);

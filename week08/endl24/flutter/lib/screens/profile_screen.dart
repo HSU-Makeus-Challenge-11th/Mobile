@@ -21,7 +21,16 @@ class ProfileScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: const CommonAppBar(title: '내 프로필'),
+      appBar: CommonAppBar(
+        title: '내 프로필',
+        actions: [
+          TextButton(
+            // 토큰과 내 정보를 지우면 Router가 /login으로 보냅니다.
+            onPressed: () => context.read<AuthViewModel>().logout(),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
