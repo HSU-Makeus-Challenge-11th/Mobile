@@ -23,11 +23,37 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
+  late final AuthViewModel _auth;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthViewModel>();
+    // 화면이 열려 있는 동안 세션이 만료되는 경우
+    _auth.addListener(_showSessionExpired);
+    // 이미 만료된 상태로 이 화면이 처음 열리는 경우(Router가 /login으로 보낸 직후)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showSessionExpired());
+  }
+
+  /// 만료로 로그아웃된 경우에만 한 번 안내합니다.
+  /// 직접 로그아웃·로그인 실패(AUTH401_1)는 sessionExpired가 false라 띄우지 않습니다.
+  void _showSessionExpired() {
+    if (!mounted || !_auth.sessionExpired) return;
+    _auth.consumeSessionExpired(); // 먼저 끄고 띄워야 반복되지 않습니다.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('로그인이 만료됐어요. 다시 로그인해 주세요.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     FocusScope.of(context).unfocus();
-    context.read<AuthViewModel>().login(
+    _auth.login(
       _emailController.text.trim(),
       _passwordController.text,
     );
@@ -35,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _auth.removeListener(_showSessionExpired);
     _emailController.dispose();
     _passwordController.dispose();
     _passwordFocusNode.dispose();
