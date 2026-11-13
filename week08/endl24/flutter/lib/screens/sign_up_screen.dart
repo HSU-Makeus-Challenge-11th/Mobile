@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
@@ -268,10 +267,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
     if (!mounted) return; // 요청 중 화면을 떠났다면 결과를 반영하지 않습니다.
 
-    final memberId = viewModel.createdMemberId;
-    if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
-      // 내 평점 목록이 아직 memberId로 조회하므로 평점 v7 전환 전까지 유지합니다.
-      context.read<LearningMemberSession>().setMemberId(memberId);
+    if (viewModel.submitStatus == SubmitStatus.success) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
