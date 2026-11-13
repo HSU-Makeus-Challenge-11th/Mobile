@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 
+/// 앱 시작 스플래시입니다. 1주차 시작 화면 레이아웃을 그대로 쓰고,
+/// 하단 '시작하기' 버튼 자리에 세션 확인 중(로딩) / 확인 실패(다시 시도)를 보여줍니다.
 class StartScreen extends StatelessWidget {
-  const StartScreen({super.key});
+  const StartScreen({super.key, this.message, this.onRetry});
+
+  final String? message;
+  final VoidCallback? onRetry; // null이면 확인 중, 있으면 재시도 상태입니다.
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +20,7 @@ class StartScreen extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'FLUTTER 1주차',
+                'FLUTTER 8주차',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -52,25 +57,25 @@ class StartScreen extends StatelessWidget {
                 ),
               ),
               Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/signup'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.violetDark,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    '시작하기',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+              if (onRetry == null)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: CircularProgressIndicator(color: AppColors.violet),
+                )
+              else ...[
+                Text(
+                  message ?? '로그인 상태를 확인하지 못했어요.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: AppColors.grayDark),
                 ),
-              ),
+                const SizedBox(height: 16),
+                MovieLogButton(
+                  label: '다시 시도',
+                  width: double.infinity,
+                  height: 56,
+                  onPressed: onRetry,
+                ),
+              ],
             ],
           ),
         ),
