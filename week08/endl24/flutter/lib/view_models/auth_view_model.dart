@@ -158,6 +158,13 @@ class AuthViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// 프로필 수정 성공 응답으로 메모리의 내 정보를 바꿉니다. GET me를 다시 부르지 않습니다.
+  void updateMember(MemberInfo updated) {
+    if (_disposed || status != AuthStatus.signedIn) return;
+    member = updated;
+    _notify();
+  }
+
   /// 사용자가 직접 누른 로그아웃입니다. 저장된 토큰과 내 정보를 지우고 signedOut이 되며,
   /// Router가 /login으로 보냅니다. 만료 Snackbar는 켜지 않습니다.
   /// 서버의 토큰을 즉시 폐기하는 것은 아니고, 이 기기의 세션만 비웁니다.

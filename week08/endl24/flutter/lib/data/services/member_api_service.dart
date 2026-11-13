@@ -10,4 +10,13 @@ class MemberApiService {
     final response = await _authDio.get('/v7/members/me');
     return parseMemberInfo(response.data);
   }
+
+  /// 닉네임만 바꿀 수 있습니다. 성공 result는 수정된 내 정보 전체입니다.
+  Future<MemberInfo> updateNickname(String nickname) async {
+    final response = await _authDio.patch(
+      '/v7/members/me',
+      data: {'nickname': nickname},
+    );
+    return parseMemberInfo(response.data);
+  }
 }
