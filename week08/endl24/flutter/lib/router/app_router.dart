@@ -46,6 +46,30 @@ String? authRedirect(AuthStatus status, String location) {
   };
 }
 
+/// AuthViewModel의 알림 중 로그인 상태(status)가 바뀐 경우만 Router에 전달합니다.
+/// 내 정보 수정처럼 status는 그대로인 알림까지 Router가 다시 계산하면,
+/// 바로 뒤에 실행한 화면 이동(pop)이 이전 위치로 되돌려질 수 있습니다.
+class AuthStatusListenable extends ChangeNotifier {
+  AuthStatusListenable(this._auth) : _status = _auth.status {
+    _auth.addListener(_onAuthChanged);
+  }
+
+  final AuthViewModel _auth;
+  AuthStatus _status;
+
+  void _onAuthChanged() {
+    if (_auth.status == _status) return;
+    _status = _auth.status;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+}
+
 class AppRouter {
   AppRouter._();
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -53,7 +77,8 @@ class AppRouter {
   static GoRouter createRouter(AuthViewModel authViewModel) => GoRouter(
     initialLocation: '/start',
     navigatorKey: rootNavigatorKey,
-    refreshListenable: authViewModel, // 인증 상태가 바뀌면 redirect를 다시 실행합니다.
+    // 로그인 상태(status)가 바뀔 때만 redirect를 다시 실행합니다.
+    refreshListenable: AuthStatusListenable(authViewModel),
     redirect: (context, state) =>
         authRedirect(authViewModel.status, state.uri.path),
     routes: [
