@@ -158,6 +158,10 @@ class AuthViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// 다른 ViewModel이 보호 요청에서 AUTH401_2/3/4를 받았을 때 세션 정리를 요청합니다.
+  /// _clearCurrentSession()은 private이라 이 공개 메서드를 통해 부릅니다.
+  Future<void> expireSession() => _clearCurrentSession(expired: true);
+
   /// 현재 세션을 끝냅니다: 버전 증가 → 메모리 정리 → signedOut → 저장된 토큰 삭제.
   /// 화면 이동은 하지 않습니다. signedOut이 되면 Router가 /login으로 보냅니다.
   Future<void> _clearCurrentSession({required bool expired}) async {
