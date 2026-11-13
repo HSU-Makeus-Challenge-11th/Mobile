@@ -4,6 +4,7 @@ import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/screens/home_screen.dart';
+import 'package:movielog/screens/login_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
 import 'package:movielog/screens/movie_list_screen.dart';
@@ -12,6 +13,7 @@ import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
@@ -21,14 +23,52 @@ import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
 import 'package:provider/provider.dart';
 
+/// 인증 상태와 이동하려는 경로를 보고, 다른 경로로 보내야 하면 그 경로를 돌려줍니다.
+/// 상태만 읽고 판단합니다. API 호출 같은 비동기 작업은 하지 않습니다.
+String? authRedirect(AuthStatus status, String location) {
+  const publicPaths = {'/login', '/signup'};
+  final atStart = location == '/start';
+  final atPublic = publicPaths.contains(location);
+
+  return switch (status) {
+    // 토큰 확인 중 또는 확인 실패(재시도 버튼): 스플래시 유지
+    AuthStatus.initializing || AuthStatus.retryRequired =>
+      atStart ? null : '/start',
+    // 로그아웃 또는 로그인 요청 중: 로그인·회원가입만 허용
+    AuthStatus.signedOut || AuthStatus.authenticating =>
+      atPublic ? null : '/login',
+    // 로그인됨: 스플래시·로그인·회원가입은 홈으로
+    AuthStatus.signedIn => (atStart || atPublic) ? '/home' : null,
+  };
+}
+
 class AppRouter {
   AppRouter._();
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final GoRouter router = GoRouter(
+
+  static GoRouter createRouter(AuthViewModel authViewModel) => GoRouter(
     initialLocation: '/start',
     navigatorKey: rootNavigatorKey,
+    refreshListenable: authViewModel, // 인증 상태가 바뀌면 redirect를 다시 실행합니다.
+    redirect: (context, state) =>
+        authRedirect(authViewModel.status, state.uri.path),
     routes: [
-      GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
+      GoRoute(
+        path: '/start', // 스플래시: 토큰 확인 중 / 확인 실패 시 재시도
+        builder: (context, state) {
+          final auth = context.watch<AuthViewModel>();
+          return StartScreen(
+            message: auth.message,
+            onRetry: auth.status == AuthStatus.retryRequired
+                ? auth.restoreSession
+                : null,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
       GoRoute(
         path: '/signup',
         builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
