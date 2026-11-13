@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 
+/// 마이페이지 상단 프로필입니다. 닉네임과 이메일은 GET me로 받은 내 정보입니다.
 class ProfileHeader extends StatelessWidget {
-  const new({super.key});
+  const new({super.key, required this.nickname, required this.email});
+
+  final String nickname;
+  final String email;
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +29,10 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
         ),
-        Text('무비러버', style: AppTextStyles.titleLarge),
+        Text(nickname, style: AppTextStyles.titleLarge),
         const SizedBox(height: 8),
         Text(
-          '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
+          email,
           textAlign: TextAlign.center,
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grayDark),
         ),
