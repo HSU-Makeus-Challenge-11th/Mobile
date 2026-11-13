@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/member_info.dart';
+import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/common_app_bar.dart';
@@ -15,10 +18,40 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // member가 바뀔 때만 다시 그립니다(닉네임 수정 후 바로 반영).
-    final member = context.select<AuthViewModel, MemberInfo?>(
-      (auth) => auth.member,
-    );
+    // 내 정보와 그 로딩 상태가 바뀔 때만 다시 그립니다(닉네임 수정 후 바로 반영).
+    final (member, memberStatus) = context
+        .select<AuthViewModel, (MemberInfo?, MemberLoadStatus)>(
+          (auth) => (auth.member, auth.memberStatus),
+        );
+
+    // MainScreen이 시작한 내 정보 로딩이 끝나기 전·실패했을 때는 화면 전체를 상태 화면으로 바꿉니다.
+    if (member == null) {
+      return Scaffold(
+        appBar: const CommonAppBar(title: '내 프로필'),
+        body: Center(
+          child: memberStatus == MemberLoadStatus.error
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '내 정보를 불러오지 못했어요.',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.grayDark,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    MovieLogButton(
+                      label: '다시 시도',
+                      width: 180,
+                      onPressed: () =>
+                          context.read<AuthViewModel>().loadMember(force: true),
+                    ),
+                  ],
+                )
+              : const CircularProgressIndicator(color: AppColors.violet),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -37,15 +70,10 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ProfileHeader(
-                nickname: member?.nickname ?? '내 정보를 불러오는 중이에요',
-                email: member?.email ?? '',
-              ),
+              ProfileHeader(nickname: member.nickname, email: member.email),
               const SizedBox(height: 24),
               EditProfileButton(
-                onPressed: member == null
-                    ? null
-                    : () => context.push('/my/profile/edit'),
+                onPressed: () => context.push('/my/profile/edit'),
               ),
               const SizedBox(height: 24),
               const ProfileStats(),
