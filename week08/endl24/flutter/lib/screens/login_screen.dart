@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/services/email_preference.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
@@ -24,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
   late final AuthViewModel _auth;
+  final _emailPreference = EmailPreference();
+  bool _rememberEmail = false;
 
   @override
   void initState() {
@@ -33,6 +36,23 @@ class _LoginScreenState extends State<LoginScreen> {
     _auth.addListener(_showSessionExpired);
     // 이미 만료된 상태로 이 화면이 처음 열리는 경우(Router가 /login으로 보낸 직후)
     WidgetsBinding.instance.addPostFrameCallback((_) => _showSessionExpired());
+    _loadSavedEmail();
+  }
+
+  /// 저장된 이메일이 있으면 이메일 칸을 채우고 체크박스를 켭니다.
+  Future<void> _loadSavedEmail() async {
+    try {
+      final saved = await _emailPreference.read();
+      if (!mounted || saved == null || saved.isEmpty) return;
+      // 그사이 사용자가 직접 입력했다면 덮어쓰지 않습니다.
+      if (_emailController.text.isNotEmpty) return;
+      setState(() {
+        _emailController.text = saved;
+        _rememberEmail = true;
+      });
+    } catch (_) {
+      // 저장소를 읽지 못해도 로그인은 그대로 할 수 있습니다.
+    }
   }
 
   /// 만료로 로그아웃된 경우에만 한 번 안내합니다.
@@ -50,13 +70,20 @@ class _LoginScreenState extends State<LoginScreen> {
       );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     FocusScope.of(context).unfocus();
-    _auth.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    final email = _emailController.text.trim();
+    final remember = _rememberEmail;
+    await _auth.login(email, _passwordController.text);
+    // 로그인에 성공했을 때만 체크 상태에 맞춰 이메일을 저장하거나 지웁니다.
+    // 성공하면 Router가 화면을 바꾸므로 여기서는 context를 쓰지 않습니다.
+    if (_auth.status != AuthStatus.signedIn) return;
+    try {
+      await _emailPreference.save(remember ? email : null);
+    } catch (_) {
+      // 이메일 저장 실패는 로그인 결과에 영향을 주지 않습니다.
+    }
   }
 
   @override
@@ -129,7 +156,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (enabled) _submit();
                   },
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 12),
+                // 이메일만 기억합니다. 비밀번호와 토큰은 저장하지 않습니다.
+                InkWell(
+                  onTap: enabled
+                      ? () => setState(() => _rememberEmail = !_rememberEmail)
+                      : null,
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _rememberEmail,
+                        activeColor: AppColors.violet,
+                        onChanged: enabled
+                            ? (value) => setState(
+                                () => _rememberEmail = value ?? false,
+                              )
+                            : null,
+                      ),
+                      Text('이메일 저장', style: AppTextStyles.bodyMedium),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 MovieLogButton(
                   label: '로그인',
                   width: double.infinity,
