@@ -70,7 +70,11 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ProfileHeader(nickname: member.nickname, email: member.email),
+              ProfileHeader(
+                nickname: member.nickname,
+                email: member.email,
+                joinedAt: member.createdAt,
+              ),
               const SizedBox(height: 24),
               EditProfileButton(
                 onPressed: () => context.push('/my/profile/edit'),
