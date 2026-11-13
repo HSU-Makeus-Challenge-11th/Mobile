@@ -17,66 +17,71 @@ class StartScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Text(
-                'FLUTTER 8주차',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 1,
-                  color: AppColors.grayDark,
-                ),
-              ),
-              SizedBox(height: 64),
-              SvgPicture.asset(
-                'assets/logos/movielog_logo.svg',
-                width: 72,
-                height: 72,
-                semanticsLabel: 'MovieLog 로고',
-              ),
-              SizedBox(height: 24),
-              Text(
-                '영화의 순간을\n기록하세요',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
-                  color: AppColors.black,
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.4,
-                  color: AppColors.grayDark,
-                ),
-              ),
-              Spacer(),
-              if (onRetry == null)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 16),
-                  child: CircularProgressIndicator(color: AppColors.violet),
-                )
-              else ...[
+          // 하단에 화면 너비를 채우는 버튼이 없을 때(로딩 중)도 가운데 정렬되도록
+          // Column 너비를 화면 너비로 고정합니다.
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
                 Text(
-                  message ?? '로그인 상태를 확인하지 못했어요.',
+                  'FLUTTER 8주차',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1,
+                    color: AppColors.grayDark,
+                  ),
+                ),
+                SizedBox(height: 64),
+                SvgPicture.asset(
+                  'assets/logos/movielog_logo.svg',
+                  width: 72,
+                  height: 72,
+                  semanticsLabel: 'MovieLog 로고',
+                ),
+                SizedBox(height: 24),
+                Text(
+                  '영화의 순간을\n기록하세요',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: AppColors.grayDark),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    height: 1.3,
+                    color: AppColors.black,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                MovieLogButton(
-                  label: '다시 시도',
-                  width: double.infinity,
-                  height: 56,
-                  onPressed: onRetry,
+                SizedBox(height: 16),
+                Text(
+                  '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.4,
+                    color: AppColors.grayDark,
+                  ),
                 ),
+                Spacer(),
+                if (onRetry == null)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: CircularProgressIndicator(color: AppColors.violet),
+                  )
+                else ...[
+                  Text(
+                    message ?? '로그인 상태를 확인하지 못했어요.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: AppColors.grayDark),
+                  ),
+                  const SizedBox(height: 16),
+                  MovieLogButton(
+                    label: '다시 시도',
+                    width: double.infinity,
+                    height: 56,
+                    onPressed: onRetry,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
