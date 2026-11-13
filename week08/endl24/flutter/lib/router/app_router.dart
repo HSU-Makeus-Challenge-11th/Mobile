@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
+import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
+import 'package:movielog/screens/edit_profile_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/login_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
@@ -14,12 +16,15 @@ import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/view_models/edit_profile_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/view_models/session_ratings.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
+import 'package:movielog/widgets/common_app_bar.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 import 'package:provider/provider.dart';
 
 /// 인증 상태와 이동하려는 경로를 보고, 다른 경로로 보내야 하면 그 경로를 돌려줍니다.
@@ -113,6 +118,38 @@ class AppRouter {
                       ),
                       child: const MyRatingsScreen(),
                     ),
+              ),
+              GoRoute(
+                path: 'profile/edit', // 최종 경로: /my/profile/edit
+                parentNavigatorKey: rootNavigatorKey, // 하단 탭 없이 전체 화면
+                builder: (context, state) {
+                  final auth = context.watch<AuthViewModel>();
+                  if (auth.member == null) {
+                    // 내 정보를 아직 못 불러왔으면 로딩 또는 재시도를 보여줍니다.
+                    return Scaffold(
+                      appBar: CommonAppBar(
+                        title: '프로필 수정',
+                        centerTitle: true,
+                        onBack: () => context.pop(),
+                      ),
+                      body: Center(
+                        child: auth.memberStatus == MemberLoadStatus.error
+                            ? MovieLogButton(
+                                label: '다시 시도',
+                                onPressed: () => auth.loadMember(force: true),
+                              )
+                            : const CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return ChangeNotifierProvider<EditProfileViewModel>(
+                    create: (context) => EditProfileViewModel(
+                      context.read<MemberApiService>(),
+                      auth,
+                    ),
+                    child: const EditProfileScreen(),
+                  );
+                },
               ),
             ],
           ),

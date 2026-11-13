@@ -42,7 +42,11 @@ class ProfileScreen extends StatelessWidget {
                 email: member?.email ?? '',
               ),
               const SizedBox(height: 24),
-              const EditProfileButton(),
+              EditProfileButton(
+                onPressed: member == null
+                    ? null
+                    : () => context.push('/my/profile/edit'),
+              ),
               const SizedBox(height: 24),
               const ProfileStats(),
               const SizedBox(height: 24),

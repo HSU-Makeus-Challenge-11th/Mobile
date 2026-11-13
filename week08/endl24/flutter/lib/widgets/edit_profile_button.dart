@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// 프로필 수정 버튼. 1주차에는 모양만 구현하고 실제 동작은 넣지 않는다.
+/// 프로필 수정 버튼. onPressed가 null이면(내 정보를 아직 못 불러왔을 때) 비활성화됩니다.
 class EditProfileButton extends StatelessWidget {
-  const EditProfileButton({super.key});
+  const EditProfileButton({super.key, required this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.white,
           foregroundColor: AppColors.violet,
