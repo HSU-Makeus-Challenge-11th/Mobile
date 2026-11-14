@@ -1,11 +1,14 @@
 package com.umc.movie.controller;
 
+import com.umc.movie.config.OpenApiConfig;
 import com.umc.movie.dto.ApiResponse;
 import com.umc.movie.dto.CreateRatingRequest;
 import com.umc.movie.dto.RatingResponse;
 import com.umc.movie.dto.UpdateRatingRequest;
 import com.umc.movie.interceptor.AuthInterceptor;
 import com.umc.movie.service.RatingService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "평점", description = "유저별 평점 조회는 토큰 없이, 등록·수정·삭제는 토큰으로 호출합니다.")
 @RestController
 @RequiredArgsConstructor
 public class RatingController {
@@ -25,6 +29,7 @@ public class RatingController {
     }
 
     // 경로에서 /members/{memberId}가 사라지고 memberId는 인터셉터가 담아둔 값을 씁니다
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH) // Swagger에 "토큰 필요"로 표시
     @PostMapping("/ratings")
     public ResponseEntity<ApiResponse<RatingResponse>> create(
             @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,
@@ -35,6 +40,7 @@ public class RatingController {
                 .body(ApiResponse.created("평점을 등록했습니다.", response));
     }
 
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH) // Swagger에 "토큰 필요"로 표시
     @PatchMapping("/ratings/{ratingId}")
     public ResponseEntity<ApiResponse<RatingResponse>> update(
             @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,
@@ -45,6 +51,7 @@ public class RatingController {
         return ResponseEntity.ok(ApiResponse.ok("평점을 수정했습니다.", response));
     }
 
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH) // Swagger에 "토큰 필요"로 표시
     @DeleteMapping("/ratings/{ratingId}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,
