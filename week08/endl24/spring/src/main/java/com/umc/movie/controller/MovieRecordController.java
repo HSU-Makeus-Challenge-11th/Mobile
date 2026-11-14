@@ -1,5 +1,6 @@
 package com.umc.movie.controller;
 
+import com.umc.movie.controller.docs.MovieRecordApiDocs;
 import com.umc.movie.dto.ApiResponse;
 import com.umc.movie.dto.CreateMovieRecordRequest;
 import com.umc.movie.dto.MovieRecordResponse;
@@ -15,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class MovieRecordController {
+public class MovieRecordController implements MovieRecordApiDocs {
     private final MovieRecordService movieRecordService;
 
+    @Override
     @PostMapping("/movie-records")
     public ResponseEntity<ApiResponse<MovieRecordResponse>> create(
             @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,
