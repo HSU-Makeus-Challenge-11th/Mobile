@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MovieLog API 연결 확인</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, Pretendard, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #08111f; color: #f7f9fc; }
+    main { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0; }
+    header { margin-bottom: 30px; }
+    h1 { margin: 0 0 8px; font-size: clamp(30px, 5vw, 48px); }
+    header p { margin: 0; color: #9fb0c8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
+    .card { padding: 22px; border: 1px solid #20334d; border-radius: 18px; background: #0e1b2e; box-shadow: 0 14px 40px #0005; }
+    h2 { margin-top: 0; font-size: 18px; }
+    label { display: block; margin-bottom: 8px; color: #b9c6d8; font-size: 14px; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid #304865; border-radius: 10px; background: #07111f; color: white; }
+    button { width: 100%; margin-top: 10px; padding: 12px; border: 0; border-radius: 10px; background: #3978ff; color: white; font-weight: 700; cursor: pointer; }
+    button:hover { background: #5b91ff; }
+    pre { min-height: 86px; margin: 14px 0 0; padding: 12px; overflow: auto; border-radius: 10px; background: #07111f; color: #8ee6b1; white-space: pre-wrap; }
+    .wide { grid-column: 1 / -1; }
+    .status { display: inline-flex; margin-top: 14px; padding: 6px 10px; border-radius: 999px; background: #173253; color: #a9cfff; font-size: 12px; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>MovieLog API</h1>
+    <p>Spring Boot 백엔드의 닉네임·이메일·평점 API 연결을 확인합니다.</p>
+    <span class="status">API: http://localhost:8080</span>
+  </header>
+  <section class="grid">
+    <article class="card">
+      <h2>닉네임 중복 확인</h2>
+      <label for="nickname">닉네임</label>
+      <input id="nickname" value="수현" minlength="2" maxlength="12">
+      <button data-action="nickname">확인하기</button>
+      <pre id="nickname-result">결과 대기 중</pre>
+    </article>
+    <article class="card">
+      <h2>이메일 중복 확인</h2>
+      <label for="email">이메일</label>
+      <input id="email" type="email" value="noco@umc.com">
+      <button data-action="email">확인하기</button>
+      <pre id="email-result">결과 대기 중</pre>
+    </article>
+    <article class="card wide">
+      <h2>회원별 평점 조회</h2>
+      <label for="member-id">회원 ID</label>
+      <input id="member-id" type="number" min="1" value="1">
+      <button data-action="ratings">최신순 평점 불러오기</button>
+      <pre id="ratings-result">결과 대기 중</pre>
+    </article>
+  </section>
+</main>
+<script>
+  const API = 'http://localhost:8080';
+
+  async function request(path, resultId) {
+    const output = document.getElementById(resultId);
+    output.textContent = '불러오는 중...';
+    try {
+      const response = await fetch(`${API}${path}`);
+      const body = await response.json();
+      output.textContent = `HTTP ${response.status}\n${JSON.stringify(body, null, 2)}`;
+    } catch (error) {
+      output.textContent = `요청 실패\n${error.message}`;
+    }
+  }
+
+  document.querySelector('[data-action="nickname"]').addEventListener('click', () => {
+    const value = encodeURIComponent(document.getElementById('nickname').value);
+    request(`/members/nickname/${value}`, 'nickname-result');
+  });
+  document.querySelector('[data-action="email"]').addEventListener('click', () => {
+    const value = encodeURIComponent(document.getElementById('email').value);
+    request(`/members/email/${value}`, 'email-result');
+  });
+  document.querySelector('[data-action="ratings"]').addEventListener('click', () => {
+    const value = encodeURIComponent(document.getElementById('member-id').value);
+    request(`/members/${value}/ratings`, 'ratings-result');
+  });
+</script>
+</body>
+</html>
