@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
+import 'package:movielog/view_models/session_rating_store.dart';
 import 'package:provider/provider.dart';
 
 /// 목록에서 넘긴 영화가 없으면(직접 접근·Deep Link) TMDB에서 다시 조회한다
@@ -52,7 +53,8 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
         return ChangeNotifierProvider<MovieDetailViewModel>(
           create: (context) => MovieDetailViewModel(
             context.read<RatingApiService>(),
-            context.read<LearningMemberSession>().memberId,
+            context.read<SessionRatingStore>(),
+            context.read<AuthViewModel>(),
             args.movie.id,
           ),
           child: MovieDetailScreen(args: args),

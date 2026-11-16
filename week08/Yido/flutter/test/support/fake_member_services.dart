@@ -99,40 +99,15 @@ RatingDto fakeRating(
 );
 
 class FakeRatingApiService extends RatingApiService {
-  FakeRatingApiService({this.ratings = const [], this.errorStatus})
-    : super(Dio());
-
-  List<RatingDto> ratings;
-
-  /// 0이면 응답 없는 통신 실패, 그 외에는 해당 상태 코드로 실패한다
-  int? errorStatus;
-  final memberCalls = <int>[];
-  Completer<void>? gate;
-
-  @override
-  Future<List<RatingDto>> fetchMyRatings(int memberId) async {
-    memberCalls.add(memberId);
-    await gate?.future;
-    final status = errorStatus;
-    if (status != null) {
-      final options = RequestOptions(path: '/v5/members/$memberId/ratings');
-      throw DioException(
-        requestOptions: options,
-        response: status == 0
-            ? null
-            : Response(requestOptions: options, statusCode: status),
-      );
-    }
-    return ratings;
-  }
+  FakeRatingApiService() : super(Dio(), Dio());
 
   /// 값을 넣으면 쓰기 요청이 그 상태 코드와 code로 실패한다
   ({int status, String code, String message})? writeError;
   Completer<void>? writeGate;
-  final created = <({int memberId, CreateRatingRequest request})>[];
-  final updated =
-      <({int memberId, int ratingId, int score, String? comment})>[];
-  final deleted = <({int memberId, int ratingId})>[];
+  int _nextId = 100;
+  final created = <CreateRatingRequest>[];
+  final updated = <({int ratingId, int score, String? comment})>[];
+  final deleted = <int>[];
 
   Future<void> _write(String path) async {
     await writeGate?.future;
@@ -155,36 +130,38 @@ class FakeRatingApiService extends RatingApiService {
   }
 
   @override
-  Future<void> createRating({
-    required int memberId,
-    required CreateRatingRequest request,
-  }) async {
-    created.add((memberId: memberId, request: request));
-    await _write('/v6/members/$memberId/ratings');
+  Future<RatingDto> createRating(CreateRatingRequest request) async {
+    created.add(request);
+    await _write('/v7/ratings');
+    return RatingDto(
+      ratingId: _nextId++,
+      movieId: request.movieId,
+      score: request.score,
+      comment: request.comment,
+      createdAt: DateTime(2026, 11, 16),
+    );
   }
 
   @override
-  Future<void> updateRating({
-    required int memberId,
+  Future<RatingDto> updateRating({
     required int ratingId,
     required int score,
     String? comment,
   }) async {
-    updated.add((
-      memberId: memberId,
+    updated.add((ratingId: ratingId, score: score, comment: comment));
+    await _write('/v7/ratings/$ratingId');
+    return RatingDto(
       ratingId: ratingId,
+      movieId: 550,
       score: score,
       comment: comment,
-    ));
-    await _write('/v6/members/$memberId/ratings/$ratingId');
+      createdAt: DateTime(2026, 11, 16),
+    );
   }
 
   @override
-  Future<void> deleteRating({
-    required int memberId,
-    required int ratingId,
-  }) async {
-    deleted.add((memberId: memberId, ratingId: ratingId));
-    await _write('/v6/members/$memberId/ratings/$ratingId');
+  Future<void> deleteRating(int ratingId) async {
+    deleted.add(ratingId);
+    await _write('/v7/ratings/$ratingId');
   }
 }

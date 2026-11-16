@@ -12,10 +12,11 @@ import 'package:movielog/screens/my_ratings_screen.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
+import 'package:movielog/view_models/session_rating_store.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -74,18 +75,17 @@ abstract final class AppRouter {
               GoRoute(
                 path: 'ratings', // 최종 경로: /my/ratings
                 parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) {
-                  final id = context.read<LearningMemberSession>().memberId;
-                  if (id == null) return const MemberRequiredScreen();
-                  return ChangeNotifierProvider<MyRatingsViewModel>(
-                    create: (context) => MyRatingsViewModel(
-                      context.read<RatingApiService>(),
-                      context.read<TmdbMovieService>(),
-                      id,
-                    )..load(),
-                    child: const MyRatingsScreen(),
-                  );
-                },
+                // 토큰 기반 내 평점 목록 GET이 없어 이번 세션에 등록한 평점을 보여 준다
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MyRatingsViewModel>(
+                      create: (context) => MyRatingsViewModel(
+                        context.read<RatingApiService>(),
+                        context.read<TmdbMovieService>(),
+                        context.read<SessionRatingStore>(),
+                        context.read<AuthViewModel>(),
+                      )..load(),
+                      child: const MyRatingsScreen(),
+                    ),
               ),
             ],
           ),

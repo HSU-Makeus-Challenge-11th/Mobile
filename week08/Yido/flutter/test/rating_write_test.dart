@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -9,130 +7,103 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/rating_request.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/theme/app_theme.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
+import 'package:movielog/view_models/session_rating_store.dart';
 import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/movies/rating_dialog.dart';
 
+import 'support/fake_auth_services.dart';
 import 'support/fake_member_services.dart';
-
-/// 실제 서버 대신 정해 둔 상태와 본문을 돌려주고 요청을 기록한다
-class _Adapter implements HttpClientAdapter {
-  _Adapter(this.status, [this.body]);
-  final int status;
-  final String? body;
-  RequestOptions? request;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    request = options;
-    return ResponseBody.fromString(
-      body ?? '',
-      status,
-      headers: body == null
-          ? {}
-          : {
-              Headers.contentTypeHeader: [Headers.jsonContentType],
-            },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
+import 'support/fake_token_storage.dart';
+import 'support/recording_adapter.dart';
 
 void main() {
   group('RatingApiService', () {
-    (RatingApiService, _Adapter) service(int status, [String? body]) {
-      final adapter = _Adapter(status, body);
-      final dio = Dio(BaseOptions(baseUrl: 'https://example.com'))
-        ..httpClientAdapter = adapter;
-      return (RatingApiService(dio), adapter);
+    (RatingApiService, RecordingAdapter, RecordingAdapter) service(
+      int status, [
+      Object? body,
+    ]) {
+      final public = RecordingAdapter(status, body);
+      final auth = RecordingAdapter(status, body);
+      Dio dio(RecordingAdapter adapter) =>
+          Dio(BaseOptions(baseUrl: 'https://example.com'))
+            ..httpClientAdapter = adapter;
+      return (RatingApiService(dio(public), dio(auth)), public, auth);
     }
 
-    test('create sends movieId and score to the v6 path', () async {
-      final (api, adapter) = service(
-        201,
-        jsonEncode({
-          'isSuccess': true,
-          'code': 'COMMON201',
-          'message': 'ok',
-          'result': 6,
-        }),
-      );
-      await api.createRating(
-        memberId: 4,
-        request: const CreateRatingRequest(movieId: 550, score: 5),
-      );
-      expect(adapter.request!.path, '/v6/members/4/ratings');
-      expect(adapter.request!.data, {'movieId': 550, 'score': 5});
+    final rating = {
+      'ratingId': 6,
+      'movieId': 550,
+      'score': 5,
+      'comment': null,
+      'createdAt': '2026-11-16T09:00:00.000Z',
+      'updatedAt': '2026-11-16T09:00:00.000Z',
+    };
+
+    test(
+      'create goes to /v7/ratings on the auth client without memberId',
+      () async {
+        final (api, public, auth) = service(201, ok(rating, code: 'COMMON201'));
+        final created = await api.createRating(
+          const CreateRatingRequest(movieId: 550, score: 5),
+        );
+        expect(auth.request!.path, '/v7/ratings');
+        expect(auth.request!.data, {'movieId': 550, 'score': 5});
+        expect(public.request, isNull);
+        expect(created.ratingId, 6);
+      },
+    );
+
+    test('update always sends comment and returns the rating', () async {
+      final (api, _, auth) = service(200, ok({...rating, 'score': 3}));
+      final updated = await api.updateRating(ratingId: 6, score: 3);
+      expect(auth.request!.method, 'PATCH');
+      expect(auth.request!.path, '/v7/ratings/6');
+      expect(auth.request!.data, {'score': 3, 'comment': null});
+      expect(updated.score, 3);
     });
 
-    test('update always sends comment so null stays explicit', () async {
-      final (api, adapter) = service(
-        200,
-        jsonEncode({
-          'isSuccess': true,
-          'code': 'COMMON200',
-          'message': 'ok',
-          'result': null,
-        }),
-      );
-      await api.updateRating(memberId: 4, ratingId: 6, score: 3);
-      expect(adapter.request!.method, 'PATCH');
-      expect(adapter.request!.path, '/v6/members/4/ratings/6');
-      expect(adapter.request!.data, {'score': 3, 'comment': null});
+    test('delete accepts 200 with a null result and rejects 204', () async {
+      final (api, _, auth) = service(200, ok(null));
+      await api.deleteRating(6);
+      expect(auth.request!.method, 'DELETE');
+      expect(auth.request!.path, '/v7/ratings/6');
+
+      final (oldApi, _, _) = service(204);
+      expect(oldApi.deleteRating(6), throwsStateError);
     });
 
-    test('delete accepts 204 with an empty body', () async {
-      final (api, adapter) = service(204);
-      await api.deleteRating(memberId: 4, ratingId: 6);
-      expect(adapter.request!.method, 'DELETE');
-      expect(adapter.request!.path, '/v6/members/4/ratings/6');
+    test('member ratings stay public and are a plain array', () async {
+      final (api, public, auth) = service(200, [rating]);
+      final list = await api.fetchMemberRatings(6);
+      expect(public.request!.path, '/v7/members/6/ratings');
+      expect(auth.request, isNull);
+      expect(list.single.ratingId, 6);
     });
 
-    test('error helpers read the common response', () {
-      DioException error(int status, String code, String message) {
+    test('error helpers read the domain codes', () {
+      DioException error(int status, Map<String, dynamic> body) {
         final options = RequestOptions(path: '/');
         return DioException(
           requestOptions: options,
           response: Response(
             requestOptions: options,
             statusCode: status,
-            data: {
-              'isSuccess': false,
-              'code': code,
-              'message': message,
-              'result': null,
-            },
+            data: body,
           ),
         );
       }
 
-      expect(writeErrorMessage(error(409, 'COMMON409', '중복')), '중복');
       expect(
-        shouldRefreshAfterRatingError(error(403, 'COMMON403', 'x')),
-        isTrue,
+        writeErrorMessage(error(409, failBody('RATING409_1', '이미 남김'))),
+        '이미 남김',
       );
-      expect(
-        shouldRefreshAfterRatingError(error(404, 'COMMON404', 'x')),
-        isTrue,
-      );
-      expect(
-        shouldRefreshAfterRatingError(error(400, 'COMMON400', 'x')),
-        isFalse,
-      );
-      expect(
-        shouldRefreshAfterRatingError(error(409, 'COMMON409', 'x')),
-        isFalse,
-      );
+      expect(isRatingGone(error(404, failBody('RATING404_1'))), isTrue);
+      expect(isRatingGone(error(403, failBody('RATING403_1'))), isFalse);
 
       final noBody = DioException(requestOptions: RequestOptions(path: '/'));
       expect(writeErrorMessage(noBody), contains('잠시 후'));
-      expect(shouldRefreshAfterRatingError(noBody), isFalse);
     });
   });
 
@@ -151,30 +122,54 @@ void main() {
   });
 
   group('MovieDetailViewModel', () {
-    test('no member fails without a request', () async {
-      final api = FakeRatingApiService();
-      final viewModel = MovieDetailViewModel(api, null, 550);
+    late FakeRatingApiService api;
+    late AuthViewModel auth;
+    late SessionRatingStore store;
+
+    setUp(() {
+      api = FakeRatingApiService();
+      auth = AuthViewModel(
+        FakeAuthApiService(),
+        FakeMemberApiService(),
+        FakeTokenStorage(),
+      );
+      store = SessionRatingStore(auth);
+    });
+
+    test('signed out fails without a request', () async {
+      final viewModel = MovieDetailViewModel(api, store, auth, 550);
       await viewModel.createRating(score: 5);
       expect(viewModel.submitStatus, SubmitStatus.error);
-      expect(viewModel.submitMessage, '먼저 회원가입을 완료해 주세요.');
+      expect(viewModel.submitMessage, '로그인 후 평점을 남길 수 있어요.');
       expect(api.created, isEmpty);
     });
 
-    test('sends the TMDB id and maps a 409 to its message', () async {
-      final api = FakeRatingApiService();
-      final viewModel = MovieDetailViewModel(api, 4, 550);
+    test('sends the TMDB id, keeps the result and maps 409', () async {
+      await auth.login('a@umc.com', 'Umc1234!');
+      final viewModel = MovieDetailViewModel(api, store, auth, 550);
       await viewModel.createRating(score: 5, comment: '최고');
       expect(viewModel.submitStatus, SubmitStatus.success);
-      expect(api.created.single.request.movieId, 550);
+      expect(api.created.single.movieId, 550);
+      expect(store.ratings.single.movieId, 550);
 
       api.writeError = (
         status: 409,
-        code: 'COMMON409',
+        code: 'RATING409_1',
         message: '이미 이 영화에 평점을 남기셨습니다.',
       );
       await viewModel.createRating(score: 5);
       expect(viewModel.submitStatus, SubmitStatus.error);
       expect(viewModel.submitMessage, '이미 이 영화에 평점을 남기셨습니다.');
+      expect(auth.status, AuthStatus.signedIn);
+    });
+
+    test('an expired token ends the session', () async {
+      await auth.login('a@umc.com', 'Umc1234!');
+      final viewModel = MovieDetailViewModel(api, store, auth, 550);
+      api.writeError = (status: 401, code: 'AUTH401_3', message: '무효');
+      await viewModel.createRating(score: 5);
+      expect(auth.status, AuthStatus.signedOut);
+      expect(auth.sessionExpired, isTrue);
     });
   });
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -27,11 +26,8 @@ void main() {
           child: child!,
         ),
         home: ChangeNotifierProvider(
-          create: (_) => LearningMemberSession(),
-          child: ChangeNotifierProvider(
-            create: (_) => SignUpViewModel(service),
-            child: const SignUpScreen(),
-          ),
+          create: (_) => SignUpViewModel(service),
+          child: const SignUpScreen(),
         ),
       ),
     );

@@ -6,7 +6,6 @@ import 'package:movielog/data/models/create_member_request.dart';
 import 'package:movielog/sign_up_validators.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/back_arrow_icon.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/signup/sign_up_actions.dart';
@@ -72,7 +71,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
-    final session = context.read<LearningMemberSession>();
     final messenger = ScaffoldMessenger.of(context);
 
     await viewModel.submit(
@@ -86,7 +84,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final memberId = viewModel.createdMemberId;
     if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
-      session.setMemberId(memberId);
       messenger.showSnackBar(
         SnackBar(content: Text('회원가입을 완료했습니다. (memberId: $memberId)')),
       );

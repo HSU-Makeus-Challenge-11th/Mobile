@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/submit_status.dart';
 import 'package:movielog/widgets/movies/rating_dialog.dart';
@@ -52,7 +52,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
-          content: Text('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.'),
+          content: Text('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 수정·삭제할 수 있습니다.'),
         ),
       );
   }
@@ -61,8 +61,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   Widget build(BuildContext context) {
     final args = widget.args;
     final movie = args.movie;
-    final hasMember = context.select<MovieDetailViewModel, bool>(
-      (viewModel) => viewModel.memberId != null,
+    final signedIn = context.select<AuthViewModel, bool>(
+      (auth) => auth.status == AuthStatus.signedIn,
     );
     return Scaffold(
       appBar: AppBar(
@@ -221,7 +221,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!hasMember) const _SignUpRequiredBanner(),
           Container(
             height: 81,
             padding: const EdgeInsets.all(16),
@@ -262,7 +261,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                       height: 48,
                       child: FilledButton.icon(
                         key: const Key('openRatingButton'),
-                        onPressed: hasMember ? _openRatingDialog : null,
+                        onPressed: signedIn ? _openRatingDialog : null,
                         icon: const Icon(Icons.star, size: 20),
                         label: const Text('평점 남기기'),
                       ),
@@ -276,36 +275,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       ),
     );
   }
-}
-
-/// memberId가 없으면 평점을 등록할 수 없으므로 학습용 회원가입으로 안내한다
-class _SignUpRequiredBanner extends StatelessWidget {
-  const _SignUpRequiredBanner();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    color: const Color(0xFFFAF9F5),
-    padding: const EdgeInsets.fromLTRB(16, 4, 8, 0),
-    child: Row(
-      children: [
-        const Expanded(
-          child: Text(
-            '평점을 남기려면 학습용 회원가입이 필요합니다.',
-            style: TextStyle(
-              fontSize: 13,
-              height: 18 / 13,
-              color: Color(0xFF494551),
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => context.push('/register'),
-          child: const Text('회원가입'),
-        ),
-      ],
-    ),
-  );
 }
 
 class _GenreChip extends StatelessWidget {

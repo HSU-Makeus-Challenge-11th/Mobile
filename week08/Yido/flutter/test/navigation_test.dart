@@ -6,17 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/app/movie_log_app.dart';
 import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/router/app_router.dart';
-import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/view_models/session_rating_store.dart';
 import 'package:movielog/widgets/back_arrow_icon.dart';
 import 'package:provider/provider.dart';
 
+import 'support/fake_auth_services.dart';
 import 'support/fake_member_services.dart';
+import 'support/fake_token_storage.dart';
 import 'support/fake_tmdb_movie_service.dart';
 
 Widget app({FakeRatingApiService? ratingService}) => MovieLogApp(
   signUpService: FakeSignUpService(),
-  ratingApiService:
-      ratingService ?? FakeRatingApiService(ratings: [fakeRating(1)]),
+  ratingApiService: ratingService ?? FakeRatingApiService(),
+  authApiService: FakeAuthApiService(),
+  memberApiService: FakeMemberApiService(),
+  tokenStorage: FakeTokenStorage(),
   movieService: FakeTmdbMovieService(
     popular: [for (var i = 1; i <= 5; i++) fakeMovie(i, title: '인기 $i')],
     discoverPages: {
@@ -34,6 +39,16 @@ Widget app({FakeRatingApiService? ratingService}) => MovieLogApp(
 );
 
 Finder tab(String label) => find.byKey(Key('tab_$label'));
+
+/// 가짜 로그인으로 세션을 만들고, 그 세션에서 등록한 평점을 넣어 둔다
+Future<void> signIn(WidgetTester tester, {List ratings = const []}) async {
+  final context = tester.element(find.byType(Navigator).first);
+  await context.read<AuthViewModel>().login('a@umc.com', 'Umc1234!');
+  final store = context.read<SessionRatingStore>();
+  for (final rating in ratings.reversed) {
+    store.put(rating, version: store.version);
+  }
+}
 
 void main() {
   testWidgets('registration reaches home and tab route changes', (
@@ -77,10 +92,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(app());
-    tester
-        .element(find.byType(Navigator).first)
-        .read<LearningMemberSession>()
-        .setMemberId(1);
+    await signIn(tester, ratings: [fakeRating(1)]);
     AppRouter.router.go('/my');
     await tester.pumpAndSettle();
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -102,16 +114,11 @@ void main() {
   testWidgets('edit opens prefilled, delete asks first and shows Empty', (
     tester,
   ) async {
-    final api = FakeRatingApiService(
-      ratings: [fakeRating(7, comment: '다시 봐도 좋아요')],
-    );
+    final api = FakeRatingApiService();
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(app(ratingService: api));
-    tester
-        .element(find.byType(Navigator).first)
-        .read<LearningMemberSession>()
-        .setMemberId(1);
+    await signIn(tester, ratings: [fakeRating(7, comment: '다시 봐도 좋아요')]);
     AppRouter.router.go('/my/ratings');
     await tester.pumpAndSettle();
 
@@ -132,23 +139,23 @@ void main() {
 
     await tester.tap(find.byKey(const Key('deleteRating_7')));
     await tester.pumpAndSettle();
-    api.ratings = const [];
     await tester.tap(find.byKey(const Key('confirmDeleteButton')));
     await tester.pumpAndSettle();
-    expect(api.deleted.single.ratingId, 7);
+    expect(api.deleted.single, 7);
     expect(find.text('평점을 삭제할까요?'), findsNothing);
     expect(find.text('등록된 평점이 없습니다'), findsOneWidget);
     AppRouter.router.go('/my');
     await tester.pumpAndSettle();
   });
 
-  testWidgets('without a member the ratings screen asks to sign up', (
+  testWidgets('a rating created on the detail shows on my ratings', (
     tester,
   ) async {
     await tester.pumpWidget(app());
+    await signIn(tester);
     AppRouter.router.go('/my/ratings');
     await tester.pumpAndSettle();
-    expect(find.text('학습용 회원가입이 필요합니다.'), findsOneWidget);
+    expect(find.text('등록된 평점이 없습니다'), findsOneWidget);
     AppRouter.router.go('/my');
     await tester.pumpAndSettle();
   });
@@ -158,10 +165,7 @@ void main() {
   ) async {
     final ratingService = FakeRatingApiService();
     await tester.pumpWidget(app(ratingService: ratingService));
-    tester
-        .element(find.byType(Navigator).first)
-        .read<LearningMemberSession>()
-        .setMemberId(77);
+    await signIn(tester);
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
     expect(find.text('별빛 아래 우리'), findsOneWidget);
@@ -205,9 +209,8 @@ void main() {
     await tester.tap(confirm);
     await tester.pumpAndSettle();
     expect(find.textContaining('평점을 등록했습니다.'), findsOneWidget);
-    expect(ratingService.created.single.memberId, 77);
-    expect(ratingService.created.single.request.movieId, 11);
-    expect(ratingService.created.single.request.score, 4);
+    expect(ratingService.created.single.movieId, 11);
+    expect(ratingService.created.single.score, 4);
     await tester.tap(find.text('즐겨찾기'));
     await tester.pump();
     expect(find.byIcon(Icons.bookmark_border), findsWidgets);

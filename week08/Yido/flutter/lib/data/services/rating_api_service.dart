@@ -1,75 +1,74 @@
 import 'package:dio/dio.dart';
+import 'package:movielog/core/network/api_error.dart';
 import 'package:movielog/data/models/common_response.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/data/models/rating_request.dart';
 
+RatingDto parseRatingResult(Object? data) {
+  if (data is! Map<String, dynamic>) {
+    throw StateError('평점 응답 형식이 올바르지 않습니다.');
+  }
+  final common = CommonResponse<RatingDto>.fromJson(
+    data,
+    (value) => RatingDto.fromJson(value as Map<String, dynamic>),
+  );
+  final rating = common.result;
+  if (rating == null) throw StateError('평점 result가 없습니다.');
+  return rating;
+}
+
+List<RatingDto> parseRatingList(Object? data) {
+  if (data is! List) throw StateError('평점 목록 응답은 배열이어야 합니다.');
+  return data
+      .map((value) => RatingDto.fromJson(value as Map<String, dynamic>))
+      .toList();
+}
+
+/// 조회는 공개 Client, 등록·수정·삭제는 토큰을 붙이는 보호 Client로 보낸다
 class RatingApiService {
-  RatingApiService(this._dio);
-  final Dio _dio;
+  RatingApiService(this._publicDio, this._authDio);
+  final Dio _publicDio;
+  final Dio _authDio;
 
-  Future<List<RatingDto>> fetchMyRatings(int memberId) async {
-    final response = await _dio.get('/v6/members/$memberId/ratings');
-    final list = response.data as List<dynamic>;
-    return list
-        .map((item) => RatingDto.fromJson(item as Map<String, dynamic>))
-        .toList();
+  /// 공개 API라 memberId path를 유지한다. 성공은 공통 형식 없이 배열이다
+  Future<List<RatingDto>> fetchMemberRatings(int memberId) async {
+    final response = await _publicDio.get('/v7/members/$memberId/ratings');
+    return parseRatingList(response.data);
   }
 
-  /// 201을 성공으로 처리한다. result는 파싱하지 않고 성공 뒤 GET으로 확인한다
-  Future<void> createRating({
-    required int memberId,
-    required CreateRatingRequest request,
-  }) async {
-    final response = await _dio.post(
-      '/v6/members/$memberId/ratings',
-      data: request.toJson(),
-    );
-    if (response.statusCode != 201) {
-      throw StateError('예상하지 못한 등록 응답: ${response.statusCode}');
-    }
+  /// 요청 어디에도 memberId가 없다. 토큰이 회원을 알려 준다
+  Future<RatingDto> createRating(CreateRatingRequest request) async {
+    final response = await _authDio.post('/v7/ratings', data: request.toJson());
+    return parseRatingResult(response.data);
   }
 
-  /// comment를 생략하면 기존 후기가 null로 덮이므로 항상 함께 보낸다
-  Future<void> updateRating({
-    required int memberId,
+  /// PATCH는 전체 교체라 comment를 생략하면 null로 덮이므로 항상 함께 보낸다
+  Future<RatingDto> updateRating({
     required int ratingId,
     required int score,
     String? comment,
   }) async {
-    await _dio.patch(
-      '/v6/members/$memberId/ratings/$ratingId',
+    final response = await _authDio.patch(
+      '/v7/ratings/$ratingId',
       data: {'score': score, 'comment': comment},
     );
+    return parseRatingResult(response.data);
   }
 
-  /// 성공은 204라 본문이 없으므로 JSON으로 파싱하지 않는다
-  Future<void> deleteRating({
-    required int memberId,
-    required int ratingId,
-  }) async {
-    final response = await _dio.delete(
-      '/v6/members/$memberId/ratings/$ratingId',
-    );
-    if (response.statusCode != 204) {
+  /// v7 삭제 성공은 204가 아니라 result가 null인 200이다
+  Future<void> deleteRating(int ratingId) async {
+    final response = await _authDio.delete('/v7/ratings/$ratingId');
+    if (response.statusCode != 200) {
       throw StateError('예상하지 못한 삭제 응답: ${response.statusCode}');
     }
   }
 }
 
+/// 서버 message를 우선 쓰고, 없으면 통신 실패 문구를 보여 준다
 String writeErrorMessage(DioException error) {
   return CommonResponse.tryParseError(error.response?.data)?.message ??
       '요청에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
-/// 403·404는 화면의 목록이 서버와 어긋났다는 뜻이라 다시 조회해 맞춘다
-bool shouldRefreshAfterRatingError(DioException error) {
-  final code = CommonResponse.tryParseError(error.response?.data)?.code;
-  return code == 'COMMON403' || code == 'COMMON404';
-}
-
-String writeMyRatingsErrorMessage(DioException error) {
-  final status = error.response?.statusCode;
-  if (status == 400) return 'memberId 형식을 다시 확인해 주세요.';
-  if (status == 404) return '존재하지 않는 회원입니다.';
-  return '평점을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
-}
+/// 평점이 이미 없어졌다는 뜻이라 현재 세션 목록에서도 뺀다
+bool isRatingGone(DioException error) => apiErrorCode(error) == 'RATING404_1';

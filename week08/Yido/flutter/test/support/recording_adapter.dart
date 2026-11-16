@@ -40,7 +40,7 @@ Map<String, dynamic> ok(Object? result, {String code = 'COMMON200'}) => {
   'result': result,
 };
 
-Map<String, dynamic> fail(String code, [String message = '실패']) => {
+Map<String, dynamic> failBody(String code, [String message = '실패']) => {
   'isSuccess': false,
   'code': code,
   'message': message,
