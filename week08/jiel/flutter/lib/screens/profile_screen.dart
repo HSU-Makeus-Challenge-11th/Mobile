@@ -208,10 +208,13 @@ class ProfileMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLow,
-        border: Border.all(color: AppColors.primary200),
+    // ListTile의 배경·잉크 효과는 가장 가까운 Material 위에 그려진다.
+    // 색이 있는 Container로 감싸면 'ListTile background color or ink splashes may be invisible'
+    // 디버그 경고가 나므로 Material로 배경과 테두리를 칠한다.
+    return Material(
+      color: AppColors.surfaceLow,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: AppColors.primary200),
         borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
