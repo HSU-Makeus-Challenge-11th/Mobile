@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/core/network/auth_interceptor.dart';
 import 'package:movielog/core/network/movie_log_client.dart';
+import 'package:movielog/core/network/movie_log_logging_interceptor.dart';
 
 import 'support/fake_token_storage.dart';
 
@@ -95,6 +96,33 @@ void main() {
     expect(
       createMovieLogClient().interceptors.whereType<AuthInterceptor>(),
       isEmpty,
+    );
+  });
+
+  test('logs hide the token and the password', () {
+    expect(
+      MovieLogLoggingInterceptor.maskHeaders({'Authorization': 'Bearer a.b.c'}),
+      {'Authorization': 'Bearer ***'},
+    );
+    expect(
+      MovieLogLoggingInterceptor.mask({
+        'email': 'a@umc.com',
+        'password': 'Umc1234!',
+        'result': {'nickname': '시네필', 'accessToken': 'a.b.c'},
+      }),
+      {
+        'email': 'a@umc.com',
+        'password': '***',
+        'result': {'nickname': '시네필', 'accessToken': '***'},
+      },
+    );
+  });
+
+  test('the auth header is added before the log sees the request', () {
+    final interceptors = auth.interceptors.toList();
+    expect(
+      interceptors.indexWhere((i) => i is AuthInterceptor),
+      lessThan(interceptors.indexWhere((i) => i is MovieLogLoggingInterceptor)),
     );
   });
 }
