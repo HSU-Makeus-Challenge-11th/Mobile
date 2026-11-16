@@ -1,9 +1,14 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
+import '../view_models/auth_view_model.dart';
 
-class MainScreen extends StatelessWidget {
+/// 홈·영화·마이 세 탭을 감싸는 ShellRoute 화면.
+/// 탭을 바꿔도 State가 유지되므로 initState에서 내 정보(GET /v7/members/me)를 한 번만 불러온다.
+/// 로그아웃 후 다시 로그인하면 새로 만들어져 다시 호출된다.
+class MainScreen extends StatefulWidget {
   const MainScreen({
     super.key,
     required this.currentIndex,
@@ -13,12 +18,26 @@ class MainScreen extends StatelessWidget {
   final int currentIndex;
   final Widget child;
 
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
   static const _paths = ['/home', '/movies', '/my'];
+
+  @override
+  void initState() {
+    super.initState();
+    // 첫 build 도중 notifyListeners()가 실행되지 않도록 다음 프레임에 호출한다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AuthViewModel>().loadMember();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -39,7 +58,7 @@ class MainScreen extends StatelessWidget {
           indicatorColor: Colors.transparent,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
           overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-          selectedIndex: currentIndex,
+          selectedIndex: widget.currentIndex,
           onDestinationSelected: (index) => context.go(_paths[index]),
           destinations: const [
             NavigationDestination(

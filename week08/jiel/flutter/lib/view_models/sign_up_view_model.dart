@@ -42,7 +42,7 @@ class SignUpViewModel extends ChangeNotifier {
   // ---- 회원가입 제출 ----
   SubmitStatus submitStatus = SubmitStatus.idle;
 
-  /// 가입 성공 응답에서 읽은 실제 ID. 화면이 LearningMemberSession에 저장한다.
+  /// 가입 성공 응답에서 읽은 실제 ID. 8주차부터는 인증에 쓰지 않고 성공 판정에만 쓴다.
   int? createdMemberId;
 
   /// 서버가 비밀번호 형식 위반(400)으로 거부했을 때 비밀번호 입력칸에 바로 붙일 문구.

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../data/models/create_member_request.dart';
 import '../theme/app_colors.dart';
-import '../view_models/learning_member_session.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movielog_button.dart';
 
@@ -90,23 +89,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // 저장 요청과 화면 이동/Snackbar는 서로 다른 비동기 경계. await 뒤에는 mounted를 다시 확인한다.
     if (!mounted) return;
 
-    final createdMemberId = viewModel.createdMemberId;
     if (viewModel.submitStatus == SubmitStatus.success &&
-        createdMemberId != null) {
-      // 가입 결과의 memberId를 학습용 세션에 보관한다. 이후 평점 요청 path에서 이 값을 읽는다.
-      context.read<LearningMemberSession>().setMemberId(createdMemberId);
-      // 성공 응답의 result.memberId를 화면에서 바로 확인할 수 있게 Snackbar로 보여준다.
-      // ScaffoldMessenger는 MaterialApp 최상단에 있어 화면이 바뀌어도 Snackbar가 유지된다.
+        viewModel.createdMemberId != null) {
+      // 8주차: 회원가입은 인증이 아니다. 가입 후에는 로그인 화면에서 토큰을 발급받는다.
+      // (7주차의 학습용 memberId 세션은 더 이상 평점 요청 path에 쓰지 않는다.)
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
-            content: Text('회원가입 완료! 학습용 memberId: $createdMemberId'),
-            duration: const Duration(seconds: 4),
+          const SnackBar(
+            content: Text('회원가입 완료! 가입한 이메일로 로그인해 주세요.'),
+            duration: Duration(seconds: 3),
           ),
         );
-      // go로 스택을 교체해 영화 목록에서 회원가입으로 돌아갈 수 없게 한다.
-      context.go('/movies');
+      // signedOut 상태에서 허용되는 공개 화면(/login)으로 스택을 교체한다.
+      context.go('/login');
       return;
     }
 
@@ -132,10 +128,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         viewModel.isAllChecked &&
         !viewModel.isSubmitting;
 
-    // 회원가입 화면에서는 시스템 뒤로 가기를 막는다.
-    // (제출 중 이탈 방지도 포함 — 요청이 서버에 도착했는데 화면만 사라지는 상황을 막는다)
     return PopScope(
-      canPop: false,
+      // 제출 중에만 뒤로 가기를 막는다(요청이 도착했는데 화면만 사라지는 상황 방지).
+      // 그 외에는 로그인 화면으로 돌아갈 수 있다.
+      canPop: !viewModel.isSubmitting,
       child: Scaffold(
         backgroundColor: AppColors.surfaceBase,
         appBar: const _SignUpAppBar(),

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 
-class StartScreen extends StatelessWidget {
-  const StartScreen({super.key});
+import '../widgets/movielog_button.dart';
+
+/// 8주차 스플래시 화면. 1주차 StartScreen의 로고·제목·설명 레이아웃을 그대로 재사용하고,
+/// 하단 '시작하기' 버튼 자리를 세션 확인 상태로 대체한다.
+/// - [onRetry]가 null: 토큰 확인 중(initializing) → 인디케이터
+/// - [onRetry]가 있음: 확인 실패(retryRequired) → 안내 문구 + 다시 시도 버튼
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key, this.message, this.onRetry});
+
+  final String? message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +25,11 @@ class StartScreen extends StatelessWidget {
               margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
               child: Column(
                 children: [
-                  Text(
-                    'FLUTTER 1주차',
+                  const Text(
+                    'FLUTTER 8주차',
                     style: TextStyle(
                       fontSize: 11,
-                      color: const Color(0xff494551),
+                      color: Color(0xff494551),
                       height: 16 / 11,
                     ),
                   ),
@@ -34,7 +42,7 @@ class StartScreen extends StatelessWidget {
                       semanticsLabel: 'MovieLog 로고',
                     ),
                   ),
-                  Text(
+                  const Text(
                     '영화의 순간을\n기록하세요',
                     textAlign: TextAlign.center,
                     maxLines: 2,
@@ -42,7 +50,7 @@ class StartScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14),
@@ -52,25 +60,27 @@ class StartScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
-              child: ElevatedButton(
-                onPressed: () {
-                  debugPrint('시작하기 버튼을 눌렀습니다.');
-                  // go: 스택을 교체하므로 회원가입 화면에서 시작 화면으로 돌아갈 수 없다.
-                  context.go('/register');
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56),
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  backgroundColor: Color(0xff4F378A),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  '시작하기',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
+              child: onRetry == null
+                  ? const SizedBox(
+                      height: 56,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          message ?? '로그인 상태를 확인하지 못했어요.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        MovieLogButton(
+                          label: '다시 시도',
+                          width: double.infinity,
+                          height: 56,
+                          onPressed: onRetry,
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),

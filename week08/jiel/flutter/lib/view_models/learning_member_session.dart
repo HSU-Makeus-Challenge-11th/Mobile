@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+/// (8주차부터 사용하지 않음 — 토큰 기반 AuthViewModel로 대체. 7주차 기록용으로 남겨 둔다.)
+///
 /// 학습용 "현재 회원" 상태. 회원가입 성공 응답의 memberId를 보관한다.
 ///
 /// - 메모리에만 있으므로 앱을 재시작하면 사라진다.
