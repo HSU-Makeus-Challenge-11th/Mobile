@@ -69,7 +69,7 @@ void main() {
       movieService,
     );
 
-    await emptyViewModel.load();
+    await emptyViewModel.load(memberId: 42);
     expect(emptyViewModel.status, MyRatingsStatus.empty);
 
     final successViewModel = MyRatingsViewModel(
@@ -85,7 +85,7 @@ void main() {
       movieService,
     );
 
-    await successViewModel.load();
+    await successViewModel.load(memberId: 42);
 
     expect(successViewModel.status, MyRatingsStatus.success);
     expect(successViewModel.items.single.movie.title, '파이트 클럽');
@@ -170,7 +170,7 @@ class _FakeRatingApiService extends RatingApiService {
   final List<Rating> ratings;
 
   @override
-  Future<List<Rating>> fetchMyRatings(int memberId) async => ratings;
+  Future<List<Rating>> fetchUserRatings(int memberId) async => ratings;
 }
 
 class _FakeMovieService implements MovieService {

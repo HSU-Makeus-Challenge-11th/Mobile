@@ -71,7 +71,7 @@ void main() {
     expect(response.result?.memberId, 42);
   });
 
-  test('평점 조회 배열과 본문 없는 DELETE 204를 각각 처리한다', () async {
+  test('v7 공개 조회와 wrapper가 있는 DELETE 200을 각각 처리한다', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://workbook.devnoco.com'));
     final paths = <String>[];
     dio.interceptors.add(
@@ -81,9 +81,14 @@ void main() {
           handler.resolve(
             Response(
               requestOptions: options,
-              statusCode: options.method == 'DELETE' ? 204 : 200,
+              statusCode: 200,
               data: options.method == 'DELETE'
-                  ? null
+                  ? {
+                      'isSuccess': true,
+                      'code': 'COMMON200',
+                      'message': '삭제 완료',
+                      'result': null,
+                    }
                   : [
                       {
                         'ratingId': 3,
@@ -99,11 +104,11 @@ void main() {
     );
 
     final service = RatingApiService(dio);
-    final ratings = await service.fetchMyRatings(42);
-    await service.deleteRating(memberId: 42, ratingId: 3);
+    final ratings = await service.fetchUserRatings(42);
+    await service.deleteRating(ratingId: 3);
 
     expect(ratings.single.movieId, 550);
-    expect(paths, ['/v6/members/42/ratings', '/v6/members/42/ratings/3']);
+    expect(paths, ['/v7/members/42/ratings', '/v7/ratings/3']);
   });
 
   test('다중 삭제 일부 실패 시 성공한 항목만 제거하고 실패 선택은 유지한다', () async {
@@ -212,21 +217,15 @@ class _MemoryRatingService extends RatingApiService {
   int? lastMemberId;
 
   @override
-  Future<List<Rating>> fetchMyRatings(int memberId) async {
+  Future<List<Rating>> fetchUserRatings(int memberId) async {
     lastMemberId = memberId;
     return List.of(ratings);
   }
 
   @override
-  Future<void> deleteRating({
-    required int memberId,
-    required int ratingId,
-  }) async {
-    lastMemberId = memberId;
+  Future<void> deleteRating({required int ratingId}) async {
     if (ratingId == failingId) {
-      final options = RequestOptions(
-        path: '/v6/members/$memberId/ratings/$ratingId',
-      );
+      final options = RequestOptions(path: '/v7/ratings/$ratingId');
       throw DioException(
         requestOptions: options,
         response: Response(

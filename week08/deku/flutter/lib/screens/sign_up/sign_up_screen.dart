@@ -151,7 +151,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       context.read<LearningMemberSession>().setMemberId(
         _viewModel.createdMemberId!,
       );
-      context.go('/movies');
+      context.go('/login');
       return;
     }
     final message = _viewModel.snackbarMessage;

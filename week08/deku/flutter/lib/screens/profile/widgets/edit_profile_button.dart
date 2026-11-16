@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_dimensions.dart';
@@ -20,7 +21,7 @@ class EditProfileButton extends StatelessWidget {
           width: 128,
           height: 42,
           child: TextButton(
-            onPressed: () {},
+            onPressed: () => context.push('/my/profile/edit'),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary,
               minimumSize: Size.zero,

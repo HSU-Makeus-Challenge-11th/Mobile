@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../constants/app_assets.dart';
+import '../../../data/models/member_info.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_dimensions.dart';
 import '../../../theme/app_text_styles.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key});
+  const ProfileHeader({super.key, required this.member});
+
+  final MemberInfo member;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +43,9 @@ class ProfileHeader extends StatelessWidget {
                 child: Image.asset(
                   AppAssets.profile,
                   fit: BoxFit.cover,
-                  semanticLabel: '무비러버 프로필 사진',
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox.shrink();
-                  },
+                  semanticLabel: '프로필 사진 예시',
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
                 ),
               ),
               IgnorePointer(
@@ -58,12 +60,22 @@ class ProfileHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.x2),
-        const Text('무비러버', style: AppTextStyles.profileName),
-        const SizedBox(height: AppSpacing.x1_5),
+        Text(
+          member.nickname,
+          style: AppTextStyles.profileName.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.x0_5),
+        Text(
+          '${member.createdAt.year}.${member.createdAt.month.toString().padLeft(2, '0')}.${member.createdAt.day.toString().padLeft(2, '0')} 가입',
+          style: AppTextStyles.profileStatLabel,
+        ),
+        const SizedBox(height: AppSpacing.x0_5),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 321),
-          child: const Text(
-            '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
+          child: Text(
+            member.email,
             textAlign: TextAlign.center,
             style: AppTextStyles.profileDescription,
           ),

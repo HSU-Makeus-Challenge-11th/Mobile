@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../theme/app_colors.dart';
-import '../../theme/app_dimensions.dart';
-import '../../theme/app_text_styles.dart';
+import '../../view_models/auth_view_model.dart';
 import '../../widgets/movie_log_logo.dart';
-import '../sign_up/sign_up_screen.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -14,63 +12,37 @@ class StartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthViewModel>();
     return Scaffold(
+      backgroundColor: AppColors.screenBackground,
       body: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(
-          AppSpacing.x3,
-          AppSpacing.x3,
-          AppSpacing.x3,
-          AppSpacing.x6,
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: AppSpacing.x3),
-                      const Text(
-                        'FLUTTER 1주차',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.labelSmallMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.x6),
-                      const MovieLogLogo(),
-                      const SizedBox(height: AppSpacing.x6),
-                      const Text(
-                        '영화의 순간을\n기록하세요',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.titleLarge,
-                      ),
-                      const SizedBox(height: AppSpacing.x1),
-                      Text(
-                        '보고 싶은 영화부터 나만의 명장면까지\n한곳에서 관리해요',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.gray,
-                        ),
-                      ),
-                      const Spacer(),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 56),
-                        child: ElevatedButton(
-                          onPressed: () => context.go(SignUpScreen.routeName),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary600,
-                            foregroundColor: AppColors.white,
-                          ),
-                          child: const Text('시작하기'),
-                        ),
-                      ),
-                    ],
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const MovieLogLogo(),
+                const SizedBox(height: 32),
+                if (auth.status == AuthStatus.retryRequired) ...[
+                  Text(
+                    auth.message ?? '로그인 상태를 확인하지 못했어요.',
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              ),
-            );
-          },
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    key: const Key('session-retry-button'),
+                    onPressed: auth.restoreSession,
+                    child: const Text('다시 시도'),
+                  ),
+                ] else ...[
+                  const CircularProgressIndicator(color: AppColors.primary),
+                  const SizedBox(height: 16),
+                  const Text('로그인 상태를 확인하고 있어요.'),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

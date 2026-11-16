@@ -12,17 +12,15 @@ class MyRatingsEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('my-ratings-entry'),
-      margin: const EdgeInsets.only(top: AppSpacing.x3, bottom: AppSpacing.x4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.medium,
-        border: Border.all(color: const Color(0xFFD6C9E8), width: 1.5),
-      ),
+      margin: const EdgeInsets.only(top: AppSpacing.x4, bottom: AppSpacing.x2),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2),
-        minTileHeight: 64,
-        title: const Text('내가 등록한 평점', style: AppTextStyles.bodyLargeBold),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.primary),
+        contentPadding: EdgeInsets.zero,
+        minTileHeight: 48,
+        title: const Text('내가 등록한 평점', style: AppTextStyles.bodyMediumRegular),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: AppColors.profileOnSurface,
+        ),
         onTap: () => context.push('/my/ratings'),
       ),
     );

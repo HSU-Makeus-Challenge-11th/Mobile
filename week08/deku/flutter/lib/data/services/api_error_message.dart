@@ -15,5 +15,5 @@ String apiErrorMessage(
 bool shouldRefreshAfterRatingError(DioException error) {
   final data = error.response?.data;
   final code = data is Map ? data['code'] : null;
-  return code == 'COMMON403' || code == 'COMMON404';
+  return code == 'RATING404_1';
 }

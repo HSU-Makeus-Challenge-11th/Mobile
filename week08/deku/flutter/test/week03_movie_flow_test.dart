@@ -1,5 +1,6 @@
 import 'package:deku/data/mock_movies.dart';
 import 'package:deku/data/models/rating_request.dart';
+import 'package:deku/data/models/rating.dart';
 import 'package:deku/data/services/rating_api_service.dart';
 import 'package:deku/screens/home/home_screen.dart';
 import 'package:deku/screens/movies/movie_detail_screen.dart';
@@ -9,6 +10,11 @@ import 'package:deku/services/movie_service.dart';
 import 'package:deku/theme/app_theme.dart';
 import 'package:deku/widgets/movie_card.dart';
 import 'package:deku/view_models/learning_member_session.dart';
+import 'package:deku/view_models/auth_view_model.dart';
+import 'package:deku/view_models/session_ratings_store.dart';
+import 'package:deku/data/services/auth_api_service.dart';
+import 'package:deku/data/services/member_api_service.dart';
+import 'package:deku/core/storage/token_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,11 +83,22 @@ void main() {
     _setSurface(tester, const Size(390, 844));
     final session = LearningMemberSession()..setMemberId(42);
     final ratings = _FakeRatingApiService();
+    final sessionRatings = SessionRatingsStore();
+    final auth = AuthViewModel(
+      AuthApiService(Dio()),
+      MemberApiService(Dio()),
+      _MemoryTokenStorage(),
+      sessionRatings,
+    )..status = AuthStatus.signedIn;
     await tester.pumpWidget(
       _testApp(
         MultiProvider(
           providers: [
             ChangeNotifierProvider<LearningMemberSession>.value(value: session),
+            ChangeNotifierProvider<AuthViewModel>.value(value: auth),
+            ChangeNotifierProvider<SessionRatingsStore>.value(
+              value: sessionRatings,
+            ),
             Provider<RatingApiService>.value(value: ratings),
           ],
           child: MovieDetailScreen(movie: movies.first),
@@ -136,7 +153,7 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-rating-button')));
     await tester.pumpAndSettle();
     expect(find.text('평점을 등록했습니다. 마이페이지에서 확인할 수 있습니다.'), findsOneWidget);
-    expect(ratings.memberId, 42);
+    expect(sessionRatings.ratings.single.movieId, movies.first.id);
     expect(ratings.request?.movieId, movies.first.id);
     expect(ratings.request?.score, inInclusiveRange(1, 5));
     expect(ratings.request?.comment, '좋은 영화였어요');
@@ -147,17 +164,22 @@ void main() {
 class _FakeRatingApiService extends RatingApiService {
   _FakeRatingApiService() : super(Dio());
 
-  int? memberId;
   CreateRatingRequest? request;
 
   @override
-  Future<void> createRating({
-    required int memberId,
-    required CreateRatingRequest request,
-  }) async {
-    this.memberId = memberId;
+  Future<Rating> createRating({required CreateRatingRequest request}) async {
     this.request = request;
+    return Rating(ratingId: 1, movieId: request.movieId, score: request.score);
   }
+}
+
+class _MemoryTokenStorage implements TokenStorage {
+  @override
+  Future<void> deleteAccessToken() async {}
+  @override
+  Future<String?> readAccessToken() async => null;
+  @override
+  Future<void> saveAccessToken(String token) async {}
 }
 
 final class _MemoryGenrePreference implements GenrePreferenceStore {

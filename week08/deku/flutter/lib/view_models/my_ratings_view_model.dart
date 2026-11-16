@@ -6,6 +6,8 @@ import '../data/models/tmdb_movie_dto.dart';
 import '../data/services/api_error_message.dart';
 import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
+import 'auth_view_model.dart';
+import 'session_ratings_store.dart';
 
 enum MyRatingsStatus { idle, loading, empty, error, success }
 
@@ -17,14 +19,21 @@ final class MyRatingItem {
 }
 
 final class MyRatingsViewModel extends ChangeNotifier {
-  MyRatingsViewModel(this._ratingApiService, this._movieService);
+  MyRatingsViewModel(
+    this._ratingApiService,
+    this._movieService, {
+    SessionRatingsStore? sessionStore,
+    AuthViewModel? auth,
+  }) : _sessionStore = sessionStore,
+       _auth = auth;
 
   final RatingApiService _ratingApiService;
   final MovieService _movieService;
-  int _memberId = 1; // 테스트 기본값. 앱 Route는 가입 결과를 반드시 전달합니다.
+  final SessionRatingsStore? _sessionStore;
+  final AuthViewModel? _auth;
+  int? _memberId;
   bool _disposed = false;
 
-  int get memberId => _memberId;
   MyRatingsStatus status = MyRatingsStatus.idle;
   List<MyRatingItem> items = const [];
   String? message;
@@ -39,26 +48,29 @@ final class MyRatingsViewModel extends ChangeNotifier {
 
   Future<void> load({int? memberId}) async {
     if (memberId != null) _memberId = memberId;
+    final version = _auth?.sessionVersion;
     status = MyRatingsStatus.loading;
     _notify();
     try {
-      final ratings = await _ratingApiService.fetchMyRatings(_memberId);
-      if (_disposed) return;
-      if (ratings.isEmpty) {
-        items = const [];
-        status = MyRatingsStatus.empty;
-      } else {
-        items = await Future.wait(ratings.map(_enrichRating));
-        if (_disposed) return;
-        status = MyRatingsStatus.success;
-      }
+      final ratings = _sessionStore != null
+          ? _sessionStore.ratings
+          : await _ratingApiService.fetchUserRatings(
+              _memberId ?? (throw StateError('회원 ID가 필요합니다.')),
+            );
+      if (_disposed || !_isCurrent(version)) return;
+      items = await Future.wait(ratings.map(_enrichRating));
+      if (_disposed || !_isCurrent(version)) return;
+      status = items.isEmpty ? MyRatingsStatus.empty : MyRatingsStatus.success;
     } catch (_) {
-      if (_disposed) return;
+      if (_disposed || !_isCurrent(version)) return;
       status = MyRatingsStatus.error;
       items = const [];
     }
     _notify();
   }
+
+  bool _isCurrent(int? version) =>
+      version == null || (_auth?.isCurrentSession(version) ?? false);
 
   Future<MyRatingItem> _enrichRating(Rating rating) async {
     try {
@@ -83,73 +95,67 @@ final class MyRatingsViewModel extends ChangeNotifier {
     _notify();
   }
 
-  Future<void> _refreshAfterWrite() async {
-    await load();
-    refreshWarning = status == MyRatingsStatus.error
-        ? '저장은 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.'
-        : null;
-    if (status == MyRatingsStatus.empty) {
-      isEditing = false;
-      selectedRatingIds.clear();
-    }
-    _notify();
-  }
-
   Future<void> updateRating({
     required int ratingId,
     required int score,
     String? comment,
   }) async {
+    final version = _auth?.sessionVersion;
     try {
-      await _ratingApiService.updateRating(
-        memberId: _memberId,
+      final updated = await _ratingApiService.updateRating(
         ratingId: ratingId,
         score: score,
         comment: comment,
       );
+      if (!_isCurrent(version)) return;
+      _sessionStore?.upsert(updated);
+      await load();
     } on DioException catch (error) {
+      if (!_isCurrent(version)) return;
       message = apiErrorMessage(error);
       _notify();
       if (shouldRefreshAfterRatingError(error)) await load();
       rethrow;
     }
-    await _refreshAfterWrite();
   }
 
   Future<void> deleteRating(int ratingId) async {
+    final version = _auth?.sessionVersion;
     try {
-      await _ratingApiService.deleteRating(
-        memberId: _memberId,
-        ratingId: ratingId,
-      );
+      await _ratingApiService.deleteRating(ratingId: ratingId);
+      if (!_isCurrent(version)) return;
+      _sessionStore?.remove(ratingId);
+      await load();
     } on DioException catch (error) {
+      if (!_isCurrent(version)) return;
       message = apiErrorMessage(error);
       _notify();
       if (shouldRefreshAfterRatingError(error)) await load();
       rethrow;
     }
-    await _refreshAfterWrite();
   }
 
   Future<int> deleteSelectedRatings() async {
     if (isDeletingSelected || selectedRatingIds.isEmpty) return 0;
+    final version = _auth?.sessionVersion;
     isDeletingSelected = true;
     message = null;
     _notify();
     var failed = 0;
     try {
       for (final ratingId in selectedRatingIds.toList()) {
+        if (!_isCurrent(version)) break;
         try {
-          await _ratingApiService.deleteRating(
-            memberId: _memberId,
-            ratingId: ratingId,
-          );
+          await _ratingApiService.deleteRating(ratingId: ratingId);
+          if (!_isCurrent(version)) break;
+          _sessionStore?.remove(ratingId);
           selectedRatingIds.remove(ratingId);
         } catch (_) {
+          if (!_isCurrent(version)) break;
           failed++;
         }
       }
-      await _refreshAfterWrite();
+      if (_isCurrent(version)) await load();
       if (failed > 0) {
         message = '$failed개 항목을 삭제하지 못했습니다. 선택된 항목을 다시 확인해 주세요.';
       }

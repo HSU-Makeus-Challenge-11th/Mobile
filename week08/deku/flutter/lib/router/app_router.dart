@@ -7,27 +7,49 @@ import '../data/services/member_check_service.dart';
 import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/login/login_screen.dart';
 import '../screens/main/main_screen.dart';
-import '../screens/movies/movie_detail_screen.dart';
 import '../screens/movies/movie_detail_loader.dart';
+import '../screens/movies/movie_detail_screen.dart';
 import '../screens/movies/movie_list_screen.dart';
 import '../screens/my_ratings/my_ratings_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/sign_up/sign_up_screen.dart';
 import '../screens/start/start_screen.dart';
 import '../services/genre_preference.dart';
+import '../view_models/auth_view_model.dart';
 import '../view_models/movie_home_view_model.dart';
 import '../view_models/movie_list_view_model.dart';
 import '../view_models/my_ratings_view_model.dart';
-import '../view_models/learning_member_session.dart';
+import '../view_models/session_ratings_store.dart';
+
+String? authRedirect(AuthStatus status, String location) {
+  const publicPaths = {'/login', '/register'};
+  final atStart = location == '/start';
+  final atPublic = publicPaths.contains(location);
+  return switch (status) {
+    AuthStatus.initializing ||
+    AuthStatus.retryRequired => atStart ? null : '/start',
+    AuthStatus.signedOut ||
+    AuthStatus.authenticating => atPublic ? null : '/login',
+    AuthStatus.signedIn => (atStart || atPublic) ? '/home' : null,
+  };
+}
 
 abstract final class AppRouter {
-  static final router = GoRouter(
+  static GoRouter createRouter(AuthViewModel auth) => GoRouter(
     initialLocation: StartScreen.routeName,
+    refreshListenable: auth,
+    redirect: (context, state) => authRedirect(auth.status, state.uri.path),
     routes: [
       GoRoute(
         path: StartScreen.routeName,
         builder: (context, state) => const StartScreen(),
+      ),
+      GoRoute(
+        path: LoginScreen.routeName,
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: SignUpScreen.routeName,
@@ -66,19 +88,18 @@ abstract final class AppRouter {
         ],
       ),
       GoRoute(
+        path: EditProfileScreen.routeName,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
         path: MyRatingsScreen.routeName,
         builder: (context, state) {
-          final memberId = context.read<LearningMemberSession>().memberId;
-          if (memberId == null) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('내가 등록한 평점')),
-              body: const Center(child: Text('학습용 회원가입이 필요합니다.')),
-            );
-          }
           final viewModel = MyRatingsViewModel(
             context.read<RatingApiService>(),
             context.read<MovieService>(),
-          )..load(memberId: memberId);
+            sessionStore: context.read<SessionRatingsStore>(),
+            auth: context.read<AuthViewModel>(),
+          )..load();
           return MyRatingsScreen(viewModel: viewModel);
         },
       ),

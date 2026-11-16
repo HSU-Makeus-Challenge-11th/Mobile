@@ -183,7 +183,7 @@ class _MyRatingsScreenState extends State<MyRatingsScreen> {
     ),
     MyRatingsStatus.empty => const Center(
       key: Key('my-ratings-empty'),
-      child: Text('아직 등록한 평점이 없어요.'),
+      child: Text('이번 로그인에서 등록한 평점이 없어요.'),
     ),
     MyRatingsStatus.error => Center(
       key: const Key('my-ratings-error'),

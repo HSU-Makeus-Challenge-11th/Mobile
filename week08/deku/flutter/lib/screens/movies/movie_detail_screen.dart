@@ -10,7 +10,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_dimensions.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/tmdb_poster_image.dart';
-import '../../view_models/learning_member_session.dart';
+import '../../view_models/auth_view_model.dart';
+import '../../view_models/session_ratings_store.dart';
 import 'rating_dialog.dart';
 
 class MovieDetailScreen extends StatefulWidget {
@@ -27,26 +28,25 @@ class MovieDetailScreen extends StatefulWidget {
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool _isFavorite = false;
   Future<void> _openRatingDialog() async {
-    final memberId = context.read<LearningMemberSession>().memberId;
-    if (memberId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('먼저 회원가입을 완료해 주세요.')));
-      return;
-    }
+    final auth = context.read<AuthViewModel>();
+    final version = auth.sessionVersion;
     final ratingService = context.read<RatingApiService>();
+    final sessionRatings = context.read<SessionRatingsStore>();
     final saved = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => RatingDialog(
-        onSubmit: (score, comment) => ratingService.createRating(
-          memberId: memberId,
-          request: CreateRatingRequest(
-            movieId: widget.movie.id,
-            score: score,
-            comment: comment,
-          ),
-        ),
+        onSubmit: (score, comment) async {
+          final rating = await ratingService.createRating(
+            request: CreateRatingRequest(
+              movieId: widget.movie.id,
+              score: score,
+              comment: comment,
+            ),
+          );
+          if (!auth.isCurrentSession(version)) return;
+          sessionRatings.upsert(rating);
+        },
       ),
     );
 

@@ -14,7 +14,17 @@ class FavoriteGenres extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('선호하는 장르', style: AppTextStyles.profileSectionTitle),
+        const Row(
+          children: [
+            Icon(
+              Icons.movie_creation_outlined,
+              size: 18,
+              color: AppColors.primary,
+            ),
+            SizedBox(width: AppSpacing.x0_5),
+            Text('선호하는 장르', style: AppTextStyles.profileSectionTitle),
+          ],
+        ),
         const SizedBox(height: AppSpacing.x1_5),
         Wrap(
           spacing: AppSpacing.x1,
