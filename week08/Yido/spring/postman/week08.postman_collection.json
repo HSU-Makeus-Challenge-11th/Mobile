@@ -23,7 +23,7 @@
   ],
   "item": [
     {
-      "name": "01 A 로그인 200",
+      "name": "00 A 로그인 200",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/auth/login",
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "name": "02 즐겨찾기 등록 201",
+      "name": "01 즐겨찾기 등록 201",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/favorites",
@@ -103,7 +103,7 @@
       ]
     },
     {
-      "name": "03 즐겨찾기 중복 409",
+      "name": "02 즐겨찾기 중복 409",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/favorites",
@@ -143,7 +143,7 @@
       ]
     },
     {
-      "name": "04 내 즐겨찾기 목록 200",
+      "name": "03 내 즐겨찾기 목록 200",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/favorites",
@@ -171,7 +171,7 @@
       ]
     },
     {
-      "name": "05 즐겨찾기 여부 true 200",
+      "name": "04 즐겨찾기 여부 true 200",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/favorites/550",
@@ -199,7 +199,7 @@
       ]
     },
     {
-      "name": "06 즐겨찾기 해제 200",
+      "name": "05 즐겨찾기 해제 200",
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/favorites/550",
@@ -227,169 +227,7 @@
       ]
     },
     {
-      "name": "07 해제 후 여부 false 200",
-      "request": {
-        "method": "GET",
-        "url": "{{baseUrl}}/favorites/550",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{tokenA}}"
-          }
-        ]
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('200 COMMON200', () => {",
-              "  pm.response.to.have.status(200);",
-              "  pm.expect(pm.response.json().code).to.eql('COMMON200');",
-              "});",
-              "pm.test('isFavorite false', () => pm.expect(pm.response.json().result.isFavorite).to.eql(false));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "08 빈 목록 200",
-      "request": {
-        "method": "GET",
-        "url": "{{baseUrl}}/favorites",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{tokenA}}"
-          }
-        ]
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('200 COMMON200', () => {",
-              "  pm.response.to.have.status(200);",
-              "  pm.expect(pm.response.json().code).to.eql('COMMON200');",
-              "});",
-              "pm.test('empty', () => pm.expect(pm.response.json().result).to.eql([]));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "09 토큰 없이 등록 401",
-      "request": {
-        "method": "POST",
-        "url": "{{baseUrl}}/favorites",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "auth": {
-          "type": "noauth"
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"movieId\": 550\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('401 AUTH401_2', () => {",
-              "  pm.response.to.have.status(401);",
-              "  pm.expect(pm.response.json().code).to.eql('AUTH401_2');",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "10 없는 즐겨찾기 해제 404",
-      "request": {
-        "method": "DELETE",
-        "url": "{{baseUrl}}/favorites/550",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{tokenA}}"
-          }
-        ]
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('404 FAVORITE404_1', () => {",
-              "  pm.response.to.have.status(404);",
-              "  pm.expect(pm.response.json().code).to.eql('FAVORITE404_1');",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "11 movieId 0 400",
-      "request": {
-        "method": "POST",
-        "url": "{{baseUrl}}/favorites",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{tokenA}}"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"movieId\": 0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('400 COMMON4001', () => {",
-              "  pm.response.to.have.status(400);",
-              "  pm.expect(pm.response.json().code).to.eql('COMMON4001');",
-              "});"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "12 영화 기록 저장 201",
+      "name": "06 영화 기록 저장 201",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/movie-records",
@@ -431,7 +269,7 @@
       ]
     },
     {
-      "name": "13 영화 기록 중복 409",
+      "name": "08 영화 기록 중복 409",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/movie-records",
@@ -471,7 +309,7 @@
       ]
     },
     {
-      "name": "14 영화 기록 평점만 201",
+      "name": "09 영화 기록 평점만 201",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/movie-records",
@@ -513,7 +351,141 @@
       ]
     },
     {
-      "name": "15 정리 238 즐겨찾기 해제",
+      "name": "10 해제 후 여부 false 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/favorites/550",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 COMMON200', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().code).to.eql('COMMON200');",
+              "});",
+              "pm.test('isFavorite false', () => pm.expect(pm.response.json().result.isFavorite).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 토큰 없이 등록 401",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/favorites",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 550\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 AUTH401_2', () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().code).to.eql('AUTH401_2');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 없는 즐겨찾기 해제 404",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/favorites/550",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('404 FAVORITE404_1', () => {",
+              "  pm.response.to.have.status(404);",
+              "  pm.expect(pm.response.json().code).to.eql('FAVORITE404_1');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 movieId 0 400",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/favorites",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 COMMON4001', () => {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().code).to.eql('COMMON4001');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "정리 238 즐겨찾기 해제",
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/favorites/238",
@@ -540,7 +512,35 @@
       ]
     },
     {
-      "name": "16 정리 238 평점 삭제",
+      "name": "14 빈 목록 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/favorites",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 COMMON200', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().code).to.eql('COMMON200');",
+              "});",
+              "pm.test('empty', () => pm.expect(pm.response.json().result).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "정리 238 평점 삭제",
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/ratings/{{recordRatingId}}",
@@ -567,7 +567,7 @@
       ]
     },
     {
-      "name": "17 정리 13 평점 삭제",
+      "name": "정리 13 평점 삭제",
       "request": {
         "method": "DELETE",
         "url": "{{baseUrl}}/ratings/{{ratingOnlyId}}",
