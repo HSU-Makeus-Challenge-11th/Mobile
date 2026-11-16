@@ -1,4 +1,4 @@
-/// v6 유저별 평점 조회(GET /v6/members/{memberId}/ratings) 응답의 한 항목.
+/// v7 평점(Rating) 객체. 등록·수정 result와 공개 유저별 평점 조회 배열의 한 항목.
 class RatingDto {
   const RatingDto({
     required this.ratingId,
@@ -19,6 +19,8 @@ class RatingDto {
         movieId: (json['movieId'] as num).toInt(),
         score: (json['score'] as num).toInt(),
         comment: json['comment'] as String?,
-        createdAt: DateTime.parse(json['createdAt'] as String),
+        // createdAt이 빠진 응답이 와도 평점 자체를 버리지 않는다.
+        createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+            DateTime.now(),
       );
 }

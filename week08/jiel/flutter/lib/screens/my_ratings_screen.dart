@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,14 +7,13 @@ import '../data/models/rating_with_movie.dart';
 import '../theme/app_colors.dart';
 import '../view_models/my_ratings_view_model.dart';
 import '../widgets/empty_view.dart';
-import '../widgets/error_view.dart';
-import '../widgets/loading_view.dart';
 import '../widgets/movielog_button.dart';
 import '../widgets/rating_dialog.dart';
 import '../widgets/tmdb_poster_image.dart';
 
 /// 마이페이지의 자식 화면. root Navigator 위에 열리므로 하단 NavigationBar가 없다.
-/// 조회·수정·삭제를 모두 이 화면이 구독하는 MyRatingsViewModel로 처리한다.
+/// 8주차: v7에는 토큰 기반 '내 평점 목록 GET'이 없으므로, 이번 로그인 세션에서 등록 response로
+/// 받은 Rating을 앱 최상단 MyRatingsViewModel에서 읽고 v7 PATCH/DELETE로 변경한다.
 class MyRatingsScreen extends StatelessWidget {
   const MyRatingsScreen({super.key});
 
@@ -30,16 +28,13 @@ class MyRatingsScreen extends StatelessWidget {
         initialScore: rating.score,
         initialComment: rating.comment, // null이면 TextField가 빈 칸으로 시작한다.
         onSubmit: (score, comment) async {
-          try {
-            await viewModel.updateRating(
-              ratingId: rating.ratingId,
-              score: score,
-              comment: comment, // 유지하려면 기존 값이 그대로, 지우면 null이 전달된다.
-            );
-          } on DioException {
-            // 쓰기 실패: 서버 message를 Dialog 안에 보여주고 입력은 유지한다.
-            throw StateError(viewModel.message ?? '저장에 실패했습니다.');
-          }
+          final error = await viewModel.updateRating(
+            ratingId: rating.ratingId,
+            score: score,
+            comment: comment, // 유지하려면 기존 값이 그대로, 지우면 null이 전달된다.
+          );
+          // 쓰기 실패: 도메인 오류 문구를 Dialog 안에 보여주고 입력은 유지한다.
+          if (error != null) throw StateError(error);
         },
       ),
     );
@@ -58,11 +53,8 @@ class MyRatingsScreen extends StatelessWidget {
       barrierDismissible: false, // 삭제 중 바깥 탭으로 닫히는 것도 막는다.
       builder: (_) => _DeleteRatingDialog(
         onConfirm: () async {
-          try {
-            await viewModel.deleteRating(rating.ratingId);
-          } on DioException {
-            throw StateError(viewModel.message ?? '삭제하지 못했습니다.');
-          }
+          final error = await viewModel.deleteRating(rating.ratingId);
+          if (error != null) throw StateError(error);
         },
       ),
     );
@@ -95,23 +87,13 @@ class MyRatingsScreen extends StatelessWidget {
       ),
       body: Consumer<MyRatingsViewModel>(
         builder: (context, viewModel, child) {
-          return switch (viewModel.status) {
-            MyRatingsLoadStatus.idle ||
-            MyRatingsLoadStatus.loading => const LoadingView(),
-            MyRatingsLoadStatus.empty => const EmptyView(
-              message: '아직 등록된 평점이 없어요.',
-            ),
-            MyRatingsLoadStatus.error => ErrorView(
-              message: viewModel.message ?? '평점을 불러오지 못했습니다.',
-              onRetry: () => context.read<MyRatingsViewModel>().load(),
-            ),
-            MyRatingsLoadStatus.success => _RatingList(
-              ratings: viewModel.ratings,
-              notice: viewModel.message,
-              memberId: viewModel.memberId,
-              isWriting: viewModel.isWriting,
-            ),
-          };
+          final ratings = viewModel.ratings;
+          if (ratings.isEmpty) {
+            return const EmptyView(
+              message: '이번 로그인에서 등록한 평점이 없어요.\n영화 상세 화면에서 평점을 남겨 보세요.',
+            );
+          }
+          return _RatingList(ratings: ratings, isWriting: viewModel.isWriting);
         },
       ),
     );
@@ -119,16 +101,9 @@ class MyRatingsScreen extends StatelessWidget {
 }
 
 class _RatingList extends StatelessWidget {
-  const _RatingList({
-    required this.ratings,
-    required this.notice,
-    required this.memberId,
-    required this.isWriting,
-  });
+  const _RatingList({required this.ratings, required this.isWriting});
 
   final List<RatingWithMovie> ratings;
-  final String? notice;
-  final int memberId;
 
   /// 수정·삭제 요청이 진행 중이면 다른 카드의 버튼도 잠근다.
   final bool isWriting;
@@ -143,33 +118,30 @@ class _RatingList extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         if (index == 0) {
-          // 로그인 기능이 없으므로 "현재 로그인 사용자의 평점"이라고 안내하지 않는다.
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '학습용 회원(memberId $memberId)의 평점 ${ratings.length}개',
+                '이번 로그인에서 등록한 평점 ${ratings.length}개',
                 style: textTheme.labelMedium?.copyWith(
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
-              if (notice != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  notice!,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                'v7에는 토큰 기반 내 평점 목록 조회가 없어 앱 재시작 후에는 복원되지 않아요.',
+                style: textTheme.labelSmall?.copyWith(
+                  color: AppColors.neutral800,
                 ),
-              ],
+              ),
             ],
           );
         }
         final entry = ratings[index - 1];
         return _RatingCard(
           entry: entry,
-          // 본인(학습용 현재 회원)이 조회한 목록이므로 모든 카드에 수정·삭제를 보여준다.
-          // 서버가 403으로 거부하면 ViewModel이 message로 안내한다.
+          // 현재 토큰으로 등록한 평점이므로 수정·삭제를 보여준다.
+          // 서버가 RATING403_1로 거부하면 ViewModel이 안내만 하고 로그아웃하지 않는다.
           onEdit: isWriting
               ? null
               : () => MyRatingsScreen.onEditPressed(context, entry.rating),
@@ -231,7 +203,8 @@ class _RatingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  movie?.title ?? '영화 정보를 불러오지 못했어요',
+                  // TMDB 정보가 없어도 평점은 지우지 않고 placeholder로 표시한다.
+                  movie?.title ?? '영화 #${rating.movieId}',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleMedium?.copyWith(

@@ -8,7 +8,7 @@ int validateServerScore(double value) {
   return value.toInt();
 }
 
-/// POST /v6/members/{memberId}/ratings 요청 body.
+/// POST /v7/ratings 요청 body. 사용자 식별은 토큰으로 하므로 memberId를 넣지 않는다.
 class CreateRatingRequest {
   const CreateRatingRequest({
     required this.movieId,

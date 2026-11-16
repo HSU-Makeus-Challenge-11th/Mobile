@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models/tmdb_movie_dto.dart';
-import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../theme/app_colors.dart';
-import '../view_models/learning_member_session.dart';
 import '../view_models/movie_detail_view_model.dart';
+import '../view_models/my_ratings_view_model.dart';
 import '../widgets/loading_view.dart';
 import 'movie_detail_screen.dart';
 
@@ -58,9 +57,8 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
         }
         return ChangeNotifierProvider<MovieDetailViewModel>(
           create: (context) => MovieDetailViewModel(
-            context.read<RatingApiService>(),
-            // 6주차 고정 memberId 1이 아니라, 회원가입 결과를 보관한 학습용 세션에서 읽는다.
-            context.read<LearningMemberSession>().memberId,
+            // 8주차: memberId 대신 토큰 기반 평점 저장소(MyRatingsViewModel)를 사용한다.
+            context.read<MyRatingsViewModel>(),
             movie,
           ),
           child: const MovieDetailScreen(),

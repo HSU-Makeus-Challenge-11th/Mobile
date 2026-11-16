@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/models/rating_dto.dart';
 import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
 import '../view_models/movie_detail_view_model.dart';
@@ -12,7 +13,7 @@ import '../widgets/tmdb_poster_image.dart';
 const _outline = Color(0xFFCBC4D2);
 
 /// 영화 상세 화면. 영화 DTO와 평점 등록 상태는 MovieDetailLoader가 제공한 MovieDetailViewModel에서 읽는다.
-/// 이 화면은 평점 **등록**만 하고, 조회·수정·삭제는 마이페이지의 "내가 등록한 평점" 화면에서 한다.
+/// 이 화면은 평점 **등록**(POST /v7/ratings)만 하고, 수정·삭제는 마이페이지의 "내가 등록한 평점" 화면에서 한다.
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key});
 
@@ -31,11 +32,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Future<void> _openRatingDialog() async {
     final viewModel = context.read<MovieDetailViewModel>();
-    if (!viewModel.canRate) {
-      // 회원가입 결과의 memberId가 없는 상태에서는 등록하지 않고 학습용 회원가입으로 안내한다.
-      _showSnackBar('먼저 회원가입을 완료해 주세요.');
-      return;
-    }
 
     // 저장은 Dialog 안에서 끝낸다. 성공하면 true, 취소하면 false(요청 없음), 뒤로가기면 null.
     final saved = await showDialog<bool>(
@@ -54,7 +50,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     // 저장 요청과 Snackbar 표시는 서로 다른 비동기 경계다. await 뒤에는 mounted를 다시 확인한다.
     if (!mounted || saved != true) return;
 
-    _showSnackBar('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.');
+    _showSnackBar('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 수정·삭제할 수 있습니다.');
   }
 
   void _showSnackBar(String message) {
@@ -82,7 +78,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _HeroPoster(movie: movie),
-            _InformationSection(movie: movie, canRate: viewModel.canRate),
+            _InformationSection(movie: movie, myRating: viewModel.myRating),
             _SynopsisSection(movie: movie),
           ],
         ),
@@ -90,8 +86,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       bottomNavigationBar: _ActionButtons(
         isFavorite: _isFavorite,
         onFavoriteTap: _toggleFavorite,
-        // memberId가 없으면 버튼을 비활성화한다. 저장 중 중복 탭은 Dialog가 막는다.
-        onRateTap: viewModel.canRate ? _openRatingDialog : null,
+        // 보호 화면이므로 이 화면은 signedIn 상태에서만 열린다. 이미 남긴 평점이 있으면 등록을 막는다.
+        onRateTap: viewModel.myRating == null ? _openRatingDialog : null,
       ),
     );
   }
@@ -172,12 +168,12 @@ class _HeroPoster extends StatelessWidget {
 
 // 2. 제목 · 연도 · 별점
 class _InformationSection extends StatelessWidget {
-  const _InformationSection({required this.movie, required this.canRate});
+  const _InformationSection({required this.movie, required this.myRating});
 
   final TmdbMovieDto movie;
 
-  /// 학습용 회원가입(memberId)이 끝났는지. 아니면 평점 등록 안내 문구를 보여준다.
-  final bool canRate;
+  /// 이 세션에서 등록한 내 평점(등록 result의 Rating 객체). 없으면 null.
+  final RatingDto? myRating;
 
   @override
   Widget build(BuildContext context) {
@@ -236,17 +232,59 @@ class _InformationSection extends StatelessWidget {
               ),
             ],
           ),
-          if (!canRate) ...[
-            const SizedBox(height: 8),
-            const Text(
-              '평점을 남기려면 먼저 학습용 회원가입을 완료해 주세요.',
-              style: TextStyle(
-                fontSize: 14,
-                height: 20 / 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primary500,
-              ),
+          if (myRating != null) ...[
+            const SizedBox(height: 16),
+            _MyRatingCard(rating: myRating!),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// 등록 result(Rating 객체)로 갱신되는 현재 작업 카드
+class _MyRatingCard extends StatelessWidget {
+  const _MyRatingCard({required this.rating});
+
+  final RatingDto rating;
+
+  @override
+  Widget build(BuildContext context) {
+    final comment = rating.comment;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary200.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '내가 남긴 평점 (ratingId ${rating.ratingId})',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary500,
             ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              for (var i = 1; i <= 5; i++)
+                Icon(
+                  i <= rating.score ? Icons.star_rounded : Icons.star_outline_rounded,
+                  size: 18,
+                  color: AppColors.primary500,
+                ),
+              const SizedBox(width: 6),
+              Text('${rating.score}'),
+            ],
+          ),
+          if (comment != null && comment.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(comment, style: const TextStyle(color: AppColors.onSurfaceVariant)),
           ],
         ],
       ),
@@ -309,7 +347,7 @@ class _ActionButtons extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onFavoriteTap;
 
-  /// null이면 비활성화(학습용 회원가입 전).
+  /// null이면 비활성화(이미 이 세션에서 평점을 남김).
   final VoidCallback? onRateTap;
 
   static const _labelStyle = TextStyle(
