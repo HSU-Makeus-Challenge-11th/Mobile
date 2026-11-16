@@ -74,11 +74,11 @@ class AuthViewModel extends ChangeNotifier {
       }
       // 네트워크 실패로 유효한 토큰을 지우지 않는다
       status = AuthStatus.retryRequired;
-      message = '로그인 상태를 확인하지 못했어요. 다시 시도해 주세요.';
+      message = '로그인 상태를 확인하지 못했어요.'; // W8-02 문구
     } catch (_) {
       if (!_isCurrent(version)) return;
       status = AuthStatus.retryRequired;
-      message = '인증 저장소를 읽지 못했어요. 다시 시도해 주세요.';
+      message = '인증 저장소를 읽지 못했어요.';
     }
     if (_isCurrent(version)) _notify();
   }
