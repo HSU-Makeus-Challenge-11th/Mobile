@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
-import '../view_models/learning_member_session.dart';
+import '../view_models/auth_view_model.dart';
+import '../view_models/my_ratings_view_model.dart';
 import '../widgets/stat_item.dart';
 import '../widgets/top_app_bar.dart';
 
@@ -13,10 +14,21 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.surfaceBase,
-      appBar: TopAppBar(title: '내 프로필'),
-      body: ProfileBody(),
+      appBar: TopAppBar(
+        title: '내 프로필',
+        actions: [
+          // 토큰과 member를 지우고 signedOut으로 바꾸면 Router가 /login으로 보낸다.
+          TextButton.icon(
+            onPressed: () => context.read<AuthViewModel>().logout(),
+            icon: const Icon(Icons.logout, size: 18),
+            label: const Text('로그아웃'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary500),
+          ),
+        ],
+      ),
+      body: const ProfileBody(),
     );
   }
 }
@@ -50,6 +62,12 @@ class ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    // GET /v7/members/me 결과(이메일·닉네임)를 구독한다. 수정 성공 시 바로 다시 그려진다.
+    final member = context.select<AuthViewModel, ({String nickname, String email})?>(
+      (auth) => auth.member == null
+          ? null
+          : (nickname: auth.member!.nickname, email: auth.member!.email),
+    );
 
     return Column(
       children: [
@@ -70,31 +88,34 @@ class ProfileHeader extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          '무비러버',
+          member?.nickname ?? '내 정보를 불러오는 중…',
           style: textTheme.titleLarge?.copyWith(color: AppColors.onSurface),
         ),
         const SizedBox(height: 8),
         Text(
-          '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
+          member?.email ?? '',
           textAlign: TextAlign.center,
           style: textTheme.titleMedium?.copyWith(
             color: AppColors.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 16),
-        const EditProfileButton(),
+        EditProfileButton(enabled: member != null),
       ],
     );
   }
 }
 
 class EditProfileButton extends StatelessWidget {
-  const EditProfileButton({super.key});
+  const EditProfileButton({super.key, required this.enabled});
+
+  /// 내 정보(member)를 받은 뒤에만 수정 화면으로 이동할 수 있다.
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: () {},
+      onPressed: enabled ? () => context.push('/my/profile/edit') : null,
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary500,
         side: const BorderSide(color: AppColors.primary500),
@@ -199,11 +220,9 @@ class ProfileMenu extends StatelessWidget {
           _ProfileMenuTile(
             icon: Icons.star_outline_rounded,
             title: '내가 등록한 평점',
-            // 회원가입 성공 응답(result.memberId)으로 저장된 학습용 회원 ID를 보여준다.
-            // 인증이 아니므로 앱을 재시작하면 사라진다.
-            subtitle: context.watch<LearningMemberSession>().memberId == null
-                ? '학습용 회원가입이 필요합니다'
-                : '학습용 memberId: ${context.watch<LearningMemberSession>().memberId}',
+            // v7에는 토큰 기반 '내 평점 목록 GET'이 없어 이번 로그인 세션에서 등록한 평점만 보여준다.
+            subtitle:
+                '이번 로그인에서 등록한 평점 ${context.watch<MyRatingsViewModel>().ratings.length}개',
             onTap: () => context.push('/my/ratings'),
           ),
           // MovieLogButton width 비교 화면은 디버그 빌드에서만 노출한다.
