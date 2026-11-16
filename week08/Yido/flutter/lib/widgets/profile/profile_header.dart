@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
-import 'package:movielog/theme/app_text_styles.dart';
+import 'package:movielog/widgets/auth/figma_text.dart';
 import 'package:movielog/widgets/profile/edit_profile_button.dart';
 
-/// 프로필 사진, 닉네임, 소개, 프로필 수정 버튼을 세로로 가운데 정렬한다.
+/// 프로필 사진, 닉네임, 이메일, 프로필 수정 버튼을 세로로 가운데 정렬한다 (W8-06).
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     super.key,
     required this.name,
-    required this.bio,
+    required this.email,
     required this.imagePath,
+    this.onEdit,
   });
 
+  /// GET me의 닉네임과 이메일. 소개 문구는 v7 응답에 없어 W8-06에서 빠졌다
   final String name;
-  final String bio;
+  final String email;
   final String imagePath;
+
+  /// 내 정보를 불러오기 전에는 null이라 수정 버튼이 꺼진다
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -22,53 +27,34 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _ProfileAvatar(imagePath: imagePath),
-        const SizedBox(height: 18),
+        const SizedBox(height: 17.4),
         SizedBox(
-          height: 27,
+          height: 25,
           child: Text(
             name,
+            key: const Key('profileNickname'),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            strutStyle: const StrutStyle(
-              fontFamily: AppTextStyles.fontFamily,
-              fontSize: 20,
-              height: 27 / 20,
-              forceStrutHeight: true,
-            ),
-            style: AppTextStyles.titleLarge.copyWith(
-              fontSize: 20,
-              height: 27 / 20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink,
-            ),
+            strutStyle: w8Strut(20),
+            style: w8Text(20, FontWeight.w700, AppColors.ink),
           ),
         ),
-        const SizedBox(height: 9),
+        const SizedBox(height: 13.21),
         SizedBox(
-          height: 44,
+          height: 16,
           child: Text(
-            bio,
+            email,
+            key: const Key('profileEmail'),
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            strutStyle: const StrutStyle(
-              fontFamily: AppTextStyles.fontFamily,
-              fontSize: 13,
-              height: 22 / 13,
-              forceStrutHeight: true,
-            ),
-            style: const TextStyle(
-              fontFamily: AppTextStyles.fontFamily,
-              fontSize: 13,
-              height: 22 / 13,
-              fontWeight: FontWeight.w400,
-              color: AppColors.mutedText,
-            ),
+            strutStyle: w8Strut(13),
+            style: w8Text(13, FontWeight.w500, AppColors.mutedText),
           ),
         ),
-        const SizedBox(height: 28),
-        const EditProfileButton(),
+        const SizedBox(height: 54.39),
+        EditProfileButton(onPressed: onEdit),
       ],
     );
   }

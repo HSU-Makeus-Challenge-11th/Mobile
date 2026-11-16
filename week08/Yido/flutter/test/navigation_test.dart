@@ -292,9 +292,23 @@ void main() {
       await fontLoader.load();
       await tester.binding.setSurfaceSize(const Size(390, 844));
 
-      await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
+      final auth = AuthViewModel(
+        FakeAuthApiService(),
+        FakeMemberApiService(),
+        FakeTokenStorage(),
+      );
+      await auth.login('a@umc.com', 'Umc1234!');
+      await auth.loadMember();
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: auth,
+          child: const MaterialApp(home: ProfileScreen()),
+        ),
+      );
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.text('무비러버')).height, 27);
+      // W8-06: 닉네임 25, 이메일 16, 통계 라벨 15, 숫자 29
+      expect(tester.getSize(find.text('시네필A')).height, 25);
+      expect(tester.getSize(find.text('a@umc.com')).height, 16);
       expect(tester.getSize(find.text('본 영화')).height, 16);
       expect(tester.getSize(find.text('342')).height, 31);
       expect(tester.takeException(), isNull);

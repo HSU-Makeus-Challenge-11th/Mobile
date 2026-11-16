@@ -15,13 +15,13 @@ class MyRatingsEntry extends StatelessWidget {
         contentPadding: const EdgeInsets.fromLTRB(19, 0, 18, 0),
         tileColor: AppColors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: Color(0xFFD6C9E8), width: 1.5),
         ),
         title: Text(
           '내가 등록한 평점',
           style: AppTextStyles.bodyLarge.copyWith(
-            height: 22 / 16,
+            height: 1.25,
             fontWeight: FontWeight.w700,
             color: AppColors.ink,
           ),

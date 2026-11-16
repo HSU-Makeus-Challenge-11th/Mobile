@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/theme/app_colors.dart';
-import 'package:movielog/theme/app_text_styles.dart';
+import 'package:movielog/widgets/auth/figma_text.dart';
 
-/// 테두리만 있는 보조 버튼이라 TextButton에 테두리를 더해 만든다.
-/// 1주차에는 모양만 구현하고 화면 이동은 하지 않는다.
+/// 테두리만 있는 보조 버튼 (W8-06: 128x40, radius 9)
 class EditProfileButton extends StatelessWidget {
-  const EditProfileButton({super.key});
+  const EditProfileButton({super.key, this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -13,21 +14,17 @@ class EditProfileButton extends StatelessWidget {
       width: 128,
       height: 40,
       child: TextButton(
-        onPressed: () {
-          debugPrint('프로필 수정 버튼을 눌렀습니다.');
-        },
+        key: const Key('editProfileButton'),
+        onPressed: onPressed,
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary500,
+          disabledForegroundColor: AppColors.primary500.withValues(alpha: .4),
           padding: EdgeInsets.zero,
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           side: const BorderSide(color: AppColors.primary500),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: AppTextStyles.bodyLarge.copyWith(
-            fontSize: 15,
-            height: 20 / 15,
-            fontWeight: FontWeight.w700,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+          textStyle: w8Text(15, FontWeight.w700, AppColors.primary500),
         ),
         child: const Text('프로필 수정'),
       ),
