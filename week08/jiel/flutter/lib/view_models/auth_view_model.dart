@@ -125,9 +125,12 @@ class AuthViewModel extends ChangeNotifier {
       if (!_isCurrent(version)) return;
       status = AuthStatus.signedOut;
       // AUTH401_1은 로그인 Form 오류다. 세션 만료 처리(sessionExpired)를 켜지 않는다.
-      message = apiErrorCode(error) == 'AUTH401_1'
-          ? '이메일 또는 비밀번호를 확인해 주세요.'
-          : '로그인 요청에 실패했어요. 잠시 후 다시 시도해 주세요.';
+      // 입력 형식 오류(COMMON400)는 서버 message를 그대로 보여 주고, 나머지는 통신 실패로 안내한다.
+      message = switch (apiErrorCode(error)) {
+        'AUTH401_1' => '이메일 또는 비밀번호를 확인해 주세요.',
+        'COMMON400' => apiErrorMessage(error) ?? '입력 형식을 확인해 주세요.',
+        _ => '로그인 요청에 실패했어요. 잠시 후 다시 시도해 주세요.',
+      };
     } catch (_) {
       if (!_isCurrent(version)) return;
       status = AuthStatus.signedOut;
