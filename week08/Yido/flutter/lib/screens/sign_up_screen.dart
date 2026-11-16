@@ -82,12 +82,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
     if (!mounted) return;
 
-    final memberId = viewModel.createdMemberId;
-    if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
+    if (viewModel.submitStatus == SubmitStatus.success) {
+      // 가입만으로는 토큰이 없으므로 로그인 화면에서 로그인한다
       messenger.showSnackBar(
-        SnackBar(content: Text('회원가입을 완료했습니다. (memberId: $memberId)')),
+        const SnackBar(content: Text('회원가입을 완료했습니다. 로그인해 주세요.')),
       );
-      context.go('/movies');
+      context.go('/login');
       return;
     }
     final message = viewModel.snackbarMessage;
@@ -101,7 +101,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         SubmitStatus.submitting) {
       return;
     }
-    context.go('/start');
+    context.go('/login');
   }
 
   @override

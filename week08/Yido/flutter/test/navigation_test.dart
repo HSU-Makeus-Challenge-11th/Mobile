@@ -51,15 +51,16 @@ Future<void> signIn(WidgetTester tester, {List ratings = const []}) async {
 }
 
 void main() {
-  testWidgets('registration reaches home and tab route changes', (
+  testWidgets('sign-up returns to login, then login reaches home', (
     tester,
   ) async {
     await tester.pumpWidget(app());
-    AppRouter.router.go('/start');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('시작하기'));
+    // 저장된 토큰이 없으면 스플래시 뒤 로그인 화면으로 간다
+    expect(AppRouter.router.state.uri.path, '/login');
+    await tester.ensureVisible(find.byKey(const Key('goSignUpButton')));
+    await tester.tap(find.byKey(const Key('goSignUpButton')));
     await tester.pumpAndSettle();
-    expect(find.text('회원가입'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('nicknameField')), 'Yido');
     await tester.enterText(
       find.byKey(const Key('emailField')),
@@ -80,12 +81,24 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('signUpButton')));
     await tester.tap(find.byKey(const Key('signUpButton')));
     await tester.pumpAndSettle();
-    // 가입에 성공하면 memberId를 세션에 저장하고 영화 목록으로 이동한다
-    expect(find.text('전체'), findsOneWidget);
-    expect(find.text('회원가입을 완료했습니다. (memberId: 77)'), findsOneWidget);
-    await tester.tap(tab('홈'));
+    expect(AppRouter.router.state.uri.path, '/login');
+    expect(find.text('회원가입을 완료했습니다. 로그인해 주세요.'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('loginEmailField')),
+      'a@umc.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('loginPasswordField')),
+      'Umc1234!',
+    );
+    await tester.ensureVisible(find.byKey(const Key('loginButton')));
+    await tester.tap(find.byKey(const Key('loginButton')));
     await tester.pumpAndSettle();
     expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
+    await tester.tap(tab('영화'));
+    await tester.pumpAndSettle();
+    expect(find.text('전체'), findsOneWidget);
   });
 
   testWidgets('my page opens ratings without the tab bar and comes back', (
@@ -247,6 +260,7 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       try {
         await tester.pumpWidget(app());
+        await signIn(tester);
         AppRouter.router.go('/home');
         await tester.pumpAndSettle();
 

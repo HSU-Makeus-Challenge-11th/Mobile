@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/core/network/movie_log_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
 import 'package:movielog/core/storage/token_storage.dart';
@@ -74,12 +75,44 @@ class MovieLogApp extends StatelessWidget {
               SessionRatingStore(context.read<AuthViewModel>()),
         ),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'MovieLog',
-        theme: AppTheme.light,
-        routerConfig: AppRouter.router,
-      ),
+      child: const _MovieLogRouterApp(),
     );
   }
+}
+
+/// build마다 Router를 새로 만들면 위치가 초기화되므로 initState에서 한 번만 만든다
+class _MovieLogRouterApp extends StatefulWidget {
+  const _MovieLogRouterApp();
+
+  @override
+  State<_MovieLogRouterApp> createState() => _MovieLogRouterAppState();
+}
+
+class _MovieLogRouterAppState extends State<_MovieLogRouterApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    final authViewModel = context.read<AuthViewModel>();
+    _router = AppRouter.createRouter(authViewModel);
+    // 첫 build 뒤에 저장된 토큰을 확인한다
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) authViewModel.restoreSession();
+    });
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp.router(
+    debugShowCheckedModeBanner: false,
+    title: 'MovieLog',
+    theme: AppTheme.light,
+    routerConfig: _router,
+  );
 }
