@@ -43,10 +43,18 @@ class AuthViewModel extends ChangeNotifier {
   bool _disposed = false;
   Future<void>? _tokenWrite;
 
+  /// Router 전용 알림. AuthStatus가 실제로 바뀔 때만 알린다(ValueNotifier는 같은 값이면 알리지 않음).
+  /// member 교체·loadMember 같은 변경까지 refreshListenable로 받으면 redirect가 불필요하게 다시 돌아,
+  /// 프로필 수정 저장 직후 pop()이 되돌려지는 문제가 있었다.
+  final ValueNotifier<AuthStatus> statusListenable =
+      ValueNotifier(AuthStatus.initializing);
+
   bool _isCurrent(int version) => !_disposed && version == _sessionVersion;
 
   void _notify() {
-    if (!_disposed) notifyListeners();
+    if (_disposed) return;
+    statusListenable.value = status;
+    notifyListeners();
   }
 
   /// 앱 시작 시 저장된 토큰을 서버에서 검증해 세션을 복원한다.
@@ -221,6 +229,7 @@ class AuthViewModel extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _sessionVersion++;
+    statusListenable.dispose();
     super.dispose();
   }
 }

@@ -50,7 +50,8 @@ class AppRouter {
   static GoRouter createRouter(AuthViewModel authViewModel) => GoRouter(
     initialLocation: '/start',
     navigatorKey: rootNavigatorKey,
-    refreshListenable: authViewModel, // 인증 상태가 바뀌면 redirect를 다시 실행한다.
+    // 인증 상태(AuthStatus)가 바뀔 때만 redirect를 다시 실행한다. 닉네임 교체 등에는 반응하지 않는다.
+    refreshListenable: authViewModel.statusListenable,
     redirect: (context, state) =>
         authRedirect(authViewModel.status, state.uri.path),
     routes: [
