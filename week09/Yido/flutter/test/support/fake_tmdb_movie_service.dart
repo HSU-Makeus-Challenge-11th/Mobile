@@ -78,6 +78,15 @@ class FakeTmdbMovieService extends TmdbMovieService {
   }
 
   @override
+  Future<TmdbMovieDto> fetchMovieDetail(int movieId) async {
+    detailCalls.add(movieId);
+    if (failingDetailIds.contains(movieId)) throw _error('/movie/$movieId');
+    final movie = detailMovies[movieId];
+    if (movie == null) throw _error('/movie/$movieId');
+    return movie;
+  }
+
+  @override
   Future<TmdbMovieDto?> findMovieById(int movieId) async {
     detailCalls.add(movieId);
     if (failingDetailIds.contains(movieId)) throw _error('/movie/$movieId');
