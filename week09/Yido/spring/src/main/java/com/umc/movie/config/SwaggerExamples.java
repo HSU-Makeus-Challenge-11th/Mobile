@@ -110,4 +110,82 @@ public final class SwaggerExamples {
               "result": null
             }
             """;
+
+    public static final String MEMBER_RATINGS = """
+            [
+              { "ratingId": 3, "movieId": 550, "score": 5, "comment": "다시 봐도 명작", "createdAt": "2026-11-20T21:00:00", "updatedAt": "2026-11-20T21:00:00" }
+            ]
+            """;
+
+    public static final String MEMBER404_1 = """
+            {
+              "isSuccess": false,
+              "code": "MEMBER404_1",
+              "message": "해당 회원을 찾을 수 없습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String RATING_CREATED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON201",
+              "message": "평점을 등록했습니다.",
+              "result": { "ratingId": 3, "movieId": 550, "score": 5, "comment": "다시 봐도 명작", "createdAt": "2026-11-20T21:00:00", "updatedAt": "2026-11-20T21:00:00" }
+            }
+            """;
+
+    public static final String RATING_UPDATED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "평점을 수정했습니다.",
+              "result": { "ratingId": 3, "movieId": 550, "score": 4, "comment": "두 번째 보니 조금 아쉬움", "createdAt": "2026-11-20T21:00:00", "updatedAt": "2026-11-20T21:10:00" }
+            }
+            """;
+
+    public static final String RATING_DELETED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "평점을 삭제했습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String SCORE_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "별점은 5점 이하여야 합니다.",
+              "result": null
+            }
+            """;
+
+    public static final String RATING403_1 = """
+            {
+              "isSuccess": false,
+              "code": "RATING403_1",
+              "message": "본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String RATING404_1 = """
+            {
+              "isSuccess": false,
+              "code": "RATING404_1",
+              "message": "해당 평점을 찾을 수 없습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String RATING409_1 = """
+            {
+              "isSuccess": false,
+              "code": "RATING409_1",
+              "message": "이미 이 영화에 평점을 남기셨습니다.",
+              "result": null
+            }
+            """;
 }
