@@ -62,4 +62,52 @@ public final class SwaggerExamples {
               "result": null
             }
             """;
+
+    public static final String FAVORITE_LIST = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "내 즐겨찾기 목록을 조회했습니다.",
+              "result": [
+                { "favoriteId": 2, "movieId": 680, "createdAt": "2026-11-20T21:05:00" },
+                { "favoriteId": 1, "movieId": 550, "createdAt": "2026-11-20T21:00:00" }
+              ]
+            }
+            """;
+
+    public static final String FAVORITE_STATUS = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "즐겨찾기 여부를 조회했습니다.",
+              "result": { "isFavorite": false }
+            }
+            """;
+
+    public static final String FAVORITE_DELETED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "즐겨찾기를 해제했습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String FAVORITE404_1 = """
+            {
+              "isSuccess": false,
+              "code": "FAVORITE404_1",
+              "message": "즐겨찾기한 영화를 찾을 수 없습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String PATH_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "경로 값의 형식이 올바르지 않습니다.",
+              "result": null
+            }
+            """;
 }
