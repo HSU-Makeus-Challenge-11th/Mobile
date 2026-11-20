@@ -188,4 +188,80 @@ public final class SwaggerExamples {
               "result": null
             }
             """;
+
+    public static final String MY_INFO = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "회원 정보를 조회했습니다.",
+              "result": { "email": "challenger@umc.com", "nickname": "영화조아", "createdAt": "2026-11-20T21:00:00" }
+            }
+            """;
+
+    public static final String MY_INFO_UPDATED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "회원 정보를 수정했습니다.",
+              "result": { "email": "challenger@umc.com", "nickname": "시네필", "createdAt": "2026-11-20T21:00:00" }
+            }
+            """;
+
+    public static final String NICKNAME_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "닉네임은 2자 이상 12자 이하여야 합니다.",
+              "result": null
+            }
+            """;
+
+    public static final String MEMBER409_1 = """
+            {
+              "isSuccess": false,
+              "code": "MEMBER409_1",
+              "message": "이미 사용 중인 닉네임입니다.",
+              "result": null
+            }
+            """;
+
+    public static final String AVAILABLE = """
+            { "available": true }
+            """;
+
+    public static final String SIGN_UP_CREATED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON201",
+              "message": "회원가입에 성공했습니다.",
+              "result": { "memberId": 1, "email": "challenger@umc.com", "nickname": "영화조아" }
+            }
+            """;
+
+    public static final String PASSWORD_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "비밀번호는 대문자/소문자/숫자/특수문자를 포함한 8자 이상이어야 합니다.",
+              "result": null
+            }
+            """;
+
+    public static final String EMAIL_TAKEN = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4092",
+              "message": "이미 사용 중인 이메일입니다.",
+              "result": null
+            }
+            """;
+
+    public static final String NICKNAME_TAKEN = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4092",
+              "message": "이미 사용 중인 닉네임입니다.",
+              "result": null
+            }
+            """;
 }
