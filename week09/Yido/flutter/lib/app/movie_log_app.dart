@@ -7,6 +7,7 @@ import 'package:movielog/core/session/auth_session_bridge.dart';
 import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/core/storage/token_storage.dart';
 import 'package:movielog/data/services/auth_api_service.dart';
+import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
@@ -26,6 +27,7 @@ class MovieLogApp extends StatelessWidget {
     this.authApiService,
     this.memberApiService,
     this.tokenStorage,
+    this.favoriteApiService,
   });
 
   /// 테스트에서 가짜 Service를 넣을 때만 사용한다
@@ -35,6 +37,7 @@ class MovieLogApp extends StatelessWidget {
   final AuthApiService? authApiService;
   final MemberApiService? memberApiService;
   final TokenStorage? tokenStorage;
+  final FavoriteApiService? favoriteApiService;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +67,10 @@ class MovieLogApp extends StatelessWidget {
         Provider<RatingApiService>(
           create: (_) =>
               ratingApiService ?? RatingApiService(publicClient, authClient),
+        ),
+        // 즐겨찾기는 모두 보호 요청이라 authClient만 쓴다
+        Provider<FavoriteApiService>(
+          create: (_) => favoriteApiService ?? FavoriteApiService(authClient),
         ),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
