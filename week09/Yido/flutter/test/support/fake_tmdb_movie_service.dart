@@ -42,6 +42,16 @@ class FakeTmdbMovieService extends TmdbMovieService {
   final failingDetailIds = <int>{};
   final discoverCalls = <({int page, int? genreId})>[];
 
+  /// 검색어별 page 결과
+  final searchPages = <String, List<List<TmdbMovieDto>>>{};
+  final searchCalls = <({int page, String query})>[];
+
+  /// 이 page 번호 요청은 한 번 실패한다
+  final failOncePages = <int>{};
+
+  /// 지정하면 응답을 이 Future가 끝날 때까지 미룬다
+  Future<void> Function(int page, int? genreId, String? query)? delay;
+
   static const genres = [
     TmdbGenreDto(id: 28, name: '액션'),
     TmdbGenreDto(id: 878, name: 'SF'),
@@ -67,8 +77,28 @@ class FakeTmdbMovieService extends TmdbMovieService {
     int? genreId,
   }) async {
     discoverCalls.add((page: page, genreId: genreId));
+    await delay?.call(page, genreId, null);
     if (fail) throw _error('/discover/movie');
+    if (failOncePages.remove(page)) throw _error('/discover/movie');
     final pages = discoverPages[genreId] ?? const [];
+    return TmdbMoviePageDto(
+      page: page,
+      results: page <= pages.length ? pages[page - 1] : const [],
+      totalPages: pages.length,
+      totalResults: pages.fold(0, (sum, p) => sum + p.length),
+    );
+  }
+
+  @override
+  Future<TmdbMoviePageDto> searchMovies({
+    required int page,
+    required String query,
+  }) async {
+    searchCalls.add((page: page, query: query));
+    await delay?.call(page, null, query);
+    if (fail) throw _error('/search/movie');
+    if (failOncePages.remove(page)) throw _error('/search/movie');
+    final pages = searchPages[query] ?? const [];
     return TmdbMoviePageDto(
       page: page,
       results: page <= pages.length ? pages[page - 1] : const [],
