@@ -126,4 +126,25 @@ void main() {
     expect(find.text('별빛 아래 우리'), findsNothing);
     expect(find.text('아직 즐겨찾기한 영화가 없습니다.'), findsOneWidget);
   });
+
+  testWidgets('my page row sits below my ratings and opens favorites', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(app());
+    final context = tester.element(find.byType(Navigator).first);
+    await context.read<AuthViewModel>().login('a@umc.com', 'Umc1234!');
+    await tester.pumpAndSettle();
+    AppRouter.router.go('/my');
+    await tester.pumpAndSettle();
+    final ratings = tester.getRect(find.text('내가 등록한 평점'));
+    final entry = find.byKey(const Key('myFavoritesEntry'));
+    expect(tester.getRect(entry).top, greaterThan(ratings.bottom));
+    expect(tester.getSize(entry).height, 54);
+    await tester.tap(entry);
+    await tester.pumpAndSettle();
+    expect(AppRouter.router.state.uri.path, '/my/favorites');
+    expect(find.text('아직 즐겨찾기한 영화가 없습니다.'), findsOneWidget);
+  });
 }

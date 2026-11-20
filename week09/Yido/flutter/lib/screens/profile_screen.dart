@@ -6,6 +6,7 @@ import 'package:movielog/widgets/auth/figma_text.dart';
 import 'package:provider/provider.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/profile/favorite_genres.dart';
+import 'package:movielog/widgets/profile/my_favorites_entry.dart';
 import 'package:movielog/widgets/profile/my_ratings_entry.dart';
 import 'package:movielog/widgets/profile/profile_header.dart';
 import 'package:movielog/widgets/profile/profile_stats.dart';
@@ -103,7 +104,10 @@ class ProfileBody extends StatelessWidget {
           const ProfileStats(stats: _stats),
           const SizedBox(height: 26),
           const MyRatingsEntry(),
-          const SizedBox(height: 27.49),
+          // W9: 내가 등록한 평점 아래에 8px 띄워 내 즐겨찾기 행을 둔다
+          const SizedBox(height: 8),
+          MyFavoritesEntry(enabled: member != null),
+          const SizedBox(height: 32),
           const FavoriteGenres(genres: _genres),
         ],
       ),
