@@ -280,6 +280,8 @@ Future<void> pumpDialog(
   Future<void> Function(int, String?) onSubmit, {
   int initialScore = 0,
   String? initialComment,
+  bool showAddToFavorite = false,
+  void Function(bool addToFavorites)? onAddToFavorites,
 }) async {
   await tester.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -294,7 +296,11 @@ Future<void> pumpDialog(
             builder: (_) => RatingDialog(
               initialScore: initialScore,
               initialComment: initialComment,
-              onSubmit: onSubmit,
+              showAddToFavorite: showAddToFavorite,
+              onSubmit: (score, comment, addToFavorites) {
+                onAddToFavorites?.call(addToFavorites);
+                return onSubmit(score, comment);
+              },
             ),
           ),
           child: const Text('open'),

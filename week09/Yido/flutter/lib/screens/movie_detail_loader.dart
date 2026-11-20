@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/data/services/movie_record_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
@@ -56,6 +57,7 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
             context.read<SessionRatingStore>(),
             context.read<AuthViewModel>(),
             args.movie.id,
+            movieRecordApi: context.read<MovieRecordApiService>(),
           ),
           child: MovieDetailScreen(args: args),
         );

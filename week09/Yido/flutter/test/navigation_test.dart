@@ -231,7 +231,7 @@ void main() {
     expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
     await tester.tap(confirm);
     await tester.pumpAndSettle();
-    expect(find.textContaining('평점을 등록했습니다.'), findsOneWidget);
+    expect(find.text('평점을 저장했습니다.'), findsOneWidget);
     expect(ratingService.created.single.movieId, 11);
     expect(ratingService.created.single.score, 4);
     await tester.ensureVisible(find.byKey(const Key('favoriteButton')));

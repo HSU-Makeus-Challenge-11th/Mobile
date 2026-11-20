@@ -9,18 +9,31 @@ import 'package:movielog/widgets/movies/movie_rating_input.dart';
 /// W7-01 값의 어두운 막. showDialog의 barrierColor로 넘긴다
 const ratingDialogBarrierColor = Color(0x5725232A);
 
+/// onSubmit이 이 예외를 던지면 Dialog를 닫는다. 안내는 호출한 쪽이 Snackbar로 한다
+class RatingDialogDismissed implements Exception {
+  const RatingDialogDismissed();
+}
+
 /// 저장은 onSubmit이 맡는다. 예외 없이 끝나면 true, 취소하면 false를 돌려준다
 class RatingDialog extends StatefulWidget {
   const RatingDialog({
     super.key,
     this.initialScore = 0,
     this.initialComment,
+    this.showAddToFavorite = false,
     required this.onSubmit,
   });
 
   final int initialScore;
   final String? initialComment;
-  final Future<void> Function(int score, String? comment) onSubmit;
+
+  /// 평점 수정에서도 같은 Dialog를 쓰므로 기본은 숨긴다.
+  /// 상세의 "평점 남기기"에서 아직 즐겨찾기하지 않은 영화일 때만 보인다
+  final bool showAddToFavorite;
+
+  /// 체크박스가 보이지 않으면 addToFavorites는 항상 false다
+  final Future<void> Function(int score, String? comment, bool addToFavorites)
+  onSubmit;
 
   @override
   State<RatingDialog> createState() => _RatingDialogState();
@@ -40,6 +53,7 @@ class _RatingDialogState extends State<RatingDialog> {
     text: widget.initialComment ?? '',
   );
   bool _isSubmitting = false;
+  bool _addToFavorites = false;
   String? _errorText;
 
   @override
@@ -56,9 +70,16 @@ class _RatingDialogState extends State<RatingDialog> {
 
     final trimmed = _commentController.text.trim();
     try {
-      await widget.onSubmit(_score, trimmed.isEmpty ? null : trimmed);
+      await widget.onSubmit(
+        _score,
+        trimmed.isEmpty ? null : trimmed,
+        widget.showAddToFavorite && _addToFavorites,
+      );
       if (!mounted) return;
       Navigator.pop(context, true);
+    } on RatingDialogDismissed {
+      if (!mounted) return;
+      Navigator.pop(context, false);
     } catch (error) {
       if (!mounted) return;
       // 실패해도 Dialog를 유지해 입력한 별점과 코멘트를 보존한다
@@ -168,6 +189,14 @@ class _RatingDialogState extends State<RatingDialog> {
                   ),
                 ),
               ),
+              if (widget.showAddToFavorite) ...[
+                const SizedBox(height: 15),
+                _AddToFavoriteCheckbox(
+                  value: _addToFavorites,
+                  enabled: !_isSubmitting,
+                  onChanged: (value) => setState(() => _addToFavorites = value),
+                ),
+              ],
               if (_errorText != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 3, top: 8),
@@ -226,4 +255,58 @@ class _RatingDialogState extends State<RatingDialog> {
       ),
     );
   }
+}
+
+/// 워크북 W9 Challenge 이미지: 20x20 보라 테두리 칸과 "즐겨찾기에도 추가"
+class _AddToFavoriteCheckbox extends StatelessWidget {
+  const _AddToFavoriteCheckbox({
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    checked: value,
+    label: '즐겨찾기에도 추가',
+    child: InkWell(
+      key: const Key('addToFavoriteCheckbox'),
+      onTap: enabled ? () => onChanged(!value) : null,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(3, 2, 3, 2),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: value ? AppColors.primary500 : AppColors.white,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.primary500, width: 2),
+              ),
+              child: value
+                  ? const Icon(Icons.check, size: 14, color: AppColors.white)
+                  : null,
+            ),
+            const SizedBox(width: 11),
+            const Text(
+              '즐겨찾기에도 추가',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 14,
+                height: 19 / 14,
+                fontWeight: FontWeight.w400,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

@@ -59,7 +59,8 @@ class _RatingList extends StatelessWidget {
       builder: (_) => RatingDialog(
         initialScore: rating.score,
         initialComment: rating.comment,
-        onSubmit: (score, comment) => viewModel.updateRating(
+        // 평점 수정은 체크박스 없이 기존 PATCH를 그대로 쓴다
+        onSubmit: (score, comment, _) => viewModel.updateRating(
           ratingId: rating.ratingId,
           score: score,
           comment: comment,

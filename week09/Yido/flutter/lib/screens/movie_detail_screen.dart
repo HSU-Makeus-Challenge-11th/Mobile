@@ -38,33 +38,45 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Future<void> _openRatingDialog() async {
     final messenger = ScaffoldMessenger.of(context);
+    final favorite = context.read<FavoriteDetailViewModel>();
+    // 아직 즐겨찾기하지 않은 영화일 때만 "즐겨찾기에도 추가"를 보여 준다
+    final canAddFavorite = favorite.hasLoadedStatus && !favorite.isFavorite;
     final saved = await showDialog<bool>(
       context: context,
       barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막는다
       barrierColor: ratingDialogBarrierColor,
       builder: (_) => RatingDialog(
-        onSubmit: (score, comment) async {
+        showAddToFavorite: canAddFavorite,
+        onSubmit: (score, comment, addToFavorites) async {
           final viewModel = context.read<MovieDetailViewModel>();
-          await viewModel.createRating(score: score, comment: comment);
-          if (viewModel.submitStatus != SubmitStatus.success) {
-            final message = viewModel.submitMessage ?? '저장에 실패했습니다.';
+          await viewModel.saveRating(
+            score: score,
+            comment: comment,
+            viaMovieRecord: canAddFavorite,
+            addToFavorites: addToFavorites,
+          );
+          if (viewModel.submitStatus == SubmitStatus.success) return;
+          final message = viewModel.submitMessage ?? '저장에 실패했습니다.';
+          if (viewModel.closeDialogOnError) {
+            // 이미 평점·이미 즐겨찾기·회원 없음은 Dialog를 닫고 Snackbar로 알린다
             messenger
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(message)));
-            throw StateError(message);
+            throw const RatingDialogDismissed();
           }
+          // 입력값 오류와 네트워크 실패는 Dialog 안에 이유를 보여 주고 입력을 유지한다
+          throw StateError(message);
         },
       ),
     );
 
-    if (!mounted || saved != true) return;
+    if (!mounted) return;
+    // 북마크 상태를 서버 값으로 다시 맞춘다
+    if (saved != null) await favorite.load();
+    if (saved != true || !mounted) return;
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 수정·삭제할 수 있습니다.'),
-        ),
-      );
+      ..showSnackBar(const SnackBar(content: Text('평점을 저장했습니다.')));
   }
 
   @override
