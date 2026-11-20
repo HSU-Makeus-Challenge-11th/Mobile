@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/widgets/auth/figma_text.dart';
 import 'package:movielog/view_models/load_phase.dart';
 import 'package:movielog/view_models/paged_movies_view_model.dart';
 import 'package:movielog/widgets/movies/movie_page_footer.dart';
@@ -31,12 +34,24 @@ class MovieListScreen extends StatelessWidget {
                       color: Color(0xFF6750A4),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.search,
-                      size: 18,
-                      color: Color(0xFF494551),
+                  // W9: 오른쪽 "검색" 글자 버튼으로 검색 화면에 들어간다
+                  GestureDetector(
+                    key: const Key('openSearchButton'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => context.push('/movies/search'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                      child: Text(
+                        '검색',
+                        style: w8Text(
+                          13,
+                          FontWeight.w700,
+                          AppColors.primary500,
+                        ).copyWith(height: 18 / 13),
+                      ),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/screens/favorites_screen.dart';
+import 'package:movielog/screens/movie_search_screen.dart';
 import 'package:movielog/view_models/favorites_view_model.dart';
 import 'package:movielog/view_models/favorite_detail_view_model.dart';
 import 'package:movielog/widgets/member_ready_gate.dart';
@@ -202,6 +203,23 @@ abstract final class AppRouter {
               ],
             ),
           ],
+        ),
+        // 정적인 search를 동적인 :movieId보다 먼저 등록해야 영화 ID로 해석되지 않는다
+        GoRoute(
+          path: '/movies/search',
+          builder: (context, state) =>
+              ChangeNotifierProvider<PagedMoviesViewModel>(
+                // 영화 목록과 따로 만든 인스턴스라 검색이 목록 상태를 바꾸지 않는다
+                create: (context) => PagedMoviesViewModel(
+                  tmdbApi: context.read<TmdbMovieService>(),
+                ),
+                child: MovieSearchScreen(
+                  onOpenMovie: (movie) => context.push(
+                    '/movies/${movie.id}',
+                    extra: MovieDetailArgs(movie: movie),
+                  ),
+                ),
+              ),
         ),
         GoRoute(
           path: '/movies/:movieId',
