@@ -264,4 +264,31 @@ public final class SwaggerExamples {
               "result": null
             }
             """;
+
+    public static final String LOGIN_OK = """
+            {
+              "isSuccess": true,
+              "code": "COMMON200",
+              "message": "로그인에 성공했습니다.",
+              "result": { "nickname": "영화조아", "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.서명" }
+            }
+            """;
+
+    public static final String EMAIL_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "이메일 형식이 올바르지 않습니다.",
+              "result": null
+            }
+            """;
+
+    public static final String AUTH401_1 = """
+            {
+              "isSuccess": false,
+              "code": "AUTH401_1",
+              "message": "이메일 또는 비밀번호가 올바르지 않습니다.",
+              "result": null
+            }
+            """;
 }
