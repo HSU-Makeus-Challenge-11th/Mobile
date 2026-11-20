@@ -72,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
 class ProfileBody extends StatelessWidget {
   const ProfileBody({super.key});
 
-  /// 사진·통계·장르는 디자인 예시다. v7 GET me는 이메일·닉네임·가입일만 준다
+  /// 사진·통계·장르는 디자인 예시다. v8 GET me는 이메일·닉네임·가입일만 준다
   static const _stats = [
     ProfileStat(label: '본 영화', value: '342'),
     ProfileStat(label: '평점', value: '4.2'),

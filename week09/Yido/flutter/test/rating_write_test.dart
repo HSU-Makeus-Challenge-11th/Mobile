@@ -42,13 +42,13 @@ void main() {
     };
 
     test(
-      'create goes to /v7/ratings on the auth client without memberId',
+      'create goes to /v8/ratings on the auth client without memberId',
       () async {
         final (api, public, auth) = service(201, ok(rating, code: 'COMMON201'));
         final created = await api.createRating(
           const CreateRatingRequest(movieId: 550, score: 5),
         );
-        expect(auth.request!.path, '/v7/ratings');
+        expect(auth.request!.path, '/v8/ratings');
         expect(auth.request!.data, {'movieId': 550, 'score': 5});
         expect(public.request, isNull);
         expect(created.ratingId, 6);
@@ -59,7 +59,7 @@ void main() {
       final (api, _, auth) = service(200, ok({...rating, 'score': 3}));
       final updated = await api.updateRating(ratingId: 6, score: 3);
       expect(auth.request!.method, 'PATCH');
-      expect(auth.request!.path, '/v7/ratings/6');
+      expect(auth.request!.path, '/v8/ratings/6');
       expect(auth.request!.data, {'score': 3, 'comment': null});
       expect(updated.score, 3);
     });
@@ -68,7 +68,7 @@ void main() {
       final (api, _, auth) = service(200, ok(null));
       await api.deleteRating(6);
       expect(auth.request!.method, 'DELETE');
-      expect(auth.request!.path, '/v7/ratings/6');
+      expect(auth.request!.path, '/v8/ratings/6');
 
       final (oldApi, _, _) = service(204);
       expect(oldApi.deleteRating(6), throwsStateError);
@@ -77,7 +77,7 @@ void main() {
     test('member ratings stay public and are a plain array', () async {
       final (api, public, auth) = service(200, [rating]);
       final list = await api.fetchMemberRatings(6);
-      expect(public.request!.path, '/v7/members/6/ratings');
+      expect(public.request!.path, '/v8/members/6/ratings');
       expect(auth.request, isNull);
       expect(list.single.ratingId, 6);
     });

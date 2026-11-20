@@ -52,7 +52,7 @@ void main() {
     expect(find.byKey(const Key('splashProgress')), findsOneWidget);
 
     // 네트워크 실패는 토큰을 지우지 않고 재시도 화면을 보여 준다
-    fakes.member.error = networkError('/v7/members/me');
+    fakes.member.error = networkError('/v8/members/me');
     fakes.member.gate!.complete();
     await tester.pumpAndSettle();
     expect(path(), '/start');
@@ -70,7 +70,7 @@ void main() {
     tester,
   ) async {
     final fakes = _Fakes('expired.token');
-    fakes.member.error = apiError('/v7/members/me', 401, 'AUTH401_4');
+    fakes.member.error = apiError('/v8/members/me', 401, 'AUTH401_4');
     await pumpPhone(tester, fakes.app());
     await tester.pumpAndSettle();
     expect(path(), '/login');
@@ -102,7 +102,7 @@ void main() {
     expect(find.text('비밀번호를 입력해 주세요.'), findsOneWidget);
     expect(fakes.auth.requests, isEmpty);
 
-    fakes.auth.error = apiError('/v7/auth/login', 401, 'AUTH401_1');
+    fakes.auth.error = apiError('/v8/auth/login', 401, 'AUTH401_1');
     await login(tester, 'a@umc.com', 'Wrong123!');
     await tester.pumpAndSettle();
     expect(path(), '/login');
@@ -164,7 +164,7 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('4 / 12'), findsOneWidget);
 
-    fakes.member.error = apiError('/v7/members/me', 409, 'MEMBER409_1');
+    fakes.member.error = apiError('/v8/members/me', 409, 'MEMBER409_1');
     await tester.enterText(
       find.byKey(const Key('profileNicknameField')),
       '영화광B',
@@ -193,7 +193,7 @@ void main() {
     await tester.pumpAndSettle();
     AppRouter.router.go('/my/profile/edit');
     await tester.pumpAndSettle();
-    fakes.member.error = apiError('/v7/members/me', 401, 'AUTH401_3');
+    fakes.member.error = apiError('/v8/members/me', 401, 'AUTH401_3');
     await tester.enterText(
       find.byKey(const Key('profileNicknameField')),
       '새닉네임',

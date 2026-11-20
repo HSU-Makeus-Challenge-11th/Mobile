@@ -40,7 +40,7 @@ void main() {
   });
 
   test('409 shows under the field and keeps the session', () async {
-    memberApi.error = apiError('/v7/members/me', 409, 'MEMBER409_1');
+    memberApi.error = apiError('/v8/members/me', 409, 'MEMBER409_1');
     expect(await viewModel.save('영화광B'), isFalse);
     expect(viewModel.nicknameError, '이미 사용 중인 닉네임이에요.');
     expect(viewModel.message, isNull);
@@ -49,7 +49,7 @@ void main() {
   });
 
   test('a network failure goes to the snackbar without logging out', () async {
-    memberApi.error = networkError('/v7/members/me');
+    memberApi.error = networkError('/v8/members/me');
     expect(await viewModel.save('새닉네임'), isFalse);
     expect(viewModel.nicknameError, isNull);
     expect(viewModel.message, contains('네트워크'));
@@ -57,7 +57,7 @@ void main() {
   });
 
   test('an expired token ends the session', () async {
-    memberApi.error = apiError('/v7/members/me', 401, 'AUTH401_4');
+    memberApi.error = apiError('/v8/members/me', 401, 'AUTH401_4');
     expect(await viewModel.save('새닉네임'), isFalse);
     expect(auth.status, AuthStatus.signedOut);
     expect(auth.sessionExpired, isTrue);

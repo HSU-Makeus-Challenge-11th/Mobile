@@ -132,7 +132,7 @@ class FakeRatingApiService extends RatingApiService {
   @override
   Future<RatingDto> createRating(CreateRatingRequest request) async {
     created.add(request);
-    await _write('/v7/ratings');
+    await _write('/v8/ratings');
     return RatingDto(
       ratingId: _nextId++,
       movieId: request.movieId,
@@ -149,7 +149,7 @@ class FakeRatingApiService extends RatingApiService {
     String? comment,
   }) async {
     updated.add((ratingId: ratingId, score: score, comment: comment));
-    await _write('/v7/ratings/$ratingId');
+    await _write('/v8/ratings/$ratingId');
     return RatingDto(
       ratingId: ratingId,
       movieId: 550,
@@ -162,6 +162,6 @@ class FakeRatingApiService extends RatingApiService {
   @override
   Future<void> deleteRating(int ratingId) async {
     deleted.add(ratingId);
-    await _write('/v7/ratings/$ratingId');
+    await _write('/v8/ratings/$ratingId');
   }
 }

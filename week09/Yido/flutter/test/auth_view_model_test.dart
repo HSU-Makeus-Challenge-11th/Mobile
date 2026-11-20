@@ -43,7 +43,7 @@ void main() {
     for (final code in ['AUTH401_2', 'AUTH401_3', 'AUTH401_4']) {
       test('$code clears the token and marks the session expired', () async {
         build('expired.token');
-        memberApi.error = apiError('/v7/members/me', 401, code);
+        memberApi.error = apiError('/v8/members/me', 401, code);
         await auth.restoreSession();
         expect(auth.status, AuthStatus.signedOut);
         expect(auth.sessionExpired, isTrue);
@@ -53,7 +53,7 @@ void main() {
 
     test('a network failure keeps the token and asks to retry', () async {
       build('saved.token');
-      memberApi.error = networkError('/v7/members/me');
+      memberApi.error = networkError('/v8/members/me');
       await auth.restoreSession();
       expect(auth.status, AuthStatus.retryRequired);
       expect(storage.token, 'saved.token');
@@ -85,7 +85,7 @@ void main() {
 
     test('AUTH401_1 stays a form error and does not expire', () async {
       build();
-      authApi.error = apiError('/v7/auth/login', 401, 'AUTH401_1');
+      authApi.error = apiError('/v8/auth/login', 401, 'AUTH401_1');
       await auth.login('a@umc.com', 'wrong');
       expect(auth.status, AuthStatus.signedOut);
       expect(auth.message, '이메일 또는 비밀번호를 확인해 주세요.');
@@ -95,7 +95,7 @@ void main() {
 
     test('a network failure has a different message', () async {
       build();
-      authApi.error = networkError('/v7/auth/login');
+      authApi.error = networkError('/v8/auth/login');
       await auth.login('a@umc.com', 'Umc1234!');
       expect(auth.message, '로그인 요청에 실패했어요. 잠시 후 다시 시도해 주세요.');
     });
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('a network failure keeps the session for a retry', () async {
-      memberApi.error = networkError('/v7/members/me');
+      memberApi.error = networkError('/v8/members/me');
       await auth.loadMember();
       expect(auth.status, AuthStatus.signedIn);
       expect(auth.memberStatus, MemberLoadStatus.error);
@@ -133,7 +133,7 @@ void main() {
     });
 
     test('an expired token signs out with the expired notice', () async {
-      memberApi.error = apiError('/v7/members/me', 401, 'AUTH401_4');
+      memberApi.error = apiError('/v8/members/me', 401, 'AUTH401_4');
       await auth.loadMember();
       expect(auth.status, AuthStatus.signedOut);
       expect(auth.sessionExpired, isTrue);

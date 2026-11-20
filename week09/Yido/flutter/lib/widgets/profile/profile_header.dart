@@ -13,7 +13,7 @@ class ProfileHeader extends StatelessWidget {
     this.onEdit,
   });
 
-  /// GET me의 닉네임과 이메일. 소개 문구는 v7 응답에 없어 W8-06에서 빠졌다
+  /// GET me의 닉네임과 이메일. 소개 문구는 v8 응답에 없어 W8-06에서 빠졌다
   final String name;
   final String email;
   final String imagePath;

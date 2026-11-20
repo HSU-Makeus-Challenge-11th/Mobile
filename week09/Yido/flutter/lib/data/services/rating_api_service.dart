@@ -32,13 +32,13 @@ class RatingApiService {
 
   /// 공개 API라 memberId path를 유지한다. 성공은 공통 형식 없이 배열이다
   Future<List<RatingDto>> fetchMemberRatings(int memberId) async {
-    final response = await _publicDio.get('/v7/members/$memberId/ratings');
+    final response = await _publicDio.get('/v8/members/$memberId/ratings');
     return parseRatingList(response.data);
   }
 
   /// 요청 어디에도 memberId가 없다. 토큰이 회원을 알려 준다
   Future<RatingDto> createRating(CreateRatingRequest request) async {
-    final response = await _authDio.post('/v7/ratings', data: request.toJson());
+    final response = await _authDio.post('/v8/ratings', data: request.toJson());
     return parseRatingResult(response.data);
   }
 
@@ -49,15 +49,15 @@ class RatingApiService {
     String? comment,
   }) async {
     final response = await _authDio.patch(
-      '/v7/ratings/$ratingId',
+      '/v8/ratings/$ratingId',
       data: {'score': score, 'comment': comment},
     );
     return parseRatingResult(response.data);
   }
 
-  /// v7 삭제 성공은 204가 아니라 result가 null인 200이다
+  /// v8 삭제 성공은 204가 아니라 result가 null인 200이다
   Future<void> deleteRating(int ratingId) async {
-    final response = await _authDio.delete('/v7/ratings/$ratingId');
+    final response = await _authDio.delete('/v8/ratings/$ratingId');
     if (response.statusCode != 200) {
       throw StateError('예상하지 못한 삭제 응답: ${response.statusCode}');
     }

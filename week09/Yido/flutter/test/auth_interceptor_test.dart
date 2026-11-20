@@ -46,7 +46,7 @@ void main() {
   String? authorization() => recorder.last!.headers['Authorization'] as String?;
 
   test('protected paths get the bearer token', () async {
-    for (final path in ['/v7/members/me', '/v7/ratings', '/v7/ratings/12']) {
+    for (final path in ['/v8/members/me', '/v8/ratings', '/v8/ratings/12']) {
       await auth.get(path);
       expect(authorization(), 'Bearer header.payload.signature', reason: path);
     }
@@ -54,27 +54,27 @@ void main() {
 
   test('public paths and other hosts get no token', () async {
     for (final path in [
-      '/v7/auth/login',
-      '/v7/members/6/ratings',
-      '/v7/members/nickname/a',
-      '/v7/ratingsx',
+      '/v8/auth/login',
+      '/v8/members/6/ratings',
+      '/v8/members/nickname/a',
+      '/v8/ratingsx',
     ]) {
       await auth.get(path);
       expect(authorization(), isNull, reason: path);
     }
-    await auth.get('https://image.tmdb.org/v7/ratings');
+    await auth.get('https://image.tmdb.org/v8/ratings');
     expect(authorization(), isNull);
   });
 
   test('a stale header from the caller is removed', () async {
     storage.token = null;
     await auth.get(
-      '/v7/members/me',
+      '/v8/members/me',
       options: Options(headers: {'Authorization': 'Bearer old'}),
     );
     expect(authorization(), isNull);
     await auth.get(
-      '/v7/auth/login',
+      '/v8/auth/login',
       options: Options(headers: {'Authorization': 'Bearer old'}),
     );
     expect(authorization(), isNull);
@@ -84,7 +84,7 @@ void main() {
     storage.failRead = true;
     recorder.last = null;
     await expectLater(
-      auth.get('/v7/members/me'),
+      auth.get('/v8/members/me'),
       throwsA(
         isA<DioException>().having((e) => e.response, 'response', isNull),
       ),

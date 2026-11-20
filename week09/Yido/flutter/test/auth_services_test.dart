@@ -18,7 +18,7 @@ void main() {
     );
     final result = await AuthApiService(dio(adapter))
         .login(const LoginRequest(email: ' a@umc.com ', password: ' Pw1! '));
-    expect(adapter.request!.path, '/v7/auth/login');
+    expect(adapter.request!.path, '/v8/auth/login');
     expect(adapter.request!.data, {'email': 'a@umc.com', 'password': ' Pw1! '});
     expect(result.nickname, '영화광');
     expect(result.accessToken, 'a.b.c');
@@ -43,7 +43,7 @@ void main() {
     final api = MemberApiService(dio(adapter));
 
     final me = await api.fetchMe();
-    expect(adapter.request!.path, '/v7/members/me');
+    expect(adapter.request!.path, '/v8/members/me');
     expect(me.nickname, '시네필');
     expect(me.createdAt, DateTime.utc(2026, 10, 10, 9));
 

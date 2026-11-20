@@ -10,7 +10,7 @@ import 'package:movielog/view_models/session_rating_store.dart';
 
 enum MyRatingsLoadStatus { idle, loading, success, empty, error }
 
-/// 이번 세션에 등록한 평점을 TMDB 영화 정보와 묶어 보여 주고, v7로 수정·삭제한다
+/// 이번 세션에 등록한 평점을 TMDB 영화 정보와 묶어 보여 주고, v8로 수정·삭제한다
 class MyRatingsViewModel extends ChangeNotifier {
   MyRatingsViewModel(
     this._service,

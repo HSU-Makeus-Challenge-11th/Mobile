@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
 
-/// v7에는 토큰 기반 내 평점 목록 GET이 없다. 이번 로그인 세션에서 등록한 평점만 보관한다.
+/// v8에도 토큰 기반 내 평점 목록 GET이 없다. 이번 로그인 세션에서 등록한 평점만 보관한다.
 /// 로그인·로그아웃·만료로 세션이 바뀌면 이전 회원의 평점을 비운다
 class SessionRatingStore extends ChangeNotifier {
   SessionRatingStore(this._auth) : _version = _auth.sessionVersion {
