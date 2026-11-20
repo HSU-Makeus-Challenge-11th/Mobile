@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
@@ -29,22 +31,46 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
   final _text = TextEditingController();
   String? _inputError;
 
+  /// Challenge A: 입력이 500ms 멈추면 마지막 검색어로 한 번만 요청한다
+  static const debounceDuration = Duration(milliseconds: 500);
+  Timer? _debounce;
+  String _lastQuery = '';
+
+  void _onChanged(String value) {
+    _debounce?.cancel(); // 입력할 때마다 이전 타이머를 취소한다
+    _debounce = Timer(debounceDuration, () {
+      if (!mounted) return;
+      final query = value.trim();
+      // 비어 있으면 서버에 보내지 않는다. 같은 검색어를 다시 요청하지도 않는다
+      if (query.isEmpty || query == _lastQuery) return;
+      _search(query);
+    });
+  }
+
+  void _search(String query) {
+    _lastQuery = query;
+    setState(() => _inputError = null);
+    // 늦게 도착한 이전 검색어의 응답은 PagedMoviesViewModel의 generation이 버린다
+    context.read<PagedMoviesViewModel>().loadInitial(query: query);
+  }
+
   static TextStyle _w9(double size, double line, FontWeight w, Color c) =>
       w8Text(size, w, c).copyWith(height: line / size);
 
   void _submit(String value) {
+    _debounce?.cancel(); // 제출하면 기다리던 자동 검색은 보내지 않는다
     final query = value.trim();
     if (query.isEmpty) {
       setState(() => _inputError = '검색어를 입력해 주세요.');
       return;
     }
-    setState(() => _inputError = null);
     // 새 검색은 이전 결과를 비우고 page 1부터 불러온다
-    context.read<PagedMoviesViewModel>().loadInitial(query: query);
+    _search(query);
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _text.dispose();
     super.dispose();
   }
@@ -64,6 +90,7 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
             key: const Key('searchField'),
             controller: _text,
             textInputAction: TextInputAction.search,
+            onChanged: _onChanged,
             onSubmitted: _submit,
             style: _w9(15, 20, FontWeight.w400, AppColors.ink),
             decoration: InputDecoration(

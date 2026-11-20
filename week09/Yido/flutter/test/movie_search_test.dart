@@ -120,4 +120,36 @@ void main() {
     expect(find.text('달빛 영화'), findsOneWidget);
     expect(find.text('별빛 아래 우리'), findsNothing);
   });
+
+  testWidgets('typing searches once after a 500ms pause', (tester) async {
+    await openSearch(tester);
+    await tester.enterText(find.byKey(const Key('searchField')), '별');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(find.byKey(const Key('searchField')), '별빛');
+    await tester.pump(const Duration(milliseconds: 499));
+    expect(tmdb.searchCalls, isEmpty);
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pumpAndSettle();
+    expect(tmdb.searchCalls.map((call) => call.query), ['별빛']);
+    expect(find.text('별빛 아래 우리'), findsOneWidget);
+
+    // 지우기만 하면 요청하지 않고, 제출은 그대로 동작한다
+    await tester.enterText(find.byKey(const Key('searchField')), '  ');
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(tmdb.searchCalls, hasLength(1));
+    await tester.enterText(find.byKey(const Key('searchField')), '없는 영화');
+    await tester.tap(find.byKey(const Key('searchSubmitButton')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(tmdb.searchCalls.map((call) => call.query), ['별빛', '없는 영화']);
+  });
+
+  testWidgets('leaving before the timer fires sends nothing', (tester) async {
+    await openSearch(tester);
+    await tester.enterText(find.byKey(const Key('searchField')), '별빛');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpWidget(const SizedBox()); // 화면을 바로 dispose한다
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(tmdb.searchCalls, isEmpty);
+  });
 }
