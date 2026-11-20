@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/data/services/favorite_api_service.dart';
+import 'package:movielog/screens/favorites_screen.dart';
+import 'package:movielog/view_models/favorites_view_model.dart';
 import 'package:movielog/view_models/favorite_detail_view_model.dart';
 import 'package:movielog/widgets/member_ready_gate.dart';
 import 'package:go_router/go_router.dart';
@@ -151,6 +153,32 @@ abstract final class AppRouter {
                       child: const EditProfileScreen(),
                     );
                   },
+                ),
+                GoRoute(
+                  path: 'favorites', // 최종 경로: /my/favorites
+                  parentNavigatorKey: rootNavigatorKey,
+                  // 즐겨찾기 API에는 memberId를 보내지 않는다. email은 화면 쪽 세션 구분에만 쓴다
+                  builder: (_, state) => MemberReadyGate(
+                    builder: (context, member, guard, sessionKey) =>
+                        ChangeNotifierProvider<FavoritesViewModel>(
+                          key: sessionKey,
+                          create: (context) => FavoritesViewModel(
+                            favoriteApi: context.read<FavoriteApiService>(),
+                            tmdbApi: context.read<TmdbMovieService>(),
+                            sessionGuard: guard,
+                            accountId: member.email,
+                            onSessionExpired: context
+                                .read<AuthViewModel>()
+                                .expireSession,
+                          ),
+                          child: FavoritesScreen(
+                            onOpenMovie: (movie) => context.push(
+                              '/movies/${movie.id}',
+                              extra: MovieDetailArgs(movie: movie),
+                            ),
+                          ),
+                        ),
+                  ),
                 ),
                 GoRoute(
                   path: 'ratings', // 최종 경로: /my/ratings
