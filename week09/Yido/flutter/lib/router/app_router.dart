@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/data/services/favorite_api_service.dart';
+import 'package:movielog/view_models/favorite_detail_view_model.dart';
+import 'package:movielog/widgets/member_ready_gate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
@@ -170,9 +173,26 @@ abstract final class AppRouter {
         ),
         GoRoute(
           path: '/movies/:movieId',
-          builder: (_, state) => MovieDetailLoader(
-            movieId: int.tryParse(state.pathParameters['movieId']!) ?? -1,
-            args: state.extra as MovieDetailArgs?,
+          // 계정·세션이 바뀌면 key가 달라져 즐겨찾기 ViewModel을 새로 만든다
+          builder: (_, state) => MemberReadyGate(
+            builder: (context, member, guard, sessionKey) {
+              final movieId =
+                  int.tryParse(state.pathParameters['movieId']!) ?? -1;
+              return ChangeNotifierProvider<FavoriteDetailViewModel>(
+                key: sessionKey,
+                create: (context) => FavoriteDetailViewModel(
+                  movieId: movieId,
+                  favoriteApi: context.read<FavoriteApiService>(),
+                  sessionGuard: guard,
+                  accountId: member.email,
+                  onSessionExpired: context.read<AuthViewModel>().expireSession,
+                ),
+                child: MovieDetailLoader(
+                  movieId: movieId,
+                  args: state.extra as MovieDetailArgs?,
+                ),
+              );
+            },
           ),
         ),
       ],

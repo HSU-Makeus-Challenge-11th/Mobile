@@ -12,11 +12,16 @@ import 'package:movielog/widgets/back_arrow_icon.dart';
 import 'package:provider/provider.dart';
 
 import 'support/fake_auth_services.dart';
+import 'support/fake_favorite_api.dart';
 import 'support/fake_member_services.dart';
 import 'support/fake_token_storage.dart';
 import 'support/fake_tmdb_movie_service.dart';
 
-Widget app({FakeRatingApiService? ratingService}) => MovieLogApp(
+Widget app({
+  FakeRatingApiService? ratingService,
+  FakeFavoriteApi? favoriteApi,
+}) => MovieLogApp(
+  favoriteApiService: favoriteApi ?? FakeFavoriteApi(),
   signUpService: FakeSignUpService(),
   ratingApiService: ratingService ?? FakeRatingApiService(),
   authApiService: FakeAuthApiService(),
@@ -177,7 +182,10 @@ void main() {
     tester,
   ) async {
     final ratingService = FakeRatingApiService();
-    await tester.pumpWidget(app(ratingService: ratingService));
+    final favoriteApi = FakeFavoriteApi();
+    await tester.pumpWidget(
+      app(ratingService: ratingService, favoriteApi: favoriteApi),
+    );
     await signIn(tester);
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
@@ -195,9 +203,11 @@ void main() {
     await tester.tap(movieCard);
     await tester.pumpAndSettle();
     expect(find.text('Cinema Archive'), findsOneWidget);
-    await tester.tap(find.text('즐겨찾기'));
-    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('favoriteButton')));
+    await tester.tap(find.byKey(const Key('favoriteButton')));
+    await tester.pumpAndSettle();
     expect(find.text('즐겨찾기에 추가했습니다.'), findsOneWidget);
+    expect(favoriteApi.movieIds, {11});
     expect(
       tester
           .widget<FilledButton>(find.byKey(const Key('openRatingButton')))
@@ -224,9 +234,11 @@ void main() {
     expect(find.textContaining('평점을 등록했습니다.'), findsOneWidget);
     expect(ratingService.created.single.movieId, 11);
     expect(ratingService.created.single.score, 4);
-    await tester.tap(find.text('즐겨찾기'));
-    await tester.pump();
-    expect(find.byIcon(Icons.bookmark_border), findsWidgets);
+    await tester.ensureVisible(find.byKey(const Key('favoriteButton')));
+    await tester.tap(find.byKey(const Key('favoriteButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('즐겨찾기에서 삭제했습니다.'), findsOneWidget);
+    expect(favoriteApi.movieIds, isEmpty);
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
     expect(find.text('우주의 끝에서'), findsOneWidget);

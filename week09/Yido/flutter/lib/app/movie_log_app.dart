@@ -81,6 +81,7 @@ class MovieLogApp extends StatelessWidget {
         ),
         // 응답이 현재 계정·세션의 것인지 판정한다. email은 GET me로 확인된 값만 쓴다
         Provider<AuthSessionBridge>(
+          lazy: false, // 앱 시작부터 로그인 상태 변화를 따라간다
           create: (context) {
             final auth = context.read<AuthViewModel>();
             return AuthSessionBridge(
