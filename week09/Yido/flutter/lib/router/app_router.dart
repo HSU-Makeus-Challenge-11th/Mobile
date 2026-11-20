@@ -24,7 +24,7 @@ import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/edit_profile_view_model.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
-import 'package:movielog/view_models/movie_list_view_model.dart';
+import 'package:movielog/view_models/paged_movies_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/view_models/session_rating_store.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
@@ -109,9 +109,13 @@ abstract final class AppRouter {
               path: '/movies',
               pageBuilder: (context, state) => NoTransitionPage(
                 key: state.pageKey,
-                child: ChangeNotifierProvider<MovieListViewModel>(
+                // 5주차의 30개 수집 대신 첫 page만 불러오고 더 보기로 이어 붙인다
+                child: ChangeNotifierProvider<PagedMoviesViewModel>(
                   create: (context) =>
-                      MovieListViewModel(context.read<TmdbMovieService>())
+                      PagedMoviesViewModel(
+                          tmdbApi: context.read<TmdbMovieService>(),
+                        )
+                        ..loadGenres()
                         ..loadInitial(),
                   child: const MovieListScreen(),
                 ),

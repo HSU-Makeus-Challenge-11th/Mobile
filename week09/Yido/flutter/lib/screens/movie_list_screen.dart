@@ -1,42 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:movielog/view_models/movie_list_view_model.dart';
+import 'package:movielog/view_models/load_phase.dart';
+import 'package:movielog/view_models/paged_movies_view_model.dart';
+import 'package:movielog/widgets/movies/movie_page_footer.dart';
 import 'package:movielog/widgets/movies/movie_grid.dart';
 import 'package:movielog/widgets/movies/movie_list_states.dart';
 import 'package:provider/provider.dart';
 
 class MovieListScreen extends StatelessWidget {
   const MovieListScreen({super.key});
-
-  /// 상태별 화면 확인용: 디버그 모드에서 제목을 길게 누르면 불러오기 모드를 고른다
-  Future<void> _pickDebugMode(BuildContext context) async {
-    if (!kDebugMode) return;
-    final viewModel = context.read<MovieListViewModel>();
-    final mode = await showModalBottomSheet<MovieListDebugMode>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (mode, label) in const [
-              (MovieListDebugMode.normal, '정상'),
-              (MovieListDebugMode.empty, '빈 목록'),
-              (MovieListDebugMode.failure, '실패'),
-            ])
-              ListTile(
-                title: Text(label),
-                trailing: mode == viewModel.debugMode
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => Navigator.of(context).pop(mode),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (mode == null || !context.mounted) return;
-    viewModel.changeDebugMode(mode);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,16 +22,13 @@ class MovieListScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onLongPress: () => _pickDebugMode(context),
-                    child: const Text(
-                      '영화',
-                      style: TextStyle(
-                        fontSize: 22,
-                        height: 28 / 22,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF6750A4),
-                      ),
+                  const Text(
+                    '영화',
+                    style: TextStyle(
+                      fontSize: 22,
+                      height: 28 / 22,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6750A4),
                     ),
                   ),
                   IconButton(
@@ -80,19 +48,21 @@ class MovieListScreen extends StatelessWidget {
             child: SizedBox(height: 40, child: _GenreChips()),
           ),
           Expanded(
-            child: Consumer<MovieListViewModel>(
+            child: Consumer<PagedMoviesViewModel>(
               builder: (context, viewModel, child) {
-                return switch (viewModel.status) {
-                  MovieListLoadStatus.idle ||
-                  MovieListLoadStatus.loading => const MovieListLoading(),
-                  MovieListLoadStatus.error => MovieListError(
-                    message: viewModel.message,
-                    onRetry: () => context.read<MovieListViewModel>().retry(),
+                return switch (viewModel.phase) {
+                  LoadPhase.idle ||
+                  LoadPhase.loading => const MovieListLoading(),
+                  LoadPhase.error => MovieListError(
+                    message: viewModel.errorMessage,
+                    onRetry: viewModel.retryInitial,
                   ),
-                  MovieListLoadStatus.empty => const MovieListEmpty(),
-                  MovieListLoadStatus.success => MovieGrid(
+                  LoadPhase.empty => const MovieListEmpty(),
+                  // 첫 page만 보여 주고, 아래 footer의 더 보기로 다음 page를 붙인다
+                  LoadPhase.ready => MovieGrid(
                     movies: viewModel.movies,
                     genreNames: viewModel.genreNames,
+                    footer: MoviePageFooter(vm: viewModel),
                   ),
                 };
               },
@@ -110,7 +80,7 @@ class _GenreChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<MovieListViewModel>();
+    final viewModel = context.watch<PagedMoviesViewModel>();
     final chips = <(int?, String)>[
       (null, '전체'),
       for (final genre in viewModel.genres) (genre.id, genre.name),
@@ -127,9 +97,12 @@ class _GenreChips extends StatelessWidget {
           child: SizedBox(
             height: 32,
             child: FilledButton(
-              onPressed: viewModel.isLoading
+              // 장르를 바꾸면 목록을 비우고 첫 page부터 다시 불러온다
+              onPressed: viewModel.phase == LoadPhase.loading
                   ? null
-                  : () => context.read<MovieListViewModel>().selectGenre(id),
+                  : () => context.read<PagedMoviesViewModel>().loadInitial(
+                      genreId: id,
+                    ),
               style: FilledButton.styleFrom(
                 backgroundColor: selected
                     ? const Color(0xFF6750A4)
