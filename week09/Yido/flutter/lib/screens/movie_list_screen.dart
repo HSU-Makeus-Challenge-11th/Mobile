@@ -79,11 +79,7 @@ class MovieListScreen extends StatelessWidget {
                   ),
                   LoadPhase.empty => const MovieListEmpty(),
                   // 첫 page만 보여 주고, 아래 footer의 더 보기로 다음 page를 붙인다
-                  LoadPhase.ready => MovieGrid(
-                    movies: viewModel.movies,
-                    genreNames: viewModel.genreNames,
-                    footer: MoviePageFooter(vm: viewModel),
-                  ),
+                  LoadPhase.ready => _InfiniteMovieGrid(viewModel: viewModel),
                 };
               },
             ),
@@ -92,6 +88,69 @@ class MovieListScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Challenge B: 끝에 가까워지면 다음 page를 자동으로 불러온다.
+/// 실패하면 같은 page를 다시 시도하는 버튼을 보여 준다
+class _InfiniteMovieGrid extends StatefulWidget {
+  const _InfiniteMovieGrid({required this.viewModel});
+  final PagedMoviesViewModel viewModel;
+
+  @override
+  State<_InfiniteMovieGrid> createState() => _InfiniteMovieGridState();
+}
+
+class _InfiniteMovieGridState extends State<_InfiniteMovieGrid> {
+  /// 남은 스크롤 거리가 이 값 이하이면 다음 page를 요청한다
+  static const loadThreshold = 300.0;
+  final _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fillViewport());
+  }
+
+  @override
+  void didUpdateWidget(_InfiniteMovieGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fillViewport());
+  }
+
+  void _onScroll() {
+    if (!_controller.hasClients) return;
+    if (_controller.position.extentAfter <= loadThreshold) _loadMore();
+  }
+
+  /// 첫 page가 화면을 다 채우지 못하면 스크롤할 수 없으므로 바로 이어서 불러온다
+  void _fillViewport() {
+    if (!mounted || !_controller.hasClients) return;
+    if (_controller.position.maxScrollExtent <= 0) _loadMore();
+  }
+
+  void _loadMore() {
+    final vm = widget.viewModel;
+    // 실패한 뒤에는 자동으로 다시 요청하지 않고 버튼으로만 재시도한다
+    if (vm.loadMoreError != null) return;
+    vm.loadNextPage(); // 요청 중·마지막 page 중복 방지는 ViewModel이 맡는다
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MovieGrid(
+    controller: _controller,
+    movies: widget.viewModel.movies,
+    genreNames: widget.viewModel.genreNames,
+    footer: MoviePageFooter(vm: widget.viewModel, autoLoad: true),
+  );
 }
 
 /// "전체" + Genre API로 받은 장르. 요청 중에는 눌러도 바뀌지 않는다

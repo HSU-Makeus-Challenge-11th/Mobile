@@ -12,11 +12,15 @@ class MoviePageFooter extends StatelessWidget {
     required this.vm,
     this.moreLabel = '더 보기',
     this.endLabel = '모든 영화를 확인했습니다.',
+    this.autoLoad = false,
   });
 
   final PagedMoviesViewModel vm;
   final String moreLabel;
   final String endLabel;
+
+  /// Challenge B 무한 스크롤: 더 보기 버튼 대신 하단 로딩만 보여 준다
+  final bool autoLoad;
 
   static final _message = w8Text(
     14,
@@ -38,6 +42,24 @@ class MoviePageFooter extends StatelessWidget {
       );
     }
     final error = vm.loadMoreError;
+    if (autoLoad && error == null) {
+      // W9 무한 스크롤 하단 로딩: 26x26 spinner. 기다리는 동안에는 자리만 둔다
+      return SizedBox(
+        height: 64,
+        child: Center(
+          child: vm.isLoadingMore
+              ? const SizedBox.square(
+                  key: Key('autoLoadSpinner'),
+                  dimension: 26,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary500,
+                  ),
+                )
+              : null,
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
