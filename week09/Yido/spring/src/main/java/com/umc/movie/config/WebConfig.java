@@ -32,7 +32,11 @@ public class WebConfig implements WebMvcConfigurer {
                         "/members/nickname/**",
                         "/members/email/**",
                         "/members/*/ratings",
-                        "/error"
+                        "/error",
+                        // 문서는 로그인 전에도 봐야 한다. swagger-ui.html은 /swagger-ui/index.html로 보내므로 둘 다 연다
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
                 );
     }
 }
