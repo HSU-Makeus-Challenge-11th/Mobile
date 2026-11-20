@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/core/debug/debug_faults.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/auth/figma_text.dart';
 import 'package:movielog/view_models/load_phase.dart';
@@ -25,13 +26,17 @@ class MovieListScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    '영화',
-                    style: TextStyle(
-                      fontSize: 22,
-                      height: 28 / 22,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6750A4),
+                  // 디버그 빌드에서 길게 누르면 다음 요청 하나를 실패시킬 수 있다
+                  GestureDetector(
+                    onLongPress: () => showDebugFaultSheet(context),
+                    child: const Text(
+                      '영화',
+                      style: TextStyle(
+                        fontSize: 22,
+                        height: 28 / 22,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF6750A4),
+                      ),
                     ),
                   ),
                   // W9: 오른쪽 "검색" 글자 버튼으로 검색 화면에 들어간다

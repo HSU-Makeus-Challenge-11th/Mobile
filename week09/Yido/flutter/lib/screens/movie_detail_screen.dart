@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:movielog/core/debug/debug_faults.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/favorite_detail_view_model.dart';
@@ -84,13 +85,16 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             color: Color(0xFF6750A4),
           ),
         ),
-        title: const Text(
-          'Cinema Archive',
-          style: TextStyle(
-            fontSize: 22,
-            height: 28 / 22,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF6750A4),
+        title: GestureDetector(
+          onLongPress: () => showDebugFaultSheet(context),
+          child: const Text(
+            'Cinema Archive',
+            style: TextStyle(
+              fontSize: 22,
+              height: 28 / 22,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF6750A4),
+            ),
           ),
         ),
         centerTitle: true,

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:movielog/core/config/tmdb_config.dart';
+import 'package:movielog/core/debug/debug_faults.dart';
 import 'package:movielog/core/network/tmdb_logging_interceptor.dart';
 
 /// TMDB 전용 Client. 자체 MovieLog API와 인증 방식이 달라 별도로 만든다
@@ -18,7 +19,9 @@ Dio createTmdbClient() {
   );
 
   if (kDebugMode) {
-    dio.interceptors.add(TmdbLoggingInterceptor());
+    dio.interceptors
+      ..add(DebugFaultInterceptor())
+      ..add(TmdbLoggingInterceptor());
   }
 
   return dio;

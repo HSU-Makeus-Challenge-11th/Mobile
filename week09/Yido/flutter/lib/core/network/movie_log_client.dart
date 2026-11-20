@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:movielog/core/debug/debug_faults.dart';
 import 'package:movielog/core/network/auth_interceptor.dart';
 import 'package:movielog/core/network/movie_log_logging_interceptor.dart';
 import 'package:movielog/core/storage/token_storage.dart';
@@ -18,6 +20,7 @@ Dio createMovieLogClient() =>
 Dio createAuthMovieLogClient(TokenStorage storage) {
   final dio = Dio(_movieLogOptions());
   // 토큰을 붙인 뒤에 로그를 남겨야 가려진 Header가 찍힌다
+  if (kDebugMode) dio.interceptors.add(DebugFaultInterceptor());
   dio.interceptors
     ..add(AuthInterceptor(storage))
     ..add(MovieLogLoggingInterceptor());

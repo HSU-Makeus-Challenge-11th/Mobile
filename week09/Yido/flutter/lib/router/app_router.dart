@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/core/debug/debug_faults.dart';
 import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/screens/favorites_screen.dart';
 import 'package:movielog/screens/movie_search_screen.dart';
@@ -177,6 +178,8 @@ abstract final class AppRouter {
                                 .expireSession,
                           ),
                           child: FavoritesScreen(
+                            onTitleLongPress: () =>
+                                showDebugFaultSheet(context),
                             onOpenMovie: (movie) => context.push(
                               '/movies/${movie.id}',
                               extra: MovieDetailArgs(movie: movie),
@@ -214,6 +217,7 @@ abstract final class AppRouter {
                   tmdbApi: context.read<TmdbMovieService>(),
                 ),
                 child: MovieSearchScreen(
+                  onTitleLongPress: () => showDebugFaultSheet(context),
                   onOpenMovie: (movie) => context.push(
                     '/movies/${movie.id}',
                     extra: MovieDetailArgs(movie: movie),
