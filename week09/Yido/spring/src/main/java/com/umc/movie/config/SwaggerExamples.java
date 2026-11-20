@@ -291,4 +291,25 @@ public final class SwaggerExamples {
               "result": null
             }
             """;
+
+    public static final String MOVIE_RECORD_CREATED = """
+            {
+              "isSuccess": true,
+              "code": "COMMON201",
+              "message": "영화 기록을 저장했습니다.",
+              "result": {
+                "rating": { "ratingId": 3, "movieId": 550, "score": 5, "comment": "다시 봐도 명작", "createdAt": "2026-11-20T21:00:00", "updatedAt": "2026-11-20T21:00:00" },
+                "favorite": { "favoriteId": 1, "movieId": 550, "createdAt": "2026-11-20T21:00:00" }
+              }
+            }
+            """;
+
+    public static final String ADD_TO_FAVORITES_400 = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "즐겨찾기 추가 여부는 필수입니다.",
+              "result": null
+            }
+            """;
 }
