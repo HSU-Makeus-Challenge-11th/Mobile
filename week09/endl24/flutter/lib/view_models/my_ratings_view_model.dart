@@ -30,7 +30,7 @@ class MyRatingsViewModel extends ChangeNotifier {
   }) async {
     final version = _auth.sessionVersion;
     try {
-      // v7 수정 result는 수정된 평점 전체라서 목록을 다시 조회하지 않고 바로 교체합니다.
+      // v8 수정 result는 수정된 평점 전체라서 목록을 다시 조회하지 않고 바로 교체합니다.
       final updated = await _service.updateRating(
         ratingId: ratingId,
         score: score,

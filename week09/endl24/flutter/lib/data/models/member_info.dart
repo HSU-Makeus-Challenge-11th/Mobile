@@ -1,6 +1,6 @@
 import 'package:movielog/data/models/common_response.dart';
 
-/// GET/PATCH /v7/members/me의 result입니다. memberId와 password는 없습니다.
+/// GET/PATCH /v8/members/me의 result입니다. memberId와 password는 없습니다.
 class MemberInfo {
   const MemberInfo({
     required this.email,

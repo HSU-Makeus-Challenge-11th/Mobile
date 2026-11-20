@@ -4,7 +4,7 @@ import 'package:movielog/data/models/common_response.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/data/models/rating_request.dart';
 
-/// v7 등록·수정 응답(CommonResponse)의 result에서 평점 객체를 꺼냅니다.
+/// v8 등록·수정 응답(CommonResponse)의 result에서 평점 객체를 꺼냅니다.
 RatingDto parseRatingResult(Object? data) {
   if (data is! Map<String, dynamic>) {
     throw StateError('평점 응답 형식이 올바르지 않습니다.');
@@ -32,15 +32,15 @@ class RatingApiService {
   final Dio _publicDio;
   final Dio _authDio;
 
-  /// 공개 유저별 평점 조회입니다. v7 로그인으로는 memberId를 알 수 없어
+  /// 공개 유저별 평점 조회입니다. v8 로그인으로는 memberId를 알 수 없어
   /// 지금 화면에서는 쓰지 않습니다.
   Future<List<RatingDto>> fetchMemberRatings(int memberId) async {
-    final response = await _publicDio.get('/v7/members/$memberId/ratings');
+    final response = await _publicDio.get('/v8/members/$memberId/ratings');
     return parseRatingList(response.data);
   }
 
   Future<RatingDto> createRating(CreateRatingRequest request) async {
-    final response = await _authDio.post('/v7/ratings', data: request.toJson());
+    final response = await _authDio.post('/v8/ratings', data: request.toJson());
     return parseRatingResult(response.data);
   }
 
@@ -51,15 +51,15 @@ class RatingApiService {
     String? comment,
   }) async {
     final response = await _authDio.patch(
-      '/v7/ratings/$ratingId',
+      '/v8/ratings/$ratingId',
       data: {'score': score, 'comment': comment},
     );
     return parseRatingResult(response.data);
   }
 
-  /// v7 삭제 성공은 204가 아니라 result가 null인 200입니다.
+  /// v8 삭제 성공은 204가 아니라 result가 null인 200입니다.
   Future<void> deleteRating(int ratingId) async {
-    final response = await _authDio.delete('/v7/ratings/$ratingId');
+    final response = await _authDio.delete('/v8/ratings/$ratingId');
     if (response.statusCode != 200) {
       throw StateError('예상하지 못한 삭제 응답: ${response.statusCode}');
     }

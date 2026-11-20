@@ -34,7 +34,7 @@ class MyRatingsScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, MyRatingsViewModel viewModel) {
-    // v7에는 토큰으로 내 평점 전체를 받는 API가 없어 이번 로그인에서 등록한 평점만 보여줘요.
+    // v8에는 토큰으로 내 평점 전체를 받는 API가 없어 이번 로그인에서 등록한 평점만 보여줘요.
     const notice = Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Text(
