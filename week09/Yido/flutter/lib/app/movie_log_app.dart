@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/core/network/movie_log_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
+import 'package:movielog/core/session/auth_session_bridge.dart';
+import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/core/storage/token_storage.dart';
 import 'package:movielog/data/services/auth_api_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
@@ -69,6 +71,23 @@ class MovieLogApp extends StatelessWidget {
             context.read<MemberApiService>(),
             context.read<TokenStorage>(),
           ),
+        ),
+        // 응답이 현재 계정·세션의 것인지 판정한다. email은 GET me로 확인된 값만 쓴다
+        Provider<AuthSessionBridge>(
+          create: (context) {
+            final auth = context.read<AuthViewModel>();
+            return AuthSessionBridge(
+              authSignals: auth,
+              sessionVersion: () => auth.sessionVersion,
+              verifiedEmail: () => auth.status == AuthStatus.signedIn
+                  ? auth.member?.email
+                  : null,
+            );
+          },
+          dispose: (_, bridge) => bridge.dispose(),
+        ),
+        Provider<SessionGuard>(
+          create: (context) => context.read<AuthSessionBridge>().guard,
         ),
         ChangeNotifierProvider<SessionRatingStore>(
           create: (context) =>
