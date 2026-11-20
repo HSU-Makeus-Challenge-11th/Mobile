@@ -52,6 +52,32 @@ void main() {
     }
   });
 
+  test('favorite and movie record requests get the token by method', () async {
+    await auth.post('/v8/favorites', data: {'movieId': 550});
+    expect(authorization(), 'Bearer header.payload.signature');
+    await auth.get('/v8/favorites');
+    expect(authorization(), 'Bearer header.payload.signature');
+    await auth.get('/v8/favorites/550');
+    expect(authorization(), 'Bearer header.payload.signature');
+    await auth.delete('/v8/favorites/550');
+    expect(authorization(), 'Bearer header.payload.signature');
+    await auth.post('/v8/movie-records', data: {'movieId': 550});
+    expect(authorization(), 'Bearer header.payload.signature');
+  });
+
+  test('favorite paths outside the contract get no token', () async {
+    await auth.delete('/v8/favorites');
+    expect(authorization(), isNull);
+    await auth.get('/v8/favorites/0');
+    expect(authorization(), isNull);
+    await auth.get('/v8/favorites/abc');
+    expect(authorization(), isNull);
+    await auth.post('/v8/favorites/550');
+    expect(authorization(), isNull);
+    await auth.get('/v8/movie-records');
+    expect(authorization(), isNull);
+  });
+
   test('public paths and other hosts get no token', () async {
     for (final path in [
       '/v8/auth/login',
