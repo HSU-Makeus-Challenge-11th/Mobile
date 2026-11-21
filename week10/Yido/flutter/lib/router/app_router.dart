@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/core/debug/debug_faults.dart';
+import 'package:movielog/data/services/app_info_service.dart';
+import 'package:movielog/screens/about_screen.dart';
+import 'package:movielog/view_models/about_view_model.dart';
 import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/screens/favorites_screen.dart';
 import 'package:movielog/screens/movie_search_screen.dart';
@@ -159,6 +162,15 @@ abstract final class AppRouter {
                       child: const EditProfileScreen(),
                     );
                   },
+                ),
+                GoRoute(
+                  path: 'about', // 최종 경로: /my/about
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) =>
+                      ChangeNotifierProvider<AboutViewModel>(
+                        create: (_) => AboutViewModel(AppInfoService())..load(),
+                        child: const AboutScreen(),
+                      ),
                 ),
                 GoRoute(
                   path: 'favorites', // 최종 경로: /my/favorites
