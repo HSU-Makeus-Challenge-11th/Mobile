@@ -8,6 +8,7 @@ import 'package:movielog/core/session/auth_session_bridge.dart';
 import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/core/storage/token_storage.dart';
 import 'package:movielog/data/services/auth_api_service.dart';
+import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
@@ -47,6 +48,10 @@ class MovieLogApp extends StatelessWidget {
         // 평점 조회는 공개용, 등록·수정·삭제는 보호용 Client로 보냅니다.
         Provider<RatingApiService>(
           create: (_) => RatingApiService(movieApiClient, authMovieApiClient),
+        ),
+        // 즐겨찾기 API는 모두 로그인이 필요해서 보호용 Client만 씁니다.
+        Provider<FavoriteApiService>(
+          create: (_) => FavoriteApiService(authMovieApiClient),
         ),
         Provider<TmdbMovieService>(
           create: (_) => TmdbMovieService(createTmdbClient()),
