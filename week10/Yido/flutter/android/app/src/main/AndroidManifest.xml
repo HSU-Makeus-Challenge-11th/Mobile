@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 기본 프로젝트는 debug·profile에만 선언돼 있어 release에서 API 요청이 막힌다 -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="movielog"
+        android:label="MovieLog"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
