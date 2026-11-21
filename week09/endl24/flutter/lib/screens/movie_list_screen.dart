@@ -33,13 +33,31 @@ class MovieListScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Consumer<MovieListViewModel>(
-              builder: (context, filter, child) => GenreFilterChips(
-                genres: filter.genres,
-                selectedGenreId: filter.selectedGenreId,
-                enabled: true, // 로딩 중에 바꿔도 이전 장르의 응답은 버려집니다.
-                onGenreSelected: filter.selectGenre,
-              ),
+            // 장르 칩 줄 오른쪽 끝에 검색 화면으로 가는 버튼을 둡니다.
+            Row(
+              children: [
+                Expanded(
+                  child: Consumer<MovieListViewModel>(
+                    builder: (context, filter, child) => GenreFilterChips(
+                      genres: filter.genres,
+                      selectedGenreId: filter.selectedGenreId,
+                      enabled: true, // 로딩 중에 바꿔도 이전 장르의 응답은 버려집니다.
+                      onGenreSelected: filter.selectGenre,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: TextButton.icon(
+                    onPressed: () => context.push('/movies/search'),
+                    icon: const Icon(Icons.search, size: 20),
+                    label: const Text('검색'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.violet,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
