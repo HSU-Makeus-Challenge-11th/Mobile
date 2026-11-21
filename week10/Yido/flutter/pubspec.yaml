@@ -79,6 +79,9 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true
+  # Challenge B: 어댑티브 아이콘. 로고는 가운데 66% 안전 영역 안에 두고 배경은 아이콘 바탕색
+  adaptive_icon_background: "#FEFCF9"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
 
 # 10주차: Flutter 엔진이 뜨기 전 OS가 보여 주는 시작 화면. 앱 아이콘 원본을 그대로 쓴다
 flutter_native_splash:
