@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/member_info.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/widgets/about/about_info_button.dart';
 import 'package:movielog/widgets/auth/figma_text.dart';
 import 'package:provider/provider.dart';
 import 'package:movielog/theme/app_colors.dart';
@@ -39,6 +40,9 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // W10: 로그아웃 왼쪽의 ⓘ로 앱 정보 화면에 들어간다
+                    const AboutInfoButton(),
+                    const SizedBox(width: 15),
                     GestureDetector(
                       key: const Key('logoutButton'),
                       behavior: HitTestBehavior.opaque,
