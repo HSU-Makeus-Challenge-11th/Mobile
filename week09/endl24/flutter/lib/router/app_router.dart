@@ -26,6 +26,7 @@ import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
+import 'package:movielog/view_models/paged_movies_view_model.dart';
 import 'package:movielog/view_models/session_ratings.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/common_app_bar.dart';
@@ -121,10 +122,21 @@ class AppRouter {
           ),
           GoRoute(
             path: '/movies',
-            builder: (context, state) => ChangeNotifierProvider(
-              create: (context) =>
-                  MovieListViewModel(context.read<TmdbMovieService>())
-                    ..loadInitial(),
+            builder: (context, state) => MultiProvider(
+              providers: [
+                // 영화는 한 page씩 불러오고(더 보기), 장르 필터가 조건을 바꿉니다.
+                ChangeNotifierProvider<PagedMoviesViewModel>(
+                  create: (context) => PagedMoviesViewModel(
+                    tmdbApi: context.read<TmdbMovieService>(),
+                  ),
+                ),
+                ChangeNotifierProvider<MovieListViewModel>(
+                  create: (context) => MovieListViewModel(
+                    context.read<TmdbMovieService>(),
+                    context.read<PagedMoviesViewModel>(),
+                  )..loadInitial(),
+                ),
+              ],
               child: const MovieListScreen(),
             ),
           ),
