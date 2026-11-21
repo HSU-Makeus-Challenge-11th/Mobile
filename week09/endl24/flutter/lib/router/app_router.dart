@@ -7,6 +7,7 @@ import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/screens/edit_profile_screen.dart';
+import 'package:movielog/screens/favorites_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
 import 'package:movielog/screens/login_screen.dart';
 import 'package:movielog/screens/main_screen.dart';
@@ -20,6 +21,7 @@ import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/edit_profile_view_model.dart';
 import 'package:movielog/view_models/favorite_detail_view_model.dart';
+import 'package:movielog/view_models/favorites_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
@@ -142,6 +144,49 @@ class AppRouter {
                       ),
                       child: const MyRatingsScreen(),
                     ),
+              ),
+              GoRoute(
+                path: 'favorites', // 최종 경로: /my/favorites
+                parentNavigatorKey: rootNavigatorKey, // 하단 탭 없이 전체 화면
+                builder: (context, state) {
+                  final auth = context.watch<AuthViewModel>();
+                  final member = auth.member;
+                  final guard = context.read<SessionGuard>();
+
+                  // 내 정보(email)가 준비되고 현재 세션과 일치할 때까지 기다립니다.
+                  if (member == null || guard.accountId != member.email) {
+                    return Scaffold(
+                      appBar: CommonAppBar(
+                        title: '내 즐겨찾기',
+                        centerTitle: true,
+                        onBack: () => context.pop(),
+                      ),
+                      body: Center(
+                        child: auth.memberStatus == MemberLoadStatus.error
+                            ? MovieLogButton(
+                                label: '다시 시도',
+                                onPressed: () => auth.loadMember(force: true),
+                              )
+                            : const CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  return ChangeNotifierProvider<FavoritesViewModel>(
+                    // 계정이나 세션이 바뀌면 ViewModel을 새로 만들어 이전 목록을 버립니다.
+                    key: ValueKey('${member.email}:${guard.generation}'),
+                    create: (context) => FavoritesViewModel(
+                      favoriteApi: context.read<FavoriteApiService>(),
+                      tmdbApi: context.read<TmdbMovieService>(),
+                      sessionGuard: guard,
+                      accountId: member.email,
+                    ),
+                    child: FavoritesScreen(
+                      onOpenMovie: (movie) =>
+                          context.push('/movies/${movie.id}', extra: movie),
+                    ),
+                  );
+                },
               ),
               GoRoute(
                 path: 'profile/edit', // 최종 경로: /my/profile/edit
