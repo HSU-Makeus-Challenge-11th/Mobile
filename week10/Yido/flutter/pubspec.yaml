@@ -53,6 +53,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 flutter:
 
@@ -77,3 +78,11 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true
+
+# 10주차: Flutter 엔진이 뜨기 전 OS가 보여 주는 시작 화면. 앱 아이콘 원본을 그대로 쓴다
+flutter_native_splash:
+  color: "#FAF9F5"
+  image: assets/icon/app_icon.png
+  android_12:
+    color: "#FAF9F5"
+  web: false # 이번 주는 Android·iOS만 다룬다
