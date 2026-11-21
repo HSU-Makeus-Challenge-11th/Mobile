@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/view_models/favorite_detail_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/submit_status.dart';
+import 'package:movielog/widgets/favorite_button.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
 import 'package:movielog/widgets/tmdb_poster_image.dart';
 import 'package:provider/provider.dart';
@@ -18,20 +20,14 @@ class MovieDetailScreen extends StatefulWidget {
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  bool _isFavorite = false;
-
-  void _toggleFavorite() {
-    setState(() => _isFavorite = !_isFavorite);
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(_isFavorite ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+  @override
+  void initState() {
+    super.initState();
+    // 화면이 처음 만들어질 때 서버의 즐겨찾기 여부를 한 번 조회합니다(build에서는 조회하지 않습니다).
+    if (widget.movie == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<FavoriteDetailViewModel>().load();
+    });
   }
 
   void _showSnackBar(String message) {
@@ -111,28 +107,43 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            movie.title,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.black,
-                            ),
-                          ),
-                          if (year != null) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              year,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.gray,
+                          // 제목·정보 텍스트 오른쪽에 즐겨찾기 버튼을 둡니다.
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      movie.title,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.black,
+                                      ),
+                                    ),
+                                    if (year != null) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        year,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.gray,
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 12),
+                                    _AverageRating(
+                                      rating: movie.voteAverage,
+                                      count: movie.voteCount,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          _AverageRating(
-                            rating: movie.voteAverage,
-                            count: movie.voteCount,
+                              const SizedBox(width: 8),
+                              const FavoriteButton(),
+                            ],
                           ),
                           const SizedBox(height: 24),
                           const Text(
@@ -161,11 +172,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 ),
               ),
             ),
-            _DetailActions(
-              isFavorite: _isFavorite,
-              onFavoriteTap: _toggleFavorite,
-              onRatingTap: () => _openRatingDialog(movie),
-            ),
+            _DetailActions(onRatingTap: () => _openRatingDialog(movie)),
           ],
         ),
       ),
@@ -210,59 +217,29 @@ class _AverageRating extends StatelessWidget {
   }
 }
 
+/// 하단의 평점 남기기 버튼입니다. 즐겨찾기 버튼이 제목 옆으로 옮겨 가서 전체 너비를 씁니다.
 class _DetailActions extends StatelessWidget {
-  const _DetailActions({
-    required this.isFavorite,
-    required this.onFavoriteTap,
-    required this.onRatingTap,
-  });
+  const _DetailActions({required this.onRatingTap});
 
-  final bool isFavorite;
-  final VoidCallback onFavoriteTap;
   final VoidCallback onRatingTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onFavoriteTap,
-              icon: Icon(
-                isFavorite ? Icons.bookmark : Icons.bookmark_border,
-                size: 20,
-              ),
-              label: Text(isFavorite ? '즐겨찾기 해제' : '즐겨찾기'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                foregroundColor: AppColors.violet,
-                side: const BorderSide(color: AppColors.violet),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
+      child: ElevatedButton.icon(
+        onPressed: onRatingTap,
+        icon: const Icon(Icons.rate_review_outlined, size: 20),
+        label: const Text('평점 남기기'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          backgroundColor: AppColors.violet,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: onRatingTap,
-              icon: const Icon(Icons.rate_review_outlined, size: 20),
-              label: const Text('평점 남기기'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                backgroundColor: AppColors.violet,
-                foregroundColor: AppColors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

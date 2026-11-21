@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
@@ -17,6 +19,7 @@ import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/edit_profile_view_model.dart';
+import 'package:movielog/view_models/favorite_detail_view_model.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
@@ -36,11 +39,11 @@ String? authRedirect(AuthStatus status, String location) {
 
   return switch (status) {
     // 토큰 확인 중 또는 확인 실패(재시도 버튼): 스플래시 유지
-    AuthStatus.initializing || AuthStatus.retryRequired =>
-      atStart ? null : '/start',
+    AuthStatus.initializing ||
+    AuthStatus.retryRequired => atStart ? null : '/start',
     // 로그아웃 또는 로그인 요청 중: 로그인·회원가입만 허용
-    AuthStatus.signedOut || AuthStatus.authenticating =>
-      atPublic ? null : '/login',
+    AuthStatus.signedOut ||
+    AuthStatus.authenticating => atPublic ? null : '/login',
     // 로그인됨: 스플래시·로그인·회원가입은 홈으로
     AuthStatus.signedIn => (atStart || atPublic) ? '/home' : null,
   };
@@ -94,15 +97,11 @@ class AppRouter {
           );
         },
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',
         builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
-          create: (context) =>
-              SignUpViewModel(context.read<SignUpService>()),
+          create: (context) => SignUpViewModel(context.read<SignUpService>()),
           child: const SignUpScreen(),
         ),
       ),
@@ -187,13 +186,46 @@ class AppRouter {
           if (extra is! TmdbMovieDto) {
             return const MovieDetailScreen(movie: null); // 영화를 찾을 수 없음 화면
           }
-          return ChangeNotifierProvider<MovieDetailViewModel>(
-            create: (context) => MovieDetailViewModel(
-              context.read<RatingApiService>(),
-              context.read<AuthViewModel>(),
-              context.read<SessionRatings>(),
-              extra,
-            ),
+          final auth = context.watch<AuthViewModel>();
+          final member = auth.member;
+          final guard = context.read<SessionGuard>();
+
+          // 내 정보(email)가 준비되고 현재 세션과 일치할 때까지 기다립니다.
+          if (member == null || guard.accountId != member.email) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: Center(
+                child: auth.memberStatus == MemberLoadStatus.error
+                    ? MovieLogButton(
+                        label: '다시 시도',
+                        onPressed: () => auth.loadMember(force: true),
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          return MultiProvider(
+            // 계정이나 세션이 바뀌면 ViewModel을 새로 만들어 이전 상태를 버립니다.
+            key: ValueKey('${member.email}:${guard.generation}'),
+            providers: [
+              ChangeNotifierProvider<MovieDetailViewModel>(
+                create: (context) => MovieDetailViewModel(
+                  context.read<RatingApiService>(),
+                  context.read<AuthViewModel>(),
+                  context.read<SessionRatings>(),
+                  extra,
+                ),
+              ),
+              ChangeNotifierProvider<FavoriteDetailViewModel>(
+                create: (context) => FavoriteDetailViewModel(
+                  movieId: extra.id,
+                  favoriteApi: context.read<FavoriteApiService>(),
+                  sessionGuard: guard,
+                  accountId: member.email,
+                ),
+              ),
+            ],
             child: MovieDetailScreen(movie: extra),
           );
         },
