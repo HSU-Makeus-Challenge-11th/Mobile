@@ -1,0 +1,6 @@
+# 내 컴퓨터의 MySQL
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/umc_movie
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD}
