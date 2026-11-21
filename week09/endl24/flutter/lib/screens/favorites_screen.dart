@@ -241,7 +241,7 @@ class _MissingMovieCard extends StatelessWidget {
         const SizedBox(width: 8),
         MovieLogButton(
           label: '정보 재조회',
-          width: 110,
+          width: 132, // 110이면 "정보 재조회"가 두 줄로 줄바꿈됩니다.
           height: 36,
           isLoading: isRetrying,
           onPressed: onRetry,
