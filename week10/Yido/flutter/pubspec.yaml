@@ -52,6 +52,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -68,3 +70,10 @@ flutter:
     - family: Manrope
       fonts:
         - asset: assets/fonts/Manrope-VariableFont_wght.ttf
+
+# 10주차: 1024 원본 한 장으로 플랫폼별 앱 아이콘을 만든다
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  remove_alpha_ios: true
