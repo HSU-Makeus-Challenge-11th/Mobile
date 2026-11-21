@@ -82,7 +82,8 @@ flutter_launcher_icons:
 # 10주차: Flutter 엔진이 뜨기 전 OS가 보여 주는 시작 화면. 앱 아이콘 원본을 그대로 쓴다
 flutter_native_splash:
   color: "#FAF9F5"
-  image: assets/icon/app_icon.png
+  # 4배 해상도로 그려지므로 클래퍼보드 너비가 W10 프레임처럼 83이 되게 줄인 같은 아이콘을 쓴다
+  image: assets/icon/splash_icon.png
   android_12:
     color: "#FAF9F5"
   web: false # 이번 주는 Android·iOS만 다룬다
