@@ -1,4 +1,4 @@
-package com.example.movielog
+package com.makeus.movielog
 
 import io.flutter.embedding.android.FlutterActivity
 

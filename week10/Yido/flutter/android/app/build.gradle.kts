@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.movielog"
+    namespace = "com.makeus.movielog"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +15,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.movielog"
+        // 기기와 스토어에서 앱을 구분하는 이름. 소스 패키지(namespace)와 따로 둔다
+        applicationId = "com.makeus.movielog.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
