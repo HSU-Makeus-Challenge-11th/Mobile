@@ -10,6 +10,7 @@ import com.umc.movie.dto.NicknameCheckResponse;
 import com.umc.movie.dto.SignUpRequest;
 import com.umc.movie.interceptor.AuthInterceptor;
 import com.umc.movie.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,6 +42,10 @@ public class MemberController {
         return memberService.checkEmail(email);
     }
 
+    @Operation(
+            summary = "회원가입",
+            description = "이메일, 비밀번호, 닉네임으로 회원을 등록합니다. 토큰이 없어도 호출할 수 있는 공개 API입니다."
+    )
     @PostMapping
     public ResponseEntity<ApiResponse<MemberResponse>> signUp(
             @Valid @RequestBody SignUpRequest request
