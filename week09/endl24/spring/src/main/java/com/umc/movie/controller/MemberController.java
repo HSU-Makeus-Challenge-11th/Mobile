@@ -1,6 +1,6 @@
 package com.umc.movie.controller;
 
-import com.umc.movie.config.OpenApiConfig;
+import com.umc.movie.controller.docs.MemberApiDocs;
 import com.umc.movie.dto.ApiResponse;
 import com.umc.movie.dto.EmailCheckResponse;
 import com.umc.movie.dto.MemberInfoResponse;
@@ -11,7 +11,6 @@ import com.umc.movie.dto.SignUpRequest;
 import com.umc.movie.interceptor.AuthInterceptor;
 import com.umc.movie.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members")
-public class MemberController {
+public class MemberController implements MemberApiDocs {
     private final MemberService memberService;
 
     @GetMapping("/nickname/{nickname}")
@@ -55,7 +54,7 @@ public class MemberController {
                 .body(ApiResponse.created("회원가입에 성공했습니다.", response));
     }
 
-    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH) // Swagger에 "토큰 필요"로 표시
+    @Override
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<MemberInfoResponse>> getMyInfo(
             // 인터셉터가 request.setAttribute("memberId", ...)로 담아둔 값을 꺼냅니다
@@ -65,7 +64,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.ok("회원 정보를 조회했습니다.", response));
     }
 
-    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH) // Swagger에 "토큰 필요"로 표시
+    @Override
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<MemberInfoResponse>> updateMyInfo(
             @RequestAttribute(AuthInterceptor.MEMBER_ID) Long memberId,

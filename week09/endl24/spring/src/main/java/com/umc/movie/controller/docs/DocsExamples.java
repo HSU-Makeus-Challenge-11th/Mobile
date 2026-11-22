@@ -90,4 +90,40 @@ final class DocsExamples {
               "result": null
             }
             """;
+
+    static final String COMMON4001_NICKNAME = """
+            {
+              "isSuccess": false,
+              "code": "COMMON4001",
+              "message": "닉네임은 2자 이상 12자 이하여야 합니다.",
+              "result": null
+            }
+            """;
+
+    static final String MEMBER409_1 = """
+            {
+              "isSuccess": false,
+              "code": "MEMBER409_1",
+              "message": "이미 사용 중인 닉네임입니다.",
+              "result": null
+            }
+            """;
+
+    static final String RATING403_1 = """
+            {
+              "isSuccess": false,
+              "code": "RATING403_1",
+              "message": "본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.",
+              "result": null
+            }
+            """;
+
+    static final String RATING404_1 = """
+            {
+              "isSuccess": false,
+              "code": "RATING404_1",
+              "message": "해당 평점을 찾을 수 없습니다.",
+              "result": null
+            }
+            """;
 }
