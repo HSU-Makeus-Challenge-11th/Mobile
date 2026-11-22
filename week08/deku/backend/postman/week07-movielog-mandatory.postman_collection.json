@@ -1,0 +1,590 @@
+{
+  "info": {
+    "name": "UMC Week07 MovieLog Mandatory Scenario",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 A 회원가입",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/members",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"a-{{runId}}@umc.com\",\"password\":\"Password!1\",\"nickname\":\"A{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"runId\", Date.now().toString().slice(-10));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 B 회원가입",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/members",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"b-{{runId}}@umc.com\",\"password\":\"Password!1\",\"nickname\":\"B{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 A 로그인",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"a-{{runId}}@umc.com\",\"password\":\"Password!1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));",
+              "pm.collectionVariables.set(\"tokenA\", pm.response.json().result.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 B 로그인",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"b-{{runId}}@umc.com\",\"password\":\"Password!1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));",
+              "pm.collectionVariables.set(\"tokenB\", pm.response.json().result.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 내 정보 조회",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/members/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 내 정보 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/members/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members",
+            "me"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nickname\":\"C{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 A 평점 등록",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550,\"score\":5,\"comment\":\"좋아요\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));",
+              "pm.collectionVariables.set(\"ratingId\", pm.response.json().result.ratingId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 중복 등록",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550,\"score\":5,\"comment\":\"중복\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"RATING409_1\", () => pm.expect(pm.response.json().code).to.eql(\"RATING409_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 본인 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings",
+            "{{ratingId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"score\":4,\"comment\":\"다시 봐도 좋아요\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 타인 수정 거절",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings",
+            "{{ratingId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"score\":3,\"comment\":\"타인\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"RATING403_1\", () => pm.expect(pm.response.json().code).to.eql(\"RATING403_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 토큰 없이 수정 거절",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings",
+            "{{ratingId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"score\":3,\"comment\":\"토큰 없음\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"AUTH401_2\", () => pm.expect(pm.response.json().code).to.eql(\"AUTH401_2\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 없는 평점 삭제",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings/99999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings",
+            "99999"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"RATING404_1\", () => pm.expect(pm.response.json().code).to.eql(\"RATING404_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 본인 평점 삭제",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings/{{ratingId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings",
+            "{{ratingId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:18080"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "tokenA",
+      "value": ""
+    },
+    {
+      "key": "tokenB",
+      "value": ""
+    },
+    {
+      "key": "ratingId",
+      "value": ""
+    }
+  ]
+}

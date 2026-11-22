@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "UMC Week06 MovieLog API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "memberId",
+      "value": "1"
+    },
+    {
+      "key": "ratingId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "회원가입 성공",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"week06@umc.com\",\n  \"password\": \"Umc!1234\",\n  \"nickname\": \"week06user\"\n}"
+        },
+        "url": "{{baseUrl}}/members"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.result?.memberId) pm.collectionVariables.set('memberId', body.result.memberId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "회원가입 검증 실패",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"not-email\",\n  \"password\": \"password\",\n  \"nickname\": \"a\"\n}"
+        },
+        "url": "{{baseUrl}}/members"
+      }
+    },
+    {
+      "name": "평점 등록 성공",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 27205,\n  \"score\": 5,\n  \"comment\": \"재미있게 본 영화입니다.\"\n}"
+        },
+        "url": "{{baseUrl}}/members/{{memberId}}/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.result?.ratingId) pm.collectionVariables.set('ratingId', body.result.ratingId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "평점 수정 성공",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 4,\n  \"comment\": \"다시 보니 새로운 장면이 보였습니다.\"\n}"
+        },
+        "url": "{{baseUrl}}/members/{{memberId}}/ratings/{{ratingId}}"
+      }
+    },
+    {
+      "name": "평점 삭제 성공",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/members/{{memberId}}/ratings/{{ratingId}}"
+      }
+    },
+    {
+      "name": "존재하지 않는 회원의 평점 등록 실패",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 27205,\n  \"score\": 5,\n  \"comment\": null\n}"
+        },
+        "url": "{{baseUrl}}/members/999999/ratings"
+      }
+    },
+    {
+      "name": "잘못된 별점 등록 실패",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 27205,\n  \"score\": 6,\n  \"comment\": null\n}"
+        },
+        "url": "{{baseUrl}}/members/{{memberId}}/ratings"
+      }
+    },
+    {
+      "name": "유저별 평점 조회",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/{{memberId}}/ratings"
+      }
+    }
+  ]
+}
