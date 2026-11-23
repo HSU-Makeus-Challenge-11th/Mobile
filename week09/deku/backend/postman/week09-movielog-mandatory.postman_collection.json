@@ -1,0 +1,540 @@
+{
+  "info": {
+    "name": "UMC Week09 MovieLog Swagger and Regression Scenario",
+    "description": "01부터 12까지 순서대로 실행합니다. 01이 새 계정을 만들고 02가 tokenA를 저장합니다. 로컬 서버만 대상으로 사용하고 토큰·비밀번호는 캡처에서 가리세요.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 회원가입 (새 계정)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/members",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"a-{{runId}}@umc.com\",\"password\":\"Password!1\",\"nickname\":\"A{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));",
+              "pm.collectionVariables.set(\"memberId\", pm.response.json().result.memberId);"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"runId\", Date.now().toString().slice(-10));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 로그인 (토큰 저장)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"a-{{runId}}@umc.com\",\"password\":\"Password!1\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));",
+              "pm.collectionVariables.set(\"tokenA\", pm.response.json().result.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 OpenAPI 문서 공개/인증 확인",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v3/api-docs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v3",
+            "api-docs"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const spec = pm.response.json();",
+              "pm.test(\"Bearer 인증 스키마\", () => pm.expect(spec.components.securitySchemes.bearerAuth.scheme).to.eql(\"bearer\"));",
+              "pm.test(\"회원가입은 공개\", () => pm.expect(spec.paths[\"/members\"].post.security).to.be.undefined);",
+              "pm.test(\"로그인은 공개\", () => pm.expect(spec.paths[\"/auth/login\"].post.security).to.be.undefined);",
+              "pm.test(\"즐겨찾기는 인증 필요\", () => pm.expect(spec.paths[\"/favorites\"].post.security[0]).to.have.property(\"bearerAuth\"));",
+              "pm.test(\"평점 등록은 인증 필요\", () => pm.expect(spec.paths[\"/ratings\"].post.security[0]).to.have.property(\"bearerAuth\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 토큰 없이 즐겨찾기 등록 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/favorites",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "favorites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"AUTH401_2\", () => pm.expect(pm.response.json().code).to.eql(\"AUTH401_2\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 즐겨찾기 등록 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/favorites",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "favorites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));",
+              "pm.test(\"영화 550 등록\", () => pm.expect(pm.response.json().result.movieId).to.eql(550));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 즐겨찾기 중복 등록 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/favorites",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "favorites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"FAVORITE409_1\", () => pm.expect(pm.response.json().code).to.eql(\"FAVORITE409_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 토큰 없이 평점 등록 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":560,\"score\":4,\"comment\":\"좋아요\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"AUTH401_2\", () => pm.expect(pm.response.json().code).to.eql(\"AUTH401_2\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 평점 등록 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":560,\"score\":4,\"comment\":\"좋아요\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test(\"COMMON201\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON201\"));",
+              "pm.test(\"영화 560 평점\", () => pm.expect(pm.response.json().result.movieId).to.eql(560));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 평점 중복 등록 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ratings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":560,\"score\":4,\"comment\":\"좋아요\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"RATING409_1\", () => pm.expect(pm.response.json().code).to.eql(\"RATING409_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 즐겨찾기 중복으로 영화 기록 실패 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/movie-records",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "movie-records"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"movieId\":550,\"score\":5,\"comment\":\"롤백 확인\",\"addToFavorites\":true}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"FAVORITE409_1\", () => pm.expect(pm.response.json().code).to.eql(\"FAVORITE409_1\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 실패 후 평점이 남지 않았는지 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/members/{{memberId}}/ratings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "members",
+            "{{memberId}}",
+            "ratings"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));",
+              "const ratings = pm.response.json().result;",
+              "pm.test(\"실패한 영화 550 평점 없음\", () => pm.expect(ratings.some(r => r.movieId === 550)).to.be.false);",
+              "pm.test(\"성공한 영화 560 평점 있음\", () => pm.expect(ratings.some(r => r.movieId === 560)).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 내 즐겨찾기 유지 확인",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/favorites",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "favorites"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"COMMON200\", () => pm.expect(pm.response.json().code).to.eql(\"COMMON200\"));",
+              "pm.test(\"영화 550 즐겨찾기 유지\", () => pm.expect(pm.response.json().result.some(f => f.movieId === 550)).to.be.true);"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "memberId",
+      "value": ""
+    },
+    {
+      "key": "tokenA",
+      "value": ""
+    }
+  ]
+}
