@@ -6,14 +6,17 @@ import 'package:provider/provider.dart';
 import '../data/models/rating_dto.dart';
 import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
+import '../view_models/favorite_detail_view_model.dart';
 import '../view_models/movie_detail_view_model.dart';
+import '../widgets/favorite_button.dart';
 import '../widgets/rating_dialog.dart';
 import '../widgets/tmdb_poster_image.dart';
 
 const _outline = Color(0xFFCBC4D2);
 
 /// 영화 상세 화면. 영화 DTO와 평점 등록 상태는 MovieDetailLoader가 제공한 MovieDetailViewModel에서 읽는다.
-/// 이 화면은 평점 **등록**(POST /v7/ratings)만 하고, 수정·삭제는 마이페이지의 "내가 등록한 평점" 화면에서 한다.
+/// 이 화면은 평점 **등록**(POST /v8/ratings)만 하고, 수정·삭제는 마이페이지의 "내가 등록한 평점" 화면에서 한다.
+/// 9주차: 즐겨찾기는 화면 내부 mock 상태 대신 Route가 제공한 FavoriteDetailViewModel(/v8/favorites)로 관리한다.
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key});
 
@@ -22,12 +25,13 @@ class MovieDetailScreen extends StatefulWidget {
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  // 즐겨찾기는 API 없이 화면 내부 상태로만 관리한다.
-  bool _isFavorite = false;
-
-  void _toggleFavorite() {
-    setState(() => _isFavorite = !_isFavorite);
-    _showSnackBar(_isFavorite ? '즐겨찾기에 추가했어요.' : '즐겨찾기에서 삭제했어요.');
+  @override
+  void initState() {
+    super.initState();
+    // 화면이 처음 만들어질 때 서버의 즐겨찾기 여부를 한 번 조회한다. build()에서는 조회하지 않는다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<FavoriteDetailViewModel>().load();
+    });
   }
 
   Future<void> _openRatingDialog() async {
@@ -84,8 +88,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         ),
       ),
       bottomNavigationBar: _ActionButtons(
-        isFavorite: _isFavorite,
-        onFavoriteTap: _toggleFavorite,
         // 보호 화면이므로 이 화면은 signedIn 상태에서만 열린다. 이미 남긴 평점이 있으면 등록을 막는다.
         onRateTap: viewModel.myRating == null ? _openRatingDialog : null,
       ),
@@ -186,27 +188,41 @@ class _InformationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            movie.title,
-            style: const TextStyle(
-              fontSize: 28,
-              height: 36 / 28,
-              fontWeight: FontWeight.w500,
-              color: AppColors.neutral900,
-            ),
-          ),
-          if (year != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              year,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 20 / 14,
-                letterSpacing: 0.25,
-                color: AppColors.onSurfaceVariant,
+          // 제목·연도 오른쪽에 즐겨찾기(북마크) 버튼을 둔다.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      movie.title,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        height: 36 / 28,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.neutral900,
+                      ),
+                    ),
+                    if (year != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        year,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 20 / 14,
+                          letterSpacing: 0.25,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              const FavoriteButton(),
+            ],
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -336,16 +352,9 @@ class _SynopsisSection extends StatelessWidget {
   }
 }
 
-// 하단 고정 버튼: 즐겨찾기 / 평점 남기기
+// 하단 고정 버튼: 평점 남기기 (즐겨찾기는 제목 옆 FavoriteButton으로 옮겼다)
 class _ActionButtons extends StatelessWidget {
-  const _ActionButtons({
-    required this.isFavorite,
-    required this.onFavoriteTap,
-    required this.onRateTap,
-  });
-
-  final bool isFavorite;
-  final VoidCallback onFavoriteTap;
+  const _ActionButtons({required this.onRateTap});
 
   /// null이면 비활성화(이미 이 세션에서 평점을 남김).
   final VoidCallback? onRateTap;
@@ -368,46 +377,22 @@ class _ActionButtons extends StatelessWidget {
         top: false,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: OutlinedButton.icon(
-                    onPressed: onFavoriteTap,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary500,
-                      side: const BorderSide(color: AppColors.primary500),
-                      shape: const StadiumBorder(),
-                    ),
-                    icon: Icon(
-                      isFavorite ? Icons.bookmark : Icons.bookmark_border,
-                      size: 18,
-                    ),
-                    label: const Text('즐겨찾기', style: _labelStyle),
-                  ),
-                ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: onRateTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary500,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.neutral600,
+                disabledForegroundColor: AppColors.neutral800,
+                shape: const StadiumBorder(),
+                elevation: 1,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: onRateTap,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary500,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: AppColors.neutral600,
-                      disabledForegroundColor: AppColors.neutral800,
-                      shape: const StadiumBorder(),
-                      elevation: 1,
-                    ),
-                    icon: const Icon(Icons.star_outline, size: 20),
-                    label: const Text('평점 남기기', style: _labelStyle),
-                  ),
-                ),
-              ),
-            ],
+              icon: const Icon(Icons.star_outline, size: 20),
+              label: const Text('평점 남기기', style: _labelStyle),
+            ),
           ),
         ),
       ),

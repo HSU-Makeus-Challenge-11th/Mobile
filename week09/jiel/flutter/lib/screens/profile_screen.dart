@@ -62,7 +62,7 @@ class ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    // GET /v7/members/me 결과(이메일·닉네임)를 구독한다. 수정 성공 시 바로 다시 그려진다.
+    // GET /v8/members/me 결과(이메일·닉네임)를 구독한다. 수정 성공 시 바로 다시 그려진다.
     final member = context.select<AuthViewModel, ({String nickname, String email})?>(
       (auth) => auth.member == null
           ? null
@@ -202,7 +202,7 @@ class GenreChip extends StatelessWidget {
   }
 }
 
-/// 마이페이지 하단 메뉴. 「내가 등록한 평점」 행을 탭하면 자식 화면(/my/ratings)을 push한다.
+/// 마이페이지 하단 메뉴. 「내가 등록한 평점」(/my/ratings), 「내 즐겨찾기」(/my/favorites) 행을 탭하면 자식 화면을 push한다.
 class ProfileMenu extends StatelessWidget {
   const ProfileMenu({super.key});
 
@@ -224,6 +224,17 @@ class ProfileMenu extends StatelessWidget {
             subtitle:
                 '이번 로그인에서 등록한 평점 ${context.watch<MyRatingsViewModel>().ratings.length}개',
             onTap: () => context.push('/my/ratings'),
+          ),
+          const Divider(height: 1, color: AppColors.primary200),
+          _ProfileMenuTile(
+            icon: Icons.bookmark_border,
+            title: '내 즐겨찾기',
+            // 내 정보(member)가 준비된 뒤에만 진입할 수 있다. 즐겨찾기 화면이 email로 세션을 구분하기 때문이다.
+            onTap: context.select<AuthViewModel, bool>(
+                  (auth) => auth.member != null,
+                )
+                ? () => context.push('/my/favorites')
+                : null,
           ),
           // MovieLogButton width 비교 화면은 디버그 빌드에서만 노출한다.
           if (kDebugMode) ...[
@@ -251,7 +262,9 @@ class _ProfileMenuTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
-  final VoidCallback onTap;
+
+  /// null이면 행을 비활성화한다.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +286,7 @@ class _ProfileMenuTile extends StatelessWidget {
         Icons.chevron_right,
         color: AppColors.onSurfaceVariant,
       ),
+      enabled: onTap != null,
       onTap: onTap,
     );
   }
