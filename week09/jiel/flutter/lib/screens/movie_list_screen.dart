@@ -3,13 +3,19 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
+import '../view_models/load_phase.dart';
 import '../view_models/movie_list_view_model.dart';
+import '../view_models/paged_movies_view_model.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/movie_grid.dart';
+import '../widgets/movie_page_footer.dart';
 import '../widgets/top_app_bar.dart';
 
+/// 영화 목록 화면.
+/// 9주차: 최대 30개 수집 대신 첫 page만 불러오고, 카드 목록 아래 footer의 "더 보기"로 한 page씩 붙인다.
+/// 장르 칩 상태는 MovieListViewModel, 영화 목록·page 상태는 PagedMoviesViewModel이 가진다.
 class MovieListScreen extends StatelessWidget {
   const MovieListScreen({super.key});
 
@@ -17,33 +23,48 @@ class MovieListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceBase,
-      appBar: const TopAppBar(title: '영화'),
+      appBar: TopAppBar(
+        title: '영화',
+        actions: [
+          IconButton(
+            tooltip: '영화 검색',
+            onPressed: () => context.push('/movies/search'),
+            icon: const Icon(Icons.search),
+            color: AppColors.onSurfaceVariant,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // 1. 장르 필터 칩 (가로 ListView)
           const _GenreChipBar(),
-          // 2. 영화 그리드 (2열 GridView)
+          // 2. 영화 그리드 (2열) + 더 보기 footer
           Expanded(
-            child: Consumer<MovieListViewModel>(
-              builder: (context, viewModel, child) {
-                return switch (viewModel.status) {
-                  MovieListLoadStatus.idle ||
-                  MovieListLoadStatus.loading => const LoadingView(),
-                  MovieListLoadStatus.error => ErrorView(
-                    message: viewModel.message ?? '영화를 불러오지 못했어요.',
-                    onRetry: () => context.read<MovieListViewModel>().retry(),
+            child: Consumer<PagedMoviesViewModel>(
+              builder: (context, paged, child) {
+                return switch (paged.phase) {
+                  LoadPhase.idle || LoadPhase.loading => const LoadingView(),
+                  LoadPhase.error => ErrorView(
+                    message: paged.errorMessage ?? '영화를 불러오지 못했어요.',
+                    onRetry: () {
+                      // 장르 목록도 못 받았다면 함께 다시 불러온다.
+                      context.read<MovieListViewModel>().loadGenres();
+                      paged.reload();
+                    },
                   ),
-                  MovieListLoadStatus.empty => const EmptyView(
+                  LoadPhase.empty => const EmptyView(
                     message: '해당 장르의 영화가 없어요.',
                   ),
-                  MovieListLoadStatus.success => MovieGrid(
-                    movies: viewModel.movies,
+                  LoadPhase.ready => MovieGrid(
+                    movies: paged.movies,
                     genreNames: {
-                      for (final genre in viewModel.genres)
+                      for (final genre
+                          in context.watch<MovieListViewModel>().genres)
                         genre.id: genre.name,
                     },
                     onTap: (movie) =>
                         context.push('/movie/${movie.id}', extra: movie),
+                    footer: MoviePageFooter(vm: paged),
                   ),
                 };
               },
@@ -83,10 +104,15 @@ class _GenreChipBar extends StatelessWidget {
                   child: _GenreChip(
                     label: label,
                     selected: viewModel.selectedGenreId == genreId,
-                    // 요청 중에는 null을 넘겨 칩을 비활성화한다.
-                    onTap: viewModel.isLoading
-                        ? null
-                        : () => viewModel.selectGenre(genreId),
+                    // 장르를 바꾸면 이전 목록을 비우고 첫 page부터 다시 불러온다.
+                    // 요청 중에 바꿔도 PagedMoviesViewModel이 generation으로 이전 장르의 늦은 응답을 버린다.
+                    onTap: () {
+                      if (viewModel.selectedGenreId == genreId) return;
+                      viewModel.selectGenre(genreId);
+                      context.read<PagedMoviesViewModel>().loadInitial(
+                        genreId: genreId,
+                      );
+                    },
                   ),
                 );
               },
