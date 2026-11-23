@@ -7,7 +7,7 @@ import 'package:movielog/view_models/submit_status.dart';
 export 'package:movielog/view_models/submit_status.dart';
 
 /// 영화 상세 화면 ViewModel. 현재 화면의 영화 DTO와 **평점 등록** 상태만 관리한다.
-/// 8주차: memberId 대신 로그인 토큰으로 등록한다(POST /v7/ratings).
+/// 8주차: memberId 대신 로그인 토큰으로 등록한다(POST /v8/ratings).
 /// 실제 요청과 세션별 평점 보관은 앱 최상단의 MyRatingsViewModel이 맡는다.
 class MovieDetailViewModel extends ChangeNotifier {
   MovieDetailViewModel(this._ratings, this.movie) {

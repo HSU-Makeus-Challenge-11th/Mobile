@@ -78,7 +78,7 @@ class MyRatingsViewModel extends ChangeNotifier {
     return ratingErrorMessage(error);
   }
 
-  /// POST /v7/ratings. 성공하면 null, 실패하면 안내 문구를 돌려준다.
+  /// POST /v8/ratings. 성공하면 null, 실패하면 안내 문구를 돌려준다.
   Future<String?> createRating({
     required TmdbMovieDto movie,
     required int score,
@@ -113,7 +113,7 @@ class MyRatingsViewModel extends ChangeNotifier {
     }
   }
 
-  /// PATCH /v7/ratings/{ratingId}. score·comment를 함께 보낸다(전체 교체).
+  /// PATCH /v8/ratings/{ratingId}. score·comment를 함께 보낸다(전체 교체).
   Future<String?> updateRating({
     required int ratingId,
     required int score,
@@ -149,7 +149,7 @@ class MyRatingsViewModel extends ChangeNotifier {
     }
   }
 
-  /// DELETE /v7/ratings/{ratingId}. 성공은 200 + result null.
+  /// DELETE /v8/ratings/{ratingId}. 성공은 200 + result null.
   Future<String?> deleteRating(int ratingId) async {
     if (isWriting) return '이전 요청을 처리하고 있어요.';
     final version = _auth.sessionVersion;

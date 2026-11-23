@@ -26,12 +26,12 @@ List<RatingDto> parseRatingList(Object? data) {
       .toList();
 }
 
-/// 워크북 백엔드(v7) 평점 API.
+/// 워크북 백엔드 평점 API. 9주차부터 /v8 경로를 쓴다(계약은 v7과 같다).
 ///
-/// | 동작 | v6 | v7 |
-/// | 등록 | POST /v6/members/{memberId}/ratings | POST /v7/ratings (201, result=Rating) |
-/// | 수정 | PATCH /v6/members/{memberId}/ratings/{id} | PATCH /v7/ratings/{id} (200, result=Rating) |
-/// | 삭제 | DELETE ... 204 body 없음 | DELETE /v7/ratings/{id} (200, result=null) |
+/// | 동작 | v6 | v7~v8 |
+/// | 등록 | POST /v6/members/{memberId}/ratings | POST /v8/ratings (201, result=Rating) |
+/// | 수정 | PATCH /v6/members/{memberId}/ratings/{id} | PATCH /v8/ratings/{id} (200, result=Rating) |
+/// | 삭제 | DELETE ... 204 body 없음 | DELETE /v8/ratings/{id} (200, result=null) |
 ///
 /// 사용자 식별은 path의 memberId가 아니라 `Authorization: Bearer ...`(AuthInterceptor)로 한다.
 /// 공개 조회는 공개용 Client, 등록·수정·삭제는 보호용 Client로 보낸다.
@@ -43,13 +43,13 @@ class RatingApiService {
 
   /// 공개 유저별 평점 조회. v7 로그인/내 정보 응답에 memberId가 없어 현재는 화면에서 쓰지 않는다.
   Future<List<RatingDto>> fetchMemberRatings(int memberId) async {
-    final response = await _publicDio.get('/v7/members/$memberId/ratings');
+    final response = await _publicDio.get('/v8/members/$memberId/ratings');
     return parseRatingList(response.data);
   }
 
   /// 등록 body에는 memberId를 넣지 않는다.
   Future<RatingDto> createRating(CreateRatingRequest request) async {
-    final response = await _authDio.post('/v7/ratings', data: request.toJson());
+    final response = await _authDio.post('/v8/ratings', data: request.toJson());
     return parseRatingResult(response.data);
   }
 
@@ -61,7 +61,7 @@ class RatingApiService {
     String? comment,
   }) async {
     final response = await _authDio.patch(
-      '/v7/ratings/$ratingId',
+      '/v8/ratings/$ratingId',
       data: {'score': score, 'comment': comment},
     );
     return parseRatingResult(response.data);
@@ -69,7 +69,7 @@ class RatingApiService {
 
   /// 삭제 성공은 204가 아니라 result=null인 200 wrapper다.
   Future<void> deleteRating(int ratingId) async {
-    final response = await _authDio.delete('/v7/ratings/$ratingId');
+    final response = await _authDio.delete('/v8/ratings/$ratingId');
     if (response.statusCode != 200) {
       throw StateError('예상하지 못한 삭제 응답: ${response.statusCode}');
     }

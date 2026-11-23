@@ -6,7 +6,7 @@ import '../theme/app_colors.dart';
 import '../view_models/auth_view_model.dart';
 
 /// 홈·영화·마이 세 탭을 감싸는 ShellRoute 화면.
-/// 탭을 바꿔도 State가 유지되므로 initState에서 내 정보(GET /v7/members/me)를 한 번만 불러온다.
+/// 탭을 바꿔도 State가 유지되므로 initState에서 내 정보(GET /v8/members/me)를 한 번만 불러온다.
 /// 로그아웃 후 다시 로그인하면 새로 만들어져 다시 호출된다.
 class MainScreen extends StatefulWidget {
   const MainScreen({

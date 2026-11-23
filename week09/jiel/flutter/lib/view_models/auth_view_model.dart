@@ -15,7 +15,7 @@ enum MemberLoadStatus { idle, loading, success, error }
 /// 앱 전체의 MovieLog 사용자 세션 상태.
 ///
 /// - 신규 로그인: 로그인 API 성공 → 토큰 저장 → signedIn → MainScreen.loadMember()
-/// - 앱 재시작: 토큰 읽기 → GET /v7/members/me 성공 뒤에만 signedIn (restoreSession)
+/// - 앱 재시작: 토큰 읽기 → GET /v8/members/me 성공 뒤에만 signedIn (restoreSession)
 /// - 세션 만료(AUTH401_2/3/4): _clearCurrentSession(expired: true) → signedOut → Router가 /login
 /// - 직접 로그아웃: _clearCurrentSession(expired: false)
 ///
@@ -73,7 +73,7 @@ class AuthViewModel extends ChangeNotifier {
         debugPrint('[Auth] 저장된 토큰 없음 → signedOut');
         status = AuthStatus.signedOut;
       } else {
-        debugPrint('[Auth] 저장된 토큰 발견(값 비공개) → GET /v7/members/me로 검증');
+        debugPrint('[Auth] 저장된 토큰 발견(값 비공개) → GET /v8/members/me로 검증');
         final verifiedMember = await _memberApi.fetchMe();
         if (!_isCurrent(version)) return;
         member = verifiedMember;

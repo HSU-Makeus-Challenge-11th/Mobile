@@ -1,6 +1,6 @@
 import 'common_response.dart';
 
-/// GET/PATCH /v7/members/me 응답 result. v7 계약은 이메일·닉네임·가입일만 내려준다(memberId 없음).
+/// GET/PATCH /v8/members/me 응답 result. v7 계약은 이메일·닉네임·가입일만 내려준다(memberId 없음).
 class MemberInfo {
   const MemberInfo({
     required this.email,

@@ -7,7 +7,7 @@ import '../view_models/auth_view_model.dart';
 import '../view_models/edit_profile_view_model.dart';
 import '../widgets/movielog_button.dart';
 
-/// 프로필 수정(/my/profile/edit). 이메일은 읽기 전용, 닉네임만 PATCH /v7/members/me로 수정한다.
+/// 프로필 수정(/my/profile/edit). 이메일은 읽기 전용, 닉네임만 PATCH /v8/members/me로 수정한다.
 /// - 성공: AuthViewModel.member 교체 → Snackbar → 마이페이지 복귀
 /// - 입력/중복 오류: 화면에 남아 필드 아래 오류(입력값 유지)
 /// - 401: 세션 정리 → Router가 /login
