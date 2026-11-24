@@ -54,6 +54,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -114,3 +115,12 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true # App Store는 투명 배경이 있는 아이콘을 받지 않는다
+
+# 10주차: Flutter 엔진이 뜨기 전에 OS가 보여 주는 네이티브 시작 화면 (dart run flutter_native_splash:create)
+# 8주차 StartScreen(세션 확인 화면)과는 다른 화면이다.
+flutter_native_splash:
+  color: "#FAF9F5" # AppColors.warmWhite
+  image: assets/icon/app_icon.png
+  android_12: # Android 12 이상은 위 color·image 대신 이 섹션을 쓰고, 가운데에는 런처 아이콘이 표시된다
+    color: "#FAF9F5"
+  web: false # 이번 주는 Android·iOS만 다룬다
