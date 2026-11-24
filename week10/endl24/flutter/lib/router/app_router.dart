@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/services/app_info_service.dart';
 import 'package:movielog/data/services/favorite_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
+import 'package:movielog/screens/about_screen.dart';
 import 'package:movielog/screens/edit_profile_screen.dart';
 import 'package:movielog/screens/favorites_screen.dart';
 import 'package:movielog/screens/home_screen.dart';
@@ -19,6 +21,7 @@ import 'package:movielog/screens/profile_screen.dart';
 import 'package:movielog/screens/sign_up_screen.dart';
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
+import 'package:movielog/view_models/about_view_model.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/view_models/edit_profile_view_model.dart';
 import 'package:movielog/view_models/favorite_detail_view_model.dart';
@@ -200,6 +203,14 @@ class AppRouter {
                     ),
                   );
                 },
+              ),
+              GoRoute(
+                path: 'about', // 최종 경로: /my/about
+                parentNavigatorKey: rootNavigatorKey, // 하단 탭 없이 전체 화면
+                builder: (context, state) => ChangeNotifierProvider(
+                  create: (_) => AboutViewModel(AppInfoService())..load(),
+                  child: const AboutScreen(),
+                ),
               ),
               GoRoute(
                 path: 'profile/edit', // 최종 경로: /my/profile/edit
