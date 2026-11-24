@@ -116,6 +116,11 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true # App Store는 투명 배경이 있는 아이콘을 받지 않는다
+  # Challenge B: Android 8.0+ 어댑티브 아이콘. 배경은 AppColors.warmWhite, 전경은 로고만 남긴 투명 PNG
+  adaptive_icon_background: "#FAF9F5"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  # 전경 이미지에 안전 영역 여백을 이미 넣었으므로 패키지 기본 여백(16%)을 더하지 않는다
+  adaptive_icon_foreground_inset: 0
 
 # 10주차: Flutter 엔진이 뜨기 전에 OS가 보여 주는 네이티브 시작 화면 (dart run flutter_native_splash:create)
 # 8주차 StartScreen(세션 확인 화면)과는 다른 화면이다.
