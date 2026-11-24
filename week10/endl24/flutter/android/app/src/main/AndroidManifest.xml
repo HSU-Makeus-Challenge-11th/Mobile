@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- debug/profile Manifest에만 있던 권한. 없으면 release 앱에서 TMDB와 MovieLog API 요청이 실패한다. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="movielog"
         android:name="${applicationName}"
