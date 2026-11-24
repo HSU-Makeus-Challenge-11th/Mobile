@@ -49,3 +49,7 @@ app.*.map.json
 
 # TMDB 환경변수
 .env
+# 10주차: Android 릴리스 서명 파일 (비밀번호와 서명키는 Git에 올리지 않는다)
+android/key.properties
+*.jks
+*.keystore
