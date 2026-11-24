@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/data/models/member_info.dart';
+import 'package:movielog/screens/about_screen.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_styles.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
@@ -57,6 +58,13 @@ class ProfileScreen extends StatelessWidget {
       appBar: CommonAppBar(
         title: '내 프로필',
         actions: [
+          // 10주차: 앱 정보 진입점. 로그아웃 버튼 왼쪽에 둡니다.
+          IconButton(
+            tooltip: '앱 정보',
+            color: AppColors.violet,
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => context.push(AboutScreen.routePath),
+          ),
           TextButton(
             // 토큰과 내 정보를 지우면 Router가 /login으로 보냅니다.
             onPressed: () => context.read<AuthViewModel>().logout(),
